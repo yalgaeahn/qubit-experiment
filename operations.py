@@ -54,6 +54,8 @@ class TransmonOperations(dsl.QuantumOperations):
             the implementation of this operations is just
             `pass`.
         """
+        for signal in q.experiment_signals():
+            dsl.reserve(signal.uid)
 
     @dsl.quantum_operation
     def delay(self, q: TransmonQubit, time: float) -> None:
@@ -1153,7 +1155,7 @@ class TransmonOperations(dsl.QuantumOperations):
         #increment_oscillator_phase: float | SweepParameter | None = None,
         length: float | SweepParameter | None = None,
         pulse: dict | None = None,
-    ):
+    ) -> None:
         drive_line, params = ctrl.cr_parameters()
     
         with dsl.section(

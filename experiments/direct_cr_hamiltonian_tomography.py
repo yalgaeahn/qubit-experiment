@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 from laboneq import workflow
 from laboneq.simple import (
+    AcquisitionType,
     AveragingMode,
     Experiment,
     SectionAlignment,
@@ -38,8 +39,17 @@ if TYPE_CHECKING:
 ##########################################################################
 from krisszi_core.contrib.jsahn.analysis import hamiltonian_tomography
 from laboneq.dsl.experiment import AcquireLoopRt, Sweep, Match, Case
-from krisszi_core.contrib.jsahn.options import DirectCRHamiltonianTomographyOptions
 #######################EXPERIMENT####################################
+
+@workflow.task_options(base_class=BaseExperimentOptions)
+class DirectCRHamiltonianTomographyOptions:
+    """Base options for direct cr hamiltonian tomography experiment"""
+    acquisition_type : AcquisitionType = workflow.option_field(
+        AcquisitionType.INTEGRATION, description="Don't know why"
+    )
+
+
+
 @workflow.workflow(name="direct_cr_hamiltonian_tomography")
 def experiment_workflow(
     session: Session,
@@ -65,16 +75,17 @@ def experiment_workflow(
     """
     
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
+    ctrl = temporary_quantum_elements_from_qpu(temp_qpu, ctrl)
+    targ = temporary_quantum_elements_from_qpu(temp_qpu, targ)
 
-    
+
     
     
     
     ################################################################################################
     @workflow.task
-    @dsl.qubit_experiment #(context=False) # Declarative-Style DSL
+    @dsl.qubit_experiment(context=False) # Declarative-Style DSL
     def create_experiment(
-        #exp,
         qpu: QPU,
         ctrl: QuantumElements, 
         targ: QuantumElements,
@@ -89,7 +100,7 @@ def experiment_workflow(
         # ctrl, amplitudes = validation.validate_and_convert_qubits_sweeps(qubits=ctrl, sweep_points=amplitudes) # return list
         # targ, _amplitudes = validation.validate_and_convert_qubits_sweeps(qubits=targ, sweep_points=amplitudes) # return list
         
-        
+    
         
         #max_measure_section_length = qpu.measure_section_length(qubits) #matters when multipexing
         qop = qpu.quantum_operations
@@ -151,22 +162,14 @@ def experiment_workflow(
         amp_sweep_loop.add(basis_sweep_loop)
         acq_loop.add(amp_sweep_loop)
         exp=Experiment()
-        
         exp.add(acq_loop)
-        print(exp.get_calibration())
-        exp.set_calibration(ctrl.calibration())
         return exp
         
         
         
-    exp = create_experiment(qpu=qpu, ctrl=ctrl,targ=targ,amplitudes=amplitudes,lengths=lengths)
-  
-    #exp_calib = ctrl.calibration()
-    #print(exp_calib)
-    #print(ctrl.calibration().calibration_items.keys())
-    
-    #exp.set_calibration(ctrl.calibration)
-  
+    exp = create_experiment(qpu=temp_qpu, ctrl=ctrl,targ=targ,amplitudes=amplitudes,lengths=lengths)
+    print(exp.signal_mapping_status)
+    #exp.set_calibration(ctrl.calibration()) # Reference Object is not callable
     
     compiled_exp = compile_experiment(session, exp)
     result = run_experiment(session, compiled_exp)
@@ -174,4 +177,5 @@ def experiment_workflow(
     #     analysis_workflow()
     workflow.return_(result)
     
+
     
