@@ -1154,7 +1154,7 @@ class TransmonOperations(dsl.QuantumOperations):
         phase: float | SweepParameter | None = None,
         #increment_oscillator_phase: float | SweepParameter | None = None,
         length: float | SweepParameter | None = None,
-        pulse: dict | None = None,
+        override_params: dict | None = None,
     ) -> None:
         drive_line, params = ctrl.cr_parameters()
     
@@ -1165,7 +1165,8 @@ class TransmonOperations(dsl.QuantumOperations):
         ):
             drive_line, params = ctrl.cr_parameters()
             
-            cr_pulse = create_pulse(parameters=params["pulse"], overrides=pulse, name="cr_pulse")
+            cr_pulse = create_pulse(parameters=params["pulse"], overrides=override_params, name="cr_pulse") #overides pulse_parameters
+
             
             dsl.play(signal=ctrl.signals[drive_line],
                     amplitude=amplitude,

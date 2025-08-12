@@ -1,5 +1,5 @@
 .venv/
-
+qubit_parameters/
 
  __pycache__/
  *.pyc

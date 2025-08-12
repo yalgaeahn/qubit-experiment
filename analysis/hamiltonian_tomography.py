@@ -1,16 +1,19 @@
-"""This module defines the 2D plotting analysis workflow for Hamiltonian Tomography experiments.
+"""2D plotting analysis workflow for direct CR Hamiltonian Tomography.
 
-this workflows works for 
-- jsahn.experiments.direct_cr_hamiltonian_tomography
+Works with experiments in `experiments/direct_cr_hamiltonian_tomography.py`.
 
+This analysis provides:
+- Raw I/Q heatmaps versus (CR amplitude, pulse length)
+- Magnitude and phase heatmaps versus (CR amplitude, pulse length)
 
-In this analysis, we have the option to plot the raw data and the signal magnitude
-and phase.
+Notes:
+- It expects the experiment to use `dsl.handles.result_handle(targ.uid)` for the
+    measurement handle of the target qubit, as implemented in the experiment file.
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from laboneq import workflow
 
@@ -26,28 +29,23 @@ if TYPE_CHECKING:
 
 if TYPE_CHECKING:
     from laboneq.workflow.tasks.run_experiment import RunExperimentResults
-
     from laboneq_applications.typing import QuantumElements, QubitSweepPoints
 
 
 @workflow.workflow_options
-class PlottingWorkflowOptions:
-    """Option class for the spectroscopy 2d plotting analysis workflows.
+class HamiltonianTomography2DAnalysisOptions:
+    """Options for CR Hamiltonian tomography plotting.
 
     Attributes:
-        do_raw_data_plotting:
-            Whether to plot the raw data.
-            Default: True.
-        do_plotting_magnitude_phase:
-            Whether to plot the magnitude and phase.
-            Default: True.
+        do_raw_data_plotting: Whether to plot raw complex I/Q
+        do_plotting_magnitude_phase: Whether to plot magnitude/phase
     """
 
-    do_raw_data_plotting: bool = workflow.option_field(
-        True, description="Whether to plot the raw data."
+    do_raw_data_plotting = workflow.option_field(
+        True, description="Whether to plot the raw complex I/Q heatmaps."
     )
-    do_plotting_magnitude_phase: bool = workflow.option_field(
-        True, description="Whether to plot the magnitude and phase."
+    do_plotting_magnitude_phase = workflow.option_field(
+        True, description="Whether to plot the magnitude and phase heatmaps."
     )
 
 
@@ -60,85 +58,44 @@ def analysis_workflow(
     label_sweep_points_1d: str,
     label_sweep_points_2d: str,
     scaling_sweep_points_2d: float = 1.0,
-    options: PlottingWorkflowOptions | None = None,
+    options: Optional[HamiltonianTomography2DAnalysisOptions] = None,
 ) -> None:
-    """The analysis Workflow for plotting spectroscopy 2D data.
-
-    The workflow consists of the following steps:
-
-    - [plot_raw_complex_data_2d]()
-    - [plot_signal_magnitude_and_phase_2d]()
+    """Plot direct-CR tomography data as 2D heatmaps.
 
     Arguments:
-        result:
-            The experiment results returned by the run_experiment task.
-        qubits:
-            The qubits on which to run the analysis. May be either a single qubit or
-            a list of qubits. The UIDs of these qubits must exist in the result.
-        sweep_points_1d:
-            The sweep points corresponding to the innermost sweep.
-            If `qubits` is a single qubit, `sweep_points_1d` must be a list of
-            numbers or an array. Otherwise, it must be a list of lists of numbers or
-            arrays.
-        sweep_points_2d:
-            The sweep points corresponding to the outermost sweep.
-            If `qubits` is a single qubit, `sweep_points_2d` must be a list of
-            numbers or an array. Otherwise, it must be a list of lists of numbers or
-            arrays.
-        label_sweep_points_1d:
-            The label that will appear on the axis of the 1D sweep points.
-            Passed to the `label_sweep_points_1d` parameter of
-            `plot_raw_complex_data_2d`.
-        label_sweep_points_2d:
-            The label that will appear on the axis of the 2D sweep points.
-            Passed to the `label_sweep_points_2d` parameter of
-            `plot_raw_complex_data_2d`.
-        scaling_sweep_points_2d:
-            The scaling factor of the 2D sweep points.
-            Passed to the `scaling_sweep_points_2d` parameter of
-            `plot_raw_complex_data_2d`.
-            Default: 1.0.
-        options:
-            The options for building the workflow, passed as an instance of
-            [Spectroscopy2DPlottingWorkflowOptions]. See the docstring of this class
-            for more details.
-
-    Returns:
-        WorkflowBuilder:
-            The builder for the analysis workflow.
-
-    Example:
-        ```python
-        result = analysis_workflow(
-            results=results
-            qubits=[q0, q1],
-            frequencies=[
-                np.linspace(6.0, 6.3, 301),
-                np.linspace(5.8, 6.1, 301),
-            ],
-            options=analysis_workflow.options(),
-        ).run()
-        ```
+        result: Results from run_experiment
+        qubits: Target qubit(s) whose readout handles exist in results
+        sweep_points_1d: First sweep axis values (e.g., CR amplitude)
+        sweep_points_2d: Second sweep axis values (e.g., pulse length)
+        label_sweep_points_1d: Label for the first axis
+        label_sweep_points_2d: Label for the second axis
+        scaling_sweep_points_2d: Optional scaling for display (e.g., 1e9 to ns)
+        options: Plotting options
     """
-    with workflow.if_(options.do_raw_data_plotting):
+
+    # Default options if not provided
+    opts = HamiltonianTomography2DAnalysisOptions() if options is None else options
+
+    with workflow.if_(opts.do_raw_data_plotting):
         plot_raw_complex_data_2d(
-            qubits=qubits,
             result=result,
+            qubits=qubits,
             sweep_points_1d=sweep_points_1d,
             sweep_points_2d=sweep_points_2d,
             label_sweep_points_1d=label_sweep_points_1d,
             label_sweep_points_2d=label_sweep_points_2d,
-            scaling_sweep_points_1d=1e-9,
             scaling_sweep_points_2d=scaling_sweep_points_2d,
         )
-    with workflow.if_(options.do_plotting_magnitude_phase):
+
+    with workflow.if_(opts.do_plotting_magnitude_phase): 
         plot_signal_magnitude_and_phase_2d(
-            qubits=qubits,
             result=result,
+            qubits=qubits,
             sweep_points_1d=sweep_points_1d,
             sweep_points_2d=sweep_points_2d,
             label_sweep_points_1d=label_sweep_points_1d,
             label_sweep_points_2d=label_sweep_points_2d,
-            scaling_sweep_points_1d=1e-9,
             scaling_sweep_points_2d=scaling_sweep_points_2d,
         )
+
+    

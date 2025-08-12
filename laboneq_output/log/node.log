@@ -9,3 +9,2146 @@
 2025.08.12 11:07:53.130   get /dev12576/system/clocks/referenceclock/in/sourceactual -
 2025.08.12 11:07:53.130   get /dev12576/system/clocks/referenceclock/in/source -
 2025.08.12 11:07:53.131   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 13:35:23.334 Node log from the data server with id 'test_server':
+2025.08.12 13:35:23.334   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 13:35:23.335   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 13:35:23.335   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 13:35:23.335   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 13:35:23.335   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 13:35:23.335   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 13:35:23.335   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 13:35:23.335   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 13:35:23.335   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 13:35:23.335   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 13:35:25.600 Node log from the data server with id 'test_server':
+2025.08.12 13:35:25.600   set /dev12576/raw/error/clear 1
+2025.08.12 13:35:25.600   set /dev12576/sgchannels/*/pipeliner/reset 1
+2025.08.12 13:35:25.600   set /dev12576/sgchannels/*/pipeliner/mode 0
+2025.08.12 13:35:25.600   set /dev12576/sgchannels/*/synchronization/enable 0
+2025.08.12 13:35:25.600   set /dev12576/qachannels/*/pipeliner/reset 1
+2025.08.12 13:35:25.600   set /dev12576/qachannels/*/pipeliner/mode 0
+2025.08.12 13:35:25.600   set /dev12576/qachannels/*/synchronization/enable 0
+2025.08.12 13:35:25.600   set /dev12576/sgchannels/*/awg/enable 0
+2025.08.12 13:35:25.600   set /dev12576/qachannels/*/generator/enable 0
+2025.08.12 13:35:25.600   set /dev12576/system/synchronization/source 0
+2025.08.12 13:35:25.600   set /dev12576/system/internaltrigger/synchronization/enable 0
+2025.08.12 13:35:25.600   set /dev12576/qachannels/*/readout/result/enable 0
+2025.08.12 13:35:25.600   set /dev12576/qachannels/*/spectroscopy/psd/enable 0
+2025.08.12 13:35:25.600   set /dev12576/qachannels/*/spectroscopy/result/enable 0
+2025.08.12 13:35:25.600   set /dev12576/qachannels/*/output/rflfinterlock 1
+2025.08.12 13:35:25.600   set /dev12576/qachannels/*/oscs/*/gain 1.0
+2025.08.12 13:35:25.600   set /dev12576/scopes/0/enable 0
+2025.08.12 13:35:25.601   set /dev12576/scopes/0/channels/*/enable 0
+2025.08.12 13:35:25.601   get /dev12576/sgchannels/2/busy -
+2025.08.12 13:35:25.601   get /dev12576/sgchannels/3/busy -
+2025.08.12 13:35:25.601   get /dev12576/qachannels/0/busy -
+2025.08.12 13:35:25.601   get /dev12576/qachannels/0/output/overrangecount -
+2025.08.12 13:35:25.601   get /dev12576/qachannels/0/input/overrangecount -
+2025.08.12 13:35:25.601   get /dev12576/sgchannels/0/output/overrangecount -
+2025.08.12 13:35:25.601   get /dev12576/sgchannels/1/output/overrangecount -
+2025.08.12 13:35:25.601   get /dev12576/sgchannels/2/output/overrangecount -
+2025.08.12 13:35:25.601   get /dev12576/sgchannels/3/output/overrangecount -
+2025.08.12 13:35:25.601   get /dev12576/sgchannels/4/output/overrangecount -
+2025.08.12 13:35:25.601   get /dev12576/sgchannels/5/output/overrangecount -
+2025.08.12 13:35:25.601   set /dev12576/qachannels/0/output/on 1
+2025.08.12 13:35:25.601   set /dev12576/qachannels/0/output/range -25.0
+2025.08.12 13:35:25.601   set /dev12576/qachannels/0/generator/single 1
+2025.08.12 13:35:25.601   set /dev12576/qachannels/0/output/muting/enable 0
+2025.08.12 13:35:25.601   set /dev12576/qachannels/0/input/rflfpath 1
+2025.08.12 13:35:25.601   set /dev12576/qachannels/0/input/on 1
+2025.08.12 13:35:25.601   set /dev12576/qachannels/0/input/range 0.0
+2025.08.12 13:35:25.601   set /dev12576/sgchannels/2/output/on 1
+2025.08.12 13:35:25.601   set /dev12576/sgchannels/2/output/range 0.0
+2025.08.12 13:35:25.601   set /dev12576/sgchannels/2/awg/single 1
+2025.08.12 13:35:25.601   set /dev12576/sgchannels/2/awg/modulation/enable 1
+2025.08.12 13:35:25.601   set /dev12576/sgchannels/2/marker/source 0
+2025.08.12 13:35:25.601   set /dev12576/sgchannels/2/trigger/delay 0.0
+2025.08.12 13:35:25.601   set /dev12576/sgchannels/2/output/rflfpath 1
+2025.08.12 13:35:25.601   set /dev12576/sgchannels/2/output/muting/enable 0
+2025.08.12 13:35:25.601   set /dev12576/sgchannels/3/output/on 1
+2025.08.12 13:35:25.601   set /dev12576/sgchannels/3/output/range 0.0
+2025.08.12 13:35:25.601   set /dev12576/sgchannels/3/awg/single 1
+2025.08.12 13:35:25.601   set /dev12576/sgchannels/3/awg/modulation/enable 1
+2025.08.12 13:35:25.601   set /dev12576/sgchannels/3/marker/source 0
+2025.08.12 13:35:25.601   set /dev12576/sgchannels/3/trigger/delay 0.0
+2025.08.12 13:35:25.601   set /dev12576/sgchannels/3/output/rflfpath 1
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/3/output/muting/enable 0
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/2/sines/0/oscselect 0
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/2/sines/0/harmonic 1
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/2/sines/0/phaseshift 0
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/3/sines/0/oscselect 0
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/3/sines/0/harmonic 1
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/3/sines/0/phaseshift 0
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 13:35:25.602   set /dev12576/system/internaltrigger/enable 0
+2025.08.12 13:35:25.602   set /dev12576/system/internaltrigger/repetitions 1
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/2/awg/auxtriggers/0/slope 1
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/2/awg/auxtriggers/0/channel 8
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/3/awg/auxtriggers/0/slope 1
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/3/awg/auxtriggers/0/channel 8
+2025.08.12 13:35:25.602   set /dev12576/qachannels/0/markers/0/source 32
+2025.08.12 13:35:25.602   set /dev12576/qachannels/0/markers/1/source 36
+2025.08.12 13:35:25.602   set /dev12576/qachannels/0/generator/auxtriggers/0/channel 8
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 13:35:25.602   set /dev12576/synthesizers/2/centerfreq 4800000000.0
+2025.08.12 13:35:25.602   set /dev12576/qachannels/0/centerfreq 7000000000.0
+2025.08.12 13:35:25.602   set /dev12576/qachannels/0/generator/delay 0.0
+2025.08.12 13:35:25.602   set /dev12576/qachannels/0/readout/integration/delay 2.92e-07
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/2/output/delay 0.0
+2025.08.12 13:35:25.602   set /dev12576/sgchannels/3/output/delay 0.0
+2025.08.12 13:35:25.602   set /dev12576/qachannels/0/mode 1
+2025.08.12 13:35:25.602   set /dev12576/qachannels/0/readout/multistate/qudits/*/enable 0
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/multistate/qudits/0/numstates 2
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/multistate/qudits/0/enable 1
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/multistate/qudits/0/assignmentvec vector (?? B)
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/multistate/qudits/1/numstates 2
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/multistate/qudits/1/enable 1
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/multistate/qudits/1/assignmentvec vector (?? B)
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/result/source 1
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/result/length 6
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/result/averages 1024
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/result/mode 0
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/multistate/qudits/0/thresholds/0/value 0.0
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/multistate/qudits/1/thresholds/0/value 0.0
+2025.08.12 13:35:25.603   set /dev12576/sgchannels/2/awg/elf/data vector (?? B)
+2025.08.12 13:35:25.603   set /dev12576/sgchannels/2/awg/waveform/waves/0 vector (?? B)
+2025.08.12 13:35:25.603   set /dev12576/sgchannels/2/awg/commandtable/data vector (?? B)
+2025.08.12 13:35:25.603   set /dev12576/sgchannels/3/awg/elf/data vector (?? B)
+2025.08.12 13:35:25.603   set /dev12576/sgchannels/3/awg/waveform/waves/0 vector (?? B)
+2025.08.12 13:35:25.603   set /dev12576/sgchannels/3/awg/waveform/waves/1 vector (?? B)
+2025.08.12 13:35:25.603   set /dev12576/sgchannels/3/awg/commandtable/data vector (?? B)
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/readout/result/enable 1
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/spectroscopy/result/enable 0
+2025.08.12 13:35:25.603   set /dev12576/scopes/0/enable 0
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/generator/elf/data vector (?? B)
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/generator/clearwave 1
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/generator/waveforms/1/wave <unexpected type>
+2025.08.12 13:35:25.603   set /dev12576/qachannels/0/spectroscopy/envelope/enable 0
+2025.08.12 13:35:25.604   set /dev12576/qachannels/0/readout/multistate/qudits/1/weights/0/wave vector (?? B)
+2025.08.12 13:35:25.604   set /dev12576/qachannels/0/readout/integration/length 4000
+2025.08.12 13:35:25.604   set /dev12576/sgchannels/2/awg/enable 1
+2025.08.12 13:35:25.604   set /dev12576/sgchannels/3/awg/enable 1
+2025.08.12 13:35:25.604   set /dev12576/qachannels/0/generator/enable 1
+2025.08.12 13:35:25.604   set /dev12576/system/internaltrigger/enable 1
+2025.08.12 13:35:25.604   set /dev12576/raw/system/awg/runtimechecks/enable 0
+2025.08.12 13:35:25.604   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 13:35:25.604   get /dev12576/raw/error/json/errors -
+2025.08.12 13:35:25.604   get /dev12576/raw/error/json/errors -
+2025.08.12 13:35:25.604   set /dev12576/qachannels/*/spectroscopy/envelope/enable 1
+2025.08.12 13:41:44.702 Node log from the data server with id 'test_server':
+2025.08.12 13:41:44.702   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 13:41:44.702   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 13:41:44.702   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 13:41:44.702   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 13:41:44.702   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 13:41:44.702   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 13:41:44.702   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 13:41:44.702   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 13:41:44.702   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 13:41:44.702   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 13:41:44.745 Node log from the data server with id 'test_server':
+2025.08.12 13:41:44.745   set /dev12576/raw/error/clear 1
+2025.08.12 13:41:44.745   set /dev12576/sgchannels/*/pipeliner/reset 1
+2025.08.12 13:41:44.745   set /dev12576/sgchannels/*/pipeliner/mode 0
+2025.08.12 13:41:44.745   set /dev12576/sgchannels/*/synchronization/enable 0
+2025.08.12 13:41:44.745   set /dev12576/qachannels/*/pipeliner/reset 1
+2025.08.12 13:41:44.745   set /dev12576/qachannels/*/pipeliner/mode 0
+2025.08.12 13:41:44.745   set /dev12576/qachannels/*/synchronization/enable 0
+2025.08.12 13:41:44.745   set /dev12576/sgchannels/*/awg/enable 0
+2025.08.12 13:41:44.745   set /dev12576/qachannels/*/generator/enable 0
+2025.08.12 13:41:44.745   set /dev12576/system/synchronization/source 0
+2025.08.12 13:41:44.745   set /dev12576/system/internaltrigger/synchronization/enable 0
+2025.08.12 13:41:44.745   set /dev12576/qachannels/*/readout/result/enable 0
+2025.08.12 13:41:44.745   set /dev12576/qachannels/*/spectroscopy/psd/enable 0
+2025.08.12 13:41:44.745   set /dev12576/qachannels/*/spectroscopy/result/enable 0
+2025.08.12 13:41:44.745   set /dev12576/qachannels/*/output/rflfinterlock 1
+2025.08.12 13:41:44.745   set /dev12576/qachannels/*/oscs/*/gain 1.0
+2025.08.12 13:41:44.745   set /dev12576/scopes/0/enable 0
+2025.08.12 13:41:44.745   set /dev12576/scopes/0/channels/*/enable 0
+2025.08.12 13:41:44.745   get /dev12576/sgchannels/2/busy -
+2025.08.12 13:41:44.746   get /dev12576/sgchannels/3/busy -
+2025.08.12 13:41:44.746   get /dev12576/qachannels/0/busy -
+2025.08.12 13:41:44.746   get /dev12576/qachannels/0/output/overrangecount -
+2025.08.12 13:41:44.746   get /dev12576/qachannels/0/input/overrangecount -
+2025.08.12 13:41:44.746   get /dev12576/sgchannels/0/output/overrangecount -
+2025.08.12 13:41:44.746   get /dev12576/sgchannels/1/output/overrangecount -
+2025.08.12 13:41:44.746   get /dev12576/sgchannels/2/output/overrangecount -
+2025.08.12 13:41:44.746   get /dev12576/sgchannels/3/output/overrangecount -
+2025.08.12 13:41:44.746   get /dev12576/sgchannels/4/output/overrangecount -
+2025.08.12 13:41:44.746   get /dev12576/sgchannels/5/output/overrangecount -
+2025.08.12 13:41:44.746   set /dev12576/qachannels/0/output/on 1
+2025.08.12 13:41:44.746   set /dev12576/qachannels/0/output/range -25.0
+2025.08.12 13:41:44.746   set /dev12576/qachannels/0/generator/single 1
+2025.08.12 13:41:44.746   set /dev12576/qachannels/0/output/muting/enable 0
+2025.08.12 13:41:44.746   set /dev12576/qachannels/0/input/rflfpath 1
+2025.08.12 13:41:44.746   set /dev12576/qachannels/0/input/on 1
+2025.08.12 13:41:44.746   set /dev12576/qachannels/0/input/range 0.0
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/2/output/on 1
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/2/output/range 0.0
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/2/awg/single 1
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/2/awg/modulation/enable 1
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/2/marker/source 0
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/2/trigger/delay 0.0
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/2/output/rflfpath 1
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/2/output/muting/enable 0
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/3/output/on 1
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/3/output/range 0.0
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/3/awg/single 1
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/3/awg/modulation/enable 1
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/3/marker/source 0
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/3/trigger/delay 0.0
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/3/output/rflfpath 1
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/3/output/muting/enable 0
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/2/sines/0/oscselect 0
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/2/sines/0/harmonic 1
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/2/sines/0/phaseshift 0
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/3/sines/0/oscselect 0
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/3/sines/0/harmonic 1
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/3/sines/0/phaseshift 0
+2025.08.12 13:41:44.746   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 13:41:44.747   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 13:41:44.747   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 13:41:44.747   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 13:41:44.747   set /dev12576/system/internaltrigger/enable 0
+2025.08.12 13:41:44.747   set /dev12576/system/internaltrigger/repetitions 1
+2025.08.12 13:41:44.747   set /dev12576/sgchannels/2/awg/auxtriggers/0/slope 1
+2025.08.12 13:41:44.747   set /dev12576/sgchannels/2/awg/auxtriggers/0/channel 8
+2025.08.12 13:41:44.747   set /dev12576/sgchannels/3/awg/auxtriggers/0/slope 1
+2025.08.12 13:41:44.747   set /dev12576/sgchannels/3/awg/auxtriggers/0/channel 8
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/markers/0/source 32
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/markers/1/source 36
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/generator/auxtriggers/0/channel 8
+2025.08.12 13:41:44.747   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 13:41:44.747   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 13:41:44.747   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 13:41:44.747   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 13:41:44.747   set /dev12576/synthesizers/2/centerfreq 4800000000.0
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/centerfreq 7000000000.0
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/generator/delay 0.0
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/readout/integration/delay 2.92e-07
+2025.08.12 13:41:44.747   set /dev12576/sgchannels/2/output/delay 0.0
+2025.08.12 13:41:44.747   set /dev12576/sgchannels/3/output/delay 0.0
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/mode 1
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/readout/multistate/qudits/*/enable 0
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/readout/multistate/qudits/0/numstates 2
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/readout/multistate/qudits/0/enable 1
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/readout/multistate/qudits/0/assignmentvec vector (?? B)
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/readout/multistate/qudits/1/numstates 2
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/readout/multistate/qudits/1/enable 1
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/readout/multistate/qudits/1/assignmentvec vector (?? B)
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/readout/result/source 1
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/readout/result/length 6
+2025.08.12 13:41:44.747   set /dev12576/qachannels/0/readout/result/averages 1024
+2025.08.12 13:41:44.748   set /dev12576/qachannels/0/readout/result/mode 0
+2025.08.12 13:41:44.748   set /dev12576/qachannels/0/readout/multistate/qudits/0/thresholds/0/value 0.0
+2025.08.12 13:41:44.748   set /dev12576/qachannels/0/readout/multistate/qudits/1/thresholds/0/value 0.0
+2025.08.12 13:41:44.748   set /dev12576/sgchannels/2/awg/elf/data vector (?? B)
+2025.08.12 13:41:44.748   set /dev12576/sgchannels/2/awg/waveform/waves/0 vector (?? B)
+2025.08.12 13:41:44.748   set /dev12576/sgchannels/2/awg/commandtable/data vector (?? B)
+2025.08.12 13:41:44.748   set /dev12576/sgchannels/3/awg/elf/data vector (?? B)
+2025.08.12 13:41:44.748   set /dev12576/sgchannels/3/awg/waveform/waves/0 vector (?? B)
+2025.08.12 13:41:44.748   set /dev12576/sgchannels/3/awg/waveform/waves/1 vector (?? B)
+2025.08.12 13:41:44.748   set /dev12576/sgchannels/3/awg/commandtable/data vector (?? B)
+2025.08.12 13:41:44.748   set /dev12576/qachannels/0/readout/result/enable 1
+2025.08.12 13:41:44.748   set /dev12576/qachannels/0/spectroscopy/result/enable 0
+2025.08.12 13:41:44.748   set /dev12576/scopes/0/enable 0
+2025.08.12 13:41:44.748   set /dev12576/qachannels/0/generator/elf/data vector (?? B)
+2025.08.12 13:41:44.748   set /dev12576/qachannels/0/generator/clearwave 1
+2025.08.12 13:41:44.748   set /dev12576/qachannels/0/generator/waveforms/1/wave <unexpected type>
+2025.08.12 13:41:44.748   set /dev12576/qachannels/0/spectroscopy/envelope/enable 0
+2025.08.12 13:41:44.748   set /dev12576/qachannels/0/readout/multistate/qudits/1/weights/0/wave vector (?? B)
+2025.08.12 13:41:44.748   set /dev12576/qachannels/0/readout/integration/length 4000
+2025.08.12 13:41:44.748   set /dev12576/sgchannels/2/awg/enable 1
+2025.08.12 13:41:44.748   set /dev12576/sgchannels/3/awg/enable 1
+2025.08.12 13:41:44.748   set /dev12576/qachannels/0/generator/enable 1
+2025.08.12 13:41:44.748   set /dev12576/system/internaltrigger/enable 1
+2025.08.12 13:41:44.748   set /dev12576/raw/system/awg/runtimechecks/enable 0
+2025.08.12 13:41:44.748   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 13:41:44.748   get /dev12576/raw/error/json/errors -
+2025.08.12 13:41:44.748   get /dev12576/raw/error/json/errors -
+2025.08.12 13:41:44.748   set /dev12576/qachannels/*/spectroscopy/envelope/enable 1
+2025.08.12 13:43:12.893 Node log from the data server with id 'test_server':
+2025.08.12 13:43:12.893   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 13:43:12.893   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 13:43:12.893   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 13:43:12.893   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 13:43:12.893   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 13:43:12.893   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 13:43:12.893   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 13:43:12.893   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 13:43:12.893   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 13:43:12.893   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 13:43:12.937 Node log from the data server with id 'test_server':
+2025.08.12 13:43:12.937   set /dev12576/raw/error/clear 1
+2025.08.12 13:43:12.937   set /dev12576/sgchannels/*/pipeliner/reset 1
+2025.08.12 13:43:12.937   set /dev12576/sgchannels/*/pipeliner/mode 0
+2025.08.12 13:43:12.937   set /dev12576/sgchannels/*/synchronization/enable 0
+2025.08.12 13:43:12.937   set /dev12576/qachannels/*/pipeliner/reset 1
+2025.08.12 13:43:12.937   set /dev12576/qachannels/*/pipeliner/mode 0
+2025.08.12 13:43:12.937   set /dev12576/qachannels/*/synchronization/enable 0
+2025.08.12 13:43:12.937   set /dev12576/sgchannels/*/awg/enable 0
+2025.08.12 13:43:12.937   set /dev12576/qachannels/*/generator/enable 0
+2025.08.12 13:43:12.937   set /dev12576/system/synchronization/source 0
+2025.08.12 13:43:12.937   set /dev12576/system/internaltrigger/synchronization/enable 0
+2025.08.12 13:43:12.937   set /dev12576/qachannels/*/readout/result/enable 0
+2025.08.12 13:43:12.937   set /dev12576/qachannels/*/spectroscopy/psd/enable 0
+2025.08.12 13:43:12.937   set /dev12576/qachannels/*/spectroscopy/result/enable 0
+2025.08.12 13:43:12.937   set /dev12576/qachannels/*/output/rflfinterlock 1
+2025.08.12 13:43:12.937   set /dev12576/qachannels/*/oscs/*/gain 1.0
+2025.08.12 13:43:12.937   set /dev12576/scopes/0/enable 0
+2025.08.12 13:43:12.937   set /dev12576/scopes/0/channels/*/enable 0
+2025.08.12 13:43:12.937   get /dev12576/sgchannels/2/busy -
+2025.08.12 13:43:12.937   get /dev12576/sgchannels/3/busy -
+2025.08.12 13:43:12.937   get /dev12576/qachannels/0/busy -
+2025.08.12 13:43:12.937   get /dev12576/qachannels/0/output/overrangecount -
+2025.08.12 13:43:12.937   get /dev12576/qachannels/0/input/overrangecount -
+2025.08.12 13:43:12.937   get /dev12576/sgchannels/0/output/overrangecount -
+2025.08.12 13:43:12.937   get /dev12576/sgchannels/1/output/overrangecount -
+2025.08.12 13:43:12.937   get /dev12576/sgchannels/2/output/overrangecount -
+2025.08.12 13:43:12.938   get /dev12576/sgchannels/3/output/overrangecount -
+2025.08.12 13:43:12.938   get /dev12576/sgchannels/4/output/overrangecount -
+2025.08.12 13:43:12.938   get /dev12576/sgchannels/5/output/overrangecount -
+2025.08.12 13:43:12.938   set /dev12576/qachannels/0/output/on 1
+2025.08.12 13:43:12.938   set /dev12576/qachannels/0/output/range -25.0
+2025.08.12 13:43:12.938   set /dev12576/qachannels/0/generator/single 1
+2025.08.12 13:43:12.938   set /dev12576/qachannels/0/output/muting/enable 0
+2025.08.12 13:43:12.938   set /dev12576/qachannels/0/input/rflfpath 1
+2025.08.12 13:43:12.938   set /dev12576/qachannels/0/input/on 1
+2025.08.12 13:43:12.938   set /dev12576/qachannels/0/input/range 0.0
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/2/output/on 1
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/2/output/range 0.0
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/2/awg/single 1
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/2/awg/modulation/enable 1
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/2/marker/source 0
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/2/trigger/delay 0.0
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/2/output/rflfpath 1
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/2/output/muting/enable 0
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/3/output/on 1
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/3/output/range 0.0
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/3/awg/single 1
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/3/awg/modulation/enable 1
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/3/marker/source 0
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/3/trigger/delay 0.0
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/3/output/rflfpath 1
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/3/output/muting/enable 0
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/2/sines/0/oscselect 0
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/2/sines/0/harmonic 1
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/2/sines/0/phaseshift 0
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/3/sines/0/oscselect 0
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/3/sines/0/harmonic 1
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/3/sines/0/phaseshift 0
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 13:43:12.938   set /dev12576/system/internaltrigger/enable 0
+2025.08.12 13:43:12.938   set /dev12576/system/internaltrigger/repetitions 1
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/2/awg/auxtriggers/0/slope 1
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/2/awg/auxtriggers/0/channel 8
+2025.08.12 13:43:12.938   set /dev12576/sgchannels/3/awg/auxtriggers/0/slope 1
+2025.08.12 13:43:12.939   set /dev12576/sgchannels/3/awg/auxtriggers/0/channel 8
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/markers/0/source 32
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/markers/1/source 36
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/generator/auxtriggers/0/channel 8
+2025.08.12 13:43:12.939   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 13:43:12.939   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 13:43:12.939   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 13:43:12.939   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 13:43:12.939   set /dev12576/synthesizers/2/centerfreq 4800000000.0
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/centerfreq 7000000000.0
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/generator/delay 0.0
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/integration/delay 2.92e-07
+2025.08.12 13:43:12.939   set /dev12576/sgchannels/2/output/delay 0.0
+2025.08.12 13:43:12.939   set /dev12576/sgchannels/3/output/delay 0.0
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/mode 1
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/multistate/qudits/*/enable 0
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/multistate/qudits/0/numstates 2
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/multistate/qudits/0/enable 1
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/multistate/qudits/0/assignmentvec vector (?? B)
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/multistate/qudits/1/numstates 2
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/multistate/qudits/1/enable 1
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/multistate/qudits/1/assignmentvec vector (?? B)
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/result/source 1
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/result/length 6
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/result/averages 1024
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/result/mode 0
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/multistate/qudits/0/thresholds/0/value 0.0
+2025.08.12 13:43:12.939   set /dev12576/qachannels/0/readout/multistate/qudits/1/thresholds/0/value 0.0
+2025.08.12 13:43:12.939   set /dev12576/sgchannels/2/awg/elf/data vector (?? B)
+2025.08.12 13:43:12.939   set /dev12576/sgchannels/2/awg/waveform/waves/0 vector (?? B)
+2025.08.12 13:43:12.939   set /dev12576/sgchannels/2/awg/commandtable/data vector (?? B)
+2025.08.12 13:43:12.939   set /dev12576/sgchannels/3/awg/elf/data vector (?? B)
+2025.08.12 13:43:12.939   set /dev12576/sgchannels/3/awg/waveform/waves/0 vector (?? B)
+2025.08.12 13:43:12.939   set /dev12576/sgchannels/3/awg/waveform/waves/1 vector (?? B)
+2025.08.12 13:43:12.940   set /dev12576/sgchannels/3/awg/commandtable/data vector (?? B)
+2025.08.12 13:43:12.940   set /dev12576/qachannels/0/readout/result/enable 1
+2025.08.12 13:43:12.940   set /dev12576/qachannels/0/spectroscopy/result/enable 0
+2025.08.12 13:43:12.940   set /dev12576/scopes/0/enable 0
+2025.08.12 13:43:12.940   set /dev12576/qachannels/0/generator/elf/data vector (?? B)
+2025.08.12 13:43:12.940   set /dev12576/qachannels/0/generator/clearwave 1
+2025.08.12 13:43:12.940   set /dev12576/qachannels/0/generator/waveforms/1/wave <unexpected type>
+2025.08.12 13:43:12.940   set /dev12576/qachannels/0/spectroscopy/envelope/enable 0
+2025.08.12 13:43:12.940   set /dev12576/qachannels/0/readout/multistate/qudits/1/weights/0/wave vector (?? B)
+2025.08.12 13:43:12.940   set /dev12576/qachannels/0/readout/integration/length 4000
+2025.08.12 13:43:12.940   set /dev12576/sgchannels/2/awg/enable 1
+2025.08.12 13:43:12.940   set /dev12576/sgchannels/3/awg/enable 1
+2025.08.12 13:43:12.940   set /dev12576/qachannels/0/generator/enable 1
+2025.08.12 13:43:12.940   set /dev12576/system/internaltrigger/enable 1
+2025.08.12 13:43:12.940   set /dev12576/raw/system/awg/runtimechecks/enable 0
+2025.08.12 13:43:12.940   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 13:43:12.940   get /dev12576/raw/error/json/errors -
+2025.08.12 13:43:12.940   get /dev12576/raw/error/json/errors -
+2025.08.12 13:43:12.940   set /dev12576/qachannels/*/spectroscopy/envelope/enable 1
+2025.08.12 13:43:57.948 Node log from the data server with id 'test_server':
+2025.08.12 13:43:57.948   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 13:43:57.948   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 13:43:57.948   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 13:43:57.948   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 13:43:57.948   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 13:43:57.948   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 13:43:57.948   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 13:43:57.948   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 13:43:57.948   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 13:43:57.948   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 13:43:57.990 Node log from the data server with id 'test_server':
+2025.08.12 13:43:57.990   set /dev12576/raw/error/clear 1
+2025.08.12 13:43:57.990   set /dev12576/sgchannels/*/pipeliner/reset 1
+2025.08.12 13:43:57.990   set /dev12576/sgchannels/*/pipeliner/mode 0
+2025.08.12 13:43:57.990   set /dev12576/sgchannels/*/synchronization/enable 0
+2025.08.12 13:43:57.990   set /dev12576/qachannels/*/pipeliner/reset 1
+2025.08.12 13:43:57.990   set /dev12576/qachannels/*/pipeliner/mode 0
+2025.08.12 13:43:57.990   set /dev12576/qachannels/*/synchronization/enable 0
+2025.08.12 13:43:57.990   set /dev12576/sgchannels/*/awg/enable 0
+2025.08.12 13:43:57.990   set /dev12576/qachannels/*/generator/enable 0
+2025.08.12 13:43:57.990   set /dev12576/system/synchronization/source 0
+2025.08.12 13:43:57.990   set /dev12576/system/internaltrigger/synchronization/enable 0
+2025.08.12 13:43:57.990   set /dev12576/qachannels/*/readout/result/enable 0
+2025.08.12 13:43:57.990   set /dev12576/qachannels/*/spectroscopy/psd/enable 0
+2025.08.12 13:43:57.990   set /dev12576/qachannels/*/spectroscopy/result/enable 0
+2025.08.12 13:43:57.990   set /dev12576/qachannels/*/output/rflfinterlock 1
+2025.08.12 13:43:57.990   set /dev12576/qachannels/*/oscs/*/gain 1.0
+2025.08.12 13:43:57.990   set /dev12576/scopes/0/enable 0
+2025.08.12 13:43:57.990   set /dev12576/scopes/0/channels/*/enable 0
+2025.08.12 13:43:57.990   get /dev12576/sgchannels/2/busy -
+2025.08.12 13:43:57.990   get /dev12576/sgchannels/3/busy -
+2025.08.12 13:43:57.991   get /dev12576/qachannels/0/busy -
+2025.08.12 13:43:57.991   get /dev12576/qachannels/0/output/overrangecount -
+2025.08.12 13:43:57.991   get /dev12576/qachannels/0/input/overrangecount -
+2025.08.12 13:43:57.991   get /dev12576/sgchannels/0/output/overrangecount -
+2025.08.12 13:43:57.991   get /dev12576/sgchannels/1/output/overrangecount -
+2025.08.12 13:43:57.991   get /dev12576/sgchannels/2/output/overrangecount -
+2025.08.12 13:43:57.991   get /dev12576/sgchannels/3/output/overrangecount -
+2025.08.12 13:43:57.991   get /dev12576/sgchannels/4/output/overrangecount -
+2025.08.12 13:43:57.991   get /dev12576/sgchannels/5/output/overrangecount -
+2025.08.12 13:43:57.991   set /dev12576/qachannels/0/output/on 1
+2025.08.12 13:43:57.991   set /dev12576/qachannels/0/output/range -25.0
+2025.08.12 13:43:57.991   set /dev12576/qachannels/0/generator/single 1
+2025.08.12 13:43:57.991   set /dev12576/qachannels/0/output/muting/enable 0
+2025.08.12 13:43:57.991   set /dev12576/qachannels/0/input/rflfpath 1
+2025.08.12 13:43:57.991   set /dev12576/qachannels/0/input/on 1
+2025.08.12 13:43:57.991   set /dev12576/qachannels/0/input/range 0.0
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/2/output/on 1
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/2/output/range 0.0
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/2/awg/single 1
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/2/awg/modulation/enable 1
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/2/marker/source 0
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/2/trigger/delay 0.0
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/2/output/rflfpath 1
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/2/output/muting/enable 0
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/3/output/on 1
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/3/output/range 0.0
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/3/awg/single 1
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/3/awg/modulation/enable 1
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/3/marker/source 0
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/3/trigger/delay 0.0
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/3/output/rflfpath 1
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/3/output/muting/enable 0
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/2/sines/0/oscselect 0
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/2/sines/0/harmonic 1
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/2/sines/0/phaseshift 0
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/3/sines/0/oscselect 0
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/3/sines/0/harmonic 1
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/3/sines/0/phaseshift 0
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 13:43:57.991   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 13:43:57.992   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 13:43:57.992   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 13:43:57.992   set /dev12576/system/internaltrigger/enable 0
+2025.08.12 13:43:57.992   set /dev12576/system/internaltrigger/repetitions 1
+2025.08.12 13:43:57.992   set /dev12576/sgchannels/2/awg/auxtriggers/0/slope 1
+2025.08.12 13:43:57.992   set /dev12576/sgchannels/2/awg/auxtriggers/0/channel 8
+2025.08.12 13:43:57.992   set /dev12576/sgchannels/3/awg/auxtriggers/0/slope 1
+2025.08.12 13:43:57.992   set /dev12576/sgchannels/3/awg/auxtriggers/0/channel 8
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/markers/0/source 32
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/markers/1/source 36
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/generator/auxtriggers/0/channel 8
+2025.08.12 13:43:57.992   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 13:43:57.992   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 13:43:57.992   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 13:43:57.992   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 13:43:57.992   set /dev12576/synthesizers/2/centerfreq 4800000000.0
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/centerfreq 7000000000.0
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/generator/delay 0.0
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/integration/delay 2.92e-07
+2025.08.12 13:43:57.992   set /dev12576/sgchannels/2/output/delay 0.0
+2025.08.12 13:43:57.992   set /dev12576/sgchannels/3/output/delay 0.0
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/mode 1
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/multistate/qudits/*/enable 0
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/multistate/qudits/0/numstates 2
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/multistate/qudits/0/enable 1
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/multistate/qudits/0/assignmentvec vector (?? B)
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/multistate/qudits/1/numstates 2
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/multistate/qudits/1/enable 1
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/multistate/qudits/1/assignmentvec vector (?? B)
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/result/source 1
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/result/length 6
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/result/averages 1024
+2025.08.12 13:43:57.992   set /dev12576/qachannels/0/readout/result/mode 0
+2025.08.12 13:43:57.993   set /dev12576/qachannels/0/readout/multistate/qudits/0/thresholds/0/value 0.0
+2025.08.12 13:43:57.993   set /dev12576/qachannels/0/readout/multistate/qudits/1/thresholds/0/value 0.0
+2025.08.12 13:43:57.993   set /dev12576/sgchannels/2/awg/elf/data vector (?? B)
+2025.08.12 13:43:57.993   set /dev12576/sgchannels/2/awg/waveform/waves/0 vector (?? B)
+2025.08.12 13:43:57.993   set /dev12576/sgchannels/2/awg/commandtable/data vector (?? B)
+2025.08.12 13:43:57.993   set /dev12576/sgchannels/3/awg/elf/data vector (?? B)
+2025.08.12 13:43:57.993   set /dev12576/sgchannels/3/awg/waveform/waves/0 vector (?? B)
+2025.08.12 13:43:57.993   set /dev12576/sgchannels/3/awg/waveform/waves/1 vector (?? B)
+2025.08.12 13:43:57.993   set /dev12576/sgchannels/3/awg/commandtable/data vector (?? B)
+2025.08.12 13:43:57.993   set /dev12576/qachannels/0/readout/result/enable 1
+2025.08.12 13:43:57.993   set /dev12576/qachannels/0/spectroscopy/result/enable 0
+2025.08.12 13:43:57.993   set /dev12576/scopes/0/enable 0
+2025.08.12 13:43:57.993   set /dev12576/qachannels/0/generator/elf/data vector (?? B)
+2025.08.12 13:43:57.993   set /dev12576/qachannels/0/generator/clearwave 1
+2025.08.12 13:43:57.993   set /dev12576/qachannels/0/generator/waveforms/1/wave <unexpected type>
+2025.08.12 13:43:57.993   set /dev12576/qachannels/0/spectroscopy/envelope/enable 0
+2025.08.12 13:43:57.993   set /dev12576/qachannels/0/readout/multistate/qudits/1/weights/0/wave vector (?? B)
+2025.08.12 13:43:57.993   set /dev12576/qachannels/0/readout/integration/length 4000
+2025.08.12 13:43:57.993   set /dev12576/sgchannels/2/awg/enable 1
+2025.08.12 13:43:57.993   set /dev12576/sgchannels/3/awg/enable 1
+2025.08.12 13:43:57.993   set /dev12576/qachannels/0/generator/enable 1
+2025.08.12 13:43:57.993   set /dev12576/system/internaltrigger/enable 1
+2025.08.12 13:43:57.993   set /dev12576/raw/system/awg/runtimechecks/enable 0
+2025.08.12 13:43:57.993   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 13:43:57.993   get /dev12576/raw/error/json/errors -
+2025.08.12 13:43:57.993   get /dev12576/raw/error/json/errors -
+2025.08.12 13:43:57.993   set /dev12576/qachannels/*/spectroscopy/envelope/enable 1
+2025.08.12 15:41:58.026 Node log from the data server with id 'test_server':
+2025.08.12 15:41:58.026   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:41:58.026   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:41:58.026   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:41:58.026   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:41:58.026   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:41:58.026   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:41:58.026   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:41:58.026   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:41:58.026   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:41:58.026   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:42:57.429 Node log from the data server with id 'test_server':
+2025.08.12 15:42:57.429   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:42:57.429   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:42:57.429   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:42:57.430   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:42:57.430   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:42:57.430   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:42:57.430   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:42:57.430   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:42:57.430   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:42:57.430   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:44:17.384 Node log from the data server with id 'test_server':
+2025.08.12 15:44:17.384   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:44:17.384   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:44:17.384   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:44:17.384   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:44:17.384   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:44:17.384   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:44:17.384   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:44:17.384   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:44:17.384   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:44:17.384   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:45:12.521 Node log from the data server with id 'test_server':
+2025.08.12 15:45:12.521   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:45:12.521   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:45:12.521   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:45:12.521   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:45:12.521   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:45:12.521   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:45:12.521   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:45:12.521   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:45:12.521   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:45:12.521   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:45:12.574 Node log from the data server with id 'test_server':
+2025.08.12 15:45:12.574   set /dev12576/raw/error/clear 1
+2025.08.12 15:45:12.574   set /dev12576/sgchannels/*/pipeliner/reset 1
+2025.08.12 15:45:12.574   set /dev12576/sgchannels/*/pipeliner/mode 0
+2025.08.12 15:45:12.574   set /dev12576/sgchannels/*/synchronization/enable 0
+2025.08.12 15:45:12.574   set /dev12576/qachannels/*/pipeliner/reset 1
+2025.08.12 15:45:12.574   set /dev12576/qachannels/*/pipeliner/mode 0
+2025.08.12 15:45:12.574   set /dev12576/qachannels/*/synchronization/enable 0
+2025.08.12 15:45:12.574   set /dev12576/sgchannels/*/awg/enable 0
+2025.08.12 15:45:12.574   set /dev12576/qachannels/*/generator/enable 0
+2025.08.12 15:45:12.574   set /dev12576/system/synchronization/source 0
+2025.08.12 15:45:12.574   set /dev12576/system/internaltrigger/synchronization/enable 0
+2025.08.12 15:45:12.574   set /dev12576/qachannels/*/readout/result/enable 0
+2025.08.12 15:45:12.574   set /dev12576/qachannels/*/spectroscopy/psd/enable 0
+2025.08.12 15:45:12.574   set /dev12576/qachannels/*/spectroscopy/result/enable 0
+2025.08.12 15:45:12.574   set /dev12576/qachannels/*/output/rflfinterlock 1
+2025.08.12 15:45:12.574   set /dev12576/qachannels/*/oscs/*/gain 1.0
+2025.08.12 15:45:12.574   set /dev12576/scopes/0/enable 0
+2025.08.12 15:45:12.574   set /dev12576/scopes/0/channels/*/enable 0
+2025.08.12 15:45:12.574   get /dev12576/sgchannels/2/busy -
+2025.08.12 15:45:12.574   get /dev12576/sgchannels/3/busy -
+2025.08.12 15:45:12.574   get /dev12576/qachannels/0/busy -
+2025.08.12 15:45:12.574   get /dev12576/qachannels/0/output/overrangecount -
+2025.08.12 15:45:12.574   get /dev12576/qachannels/0/input/overrangecount -
+2025.08.12 15:45:12.574   get /dev12576/sgchannels/0/output/overrangecount -
+2025.08.12 15:45:12.574   get /dev12576/sgchannels/1/output/overrangecount -
+2025.08.12 15:45:12.574   get /dev12576/sgchannels/2/output/overrangecount -
+2025.08.12 15:45:12.574   get /dev12576/sgchannels/3/output/overrangecount -
+2025.08.12 15:45:12.575   get /dev12576/sgchannels/4/output/overrangecount -
+2025.08.12 15:45:12.575   get /dev12576/sgchannels/5/output/overrangecount -
+2025.08.12 15:45:12.575   set /dev12576/qachannels/0/output/on 1
+2025.08.12 15:45:12.575   set /dev12576/qachannels/0/output/range -25.0
+2025.08.12 15:45:12.575   set /dev12576/qachannels/0/generator/single 1
+2025.08.12 15:45:12.575   set /dev12576/qachannels/0/output/muting/enable 0
+2025.08.12 15:45:12.575   set /dev12576/qachannels/0/input/rflfpath 1
+2025.08.12 15:45:12.575   set /dev12576/qachannels/0/input/on 1
+2025.08.12 15:45:12.575   set /dev12576/qachannels/0/input/range 0.0
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/2/output/on 1
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/2/output/range 0.0
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/2/awg/single 1
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/2/awg/modulation/enable 1
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/2/marker/source 0
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/2/trigger/delay 0.0
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/2/output/rflfpath 1
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/2/output/muting/enable 0
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/3/output/on 1
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/3/output/range 0.0
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/3/awg/single 1
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/3/awg/modulation/enable 1
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/3/marker/source 0
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/3/trigger/delay 0.0
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/3/output/rflfpath 1
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/3/output/muting/enable 0
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/2/sines/0/oscselect 0
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/2/sines/0/harmonic 1
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/2/sines/0/phaseshift 0
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/3/sines/0/oscselect 0
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/3/sines/0/harmonic 1
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/3/sines/0/phaseshift 0
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 15:45:12.575   set /dev12576/system/internaltrigger/enable 0
+2025.08.12 15:45:12.575   set /dev12576/system/internaltrigger/repetitions 1
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/2/awg/auxtriggers/0/slope 1
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/2/awg/auxtriggers/0/channel 8
+2025.08.12 15:45:12.575   set /dev12576/sgchannels/3/awg/auxtriggers/0/slope 1
+2025.08.12 15:45:12.576   set /dev12576/sgchannels/3/awg/auxtriggers/0/channel 8
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/markers/0/source 32
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/markers/1/source 36
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/generator/auxtriggers/0/channel 8
+2025.08.12 15:45:12.576   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 15:45:12.576   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 15:45:12.576   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 15:45:12.576   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 15:45:12.576   set /dev12576/synthesizers/2/centerfreq 4800000000.0
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/centerfreq 7000000000.0
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/generator/delay 0.0
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/integration/delay 2.92e-07
+2025.08.12 15:45:12.576   set /dev12576/sgchannels/2/output/delay 0.0
+2025.08.12 15:45:12.576   set /dev12576/sgchannels/3/output/delay 0.0
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/mode 1
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/multistate/qudits/*/enable 0
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/multistate/qudits/0/numstates 2
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/multistate/qudits/0/enable 1
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/multistate/qudits/0/assignmentvec vector (?? B)
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/multistate/qudits/1/numstates 2
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/multistate/qudits/1/enable 1
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/multistate/qudits/1/assignmentvec vector (?? B)
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/result/source 1
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/result/length 6
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/result/averages 1024
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/result/mode 0
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/multistate/qudits/0/thresholds/0/value 0.0
+2025.08.12 15:45:12.576   set /dev12576/qachannels/0/readout/multistate/qudits/1/thresholds/0/value 0.0
+2025.08.12 15:45:12.576   set /dev12576/sgchannels/2/awg/elf/data vector (?? B)
+2025.08.12 15:45:12.576   set /dev12576/sgchannels/2/awg/waveform/waves/0 vector (?? B)
+2025.08.12 15:45:12.577   set /dev12576/sgchannels/2/awg/commandtable/data vector (?? B)
+2025.08.12 15:45:12.577   set /dev12576/sgchannels/3/awg/elf/data vector (?? B)
+2025.08.12 15:45:12.577   set /dev12576/sgchannels/3/awg/waveform/waves/0 vector (?? B)
+2025.08.12 15:45:12.577   set /dev12576/sgchannels/3/awg/waveform/waves/1 vector (?? B)
+2025.08.12 15:45:12.577   set /dev12576/sgchannels/3/awg/commandtable/data vector (?? B)
+2025.08.12 15:45:12.577   set /dev12576/qachannels/0/readout/result/enable 1
+2025.08.12 15:45:12.577   set /dev12576/qachannels/0/spectroscopy/result/enable 0
+2025.08.12 15:45:12.577   set /dev12576/scopes/0/enable 0
+2025.08.12 15:45:12.577   set /dev12576/qachannels/0/generator/elf/data vector (?? B)
+2025.08.12 15:45:12.577   set /dev12576/qachannels/0/generator/clearwave 1
+2025.08.12 15:45:12.577   set /dev12576/qachannels/0/generator/waveforms/1/wave <unexpected type>
+2025.08.12 15:45:12.577   set /dev12576/qachannels/0/spectroscopy/envelope/enable 0
+2025.08.12 15:45:12.577   set /dev12576/qachannels/0/readout/multistate/qudits/1/weights/0/wave vector (?? B)
+2025.08.12 15:45:12.577   set /dev12576/qachannels/0/readout/integration/length 4000
+2025.08.12 15:45:12.577   set /dev12576/sgchannels/2/awg/enable 1
+2025.08.12 15:45:12.577   set /dev12576/sgchannels/3/awg/enable 1
+2025.08.12 15:45:12.577   set /dev12576/qachannels/0/generator/enable 1
+2025.08.12 15:45:12.577   set /dev12576/system/internaltrigger/enable 1
+2025.08.12 15:45:12.577   set /dev12576/raw/system/awg/runtimechecks/enable 0
+2025.08.12 15:45:12.577   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 15:45:12.577   get /dev12576/raw/error/json/errors -
+2025.08.12 15:45:12.577   get /dev12576/raw/error/json/errors -
+2025.08.12 15:45:12.577   set /dev12576/qachannels/*/spectroscopy/envelope/enable 1
+2025.08.12 15:47:20.527 Node log from the data server with id 'test_server':
+2025.08.12 15:47:20.527   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:47:20.527   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:47:20.527   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:47:20.527   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:47:20.527   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:47:20.527   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:47:20.527   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:47:20.527   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:47:20.527   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:47:20.527   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:47:39.337 Node log from the data server with id 'test_server':
+2025.08.12 15:47:39.337   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:47:39.337   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:47:39.337   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:47:39.337   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:47:39.337   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:47:39.337   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:47:39.337   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:47:39.337   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:47:39.337   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:47:39.337   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:47:39.380 Node log from the data server with id 'test_server':
+2025.08.12 15:47:39.380   set /dev12576/raw/error/clear 1
+2025.08.12 15:47:39.380   set /dev12576/sgchannels/*/pipeliner/reset 1
+2025.08.12 15:47:39.380   set /dev12576/sgchannels/*/pipeliner/mode 0
+2025.08.12 15:47:39.380   set /dev12576/sgchannels/*/synchronization/enable 0
+2025.08.12 15:47:39.381   set /dev12576/qachannels/*/pipeliner/reset 1
+2025.08.12 15:47:39.381   set /dev12576/qachannels/*/pipeliner/mode 0
+2025.08.12 15:47:39.381   set /dev12576/qachannels/*/synchronization/enable 0
+2025.08.12 15:47:39.381   set /dev12576/sgchannels/*/awg/enable 0
+2025.08.12 15:47:39.381   set /dev12576/qachannels/*/generator/enable 0
+2025.08.12 15:47:39.381   set /dev12576/system/synchronization/source 0
+2025.08.12 15:47:39.381   set /dev12576/system/internaltrigger/synchronization/enable 0
+2025.08.12 15:47:39.381   set /dev12576/qachannels/*/readout/result/enable 0
+2025.08.12 15:47:39.381   set /dev12576/qachannels/*/spectroscopy/psd/enable 0
+2025.08.12 15:47:39.381   set /dev12576/qachannels/*/spectroscopy/result/enable 0
+2025.08.12 15:47:39.381   set /dev12576/qachannels/*/output/rflfinterlock 1
+2025.08.12 15:47:39.381   set /dev12576/qachannels/*/oscs/*/gain 1.0
+2025.08.12 15:47:39.381   set /dev12576/scopes/0/enable 0
+2025.08.12 15:47:39.381   set /dev12576/scopes/0/channels/*/enable 0
+2025.08.12 15:47:39.381   get /dev12576/sgchannels/2/busy -
+2025.08.12 15:47:39.381   get /dev12576/sgchannels/3/busy -
+2025.08.12 15:47:39.381   get /dev12576/qachannels/0/busy -
+2025.08.12 15:47:39.381   get /dev12576/qachannels/0/output/overrangecount -
+2025.08.12 15:47:39.381   get /dev12576/qachannels/0/input/overrangecount -
+2025.08.12 15:47:39.381   get /dev12576/sgchannels/0/output/overrangecount -
+2025.08.12 15:47:39.381   get /dev12576/sgchannels/1/output/overrangecount -
+2025.08.12 15:47:39.381   get /dev12576/sgchannels/2/output/overrangecount -
+2025.08.12 15:47:39.381   get /dev12576/sgchannels/3/output/overrangecount -
+2025.08.12 15:47:39.381   get /dev12576/sgchannels/4/output/overrangecount -
+2025.08.12 15:47:39.381   get /dev12576/sgchannels/5/output/overrangecount -
+2025.08.12 15:47:39.381   set /dev12576/qachannels/0/output/on 1
+2025.08.12 15:47:39.381   set /dev12576/qachannels/0/output/range -25.0
+2025.08.12 15:47:39.381   set /dev12576/qachannels/0/generator/single 1
+2025.08.12 15:47:39.381   set /dev12576/qachannels/0/output/muting/enable 0
+2025.08.12 15:47:39.381   set /dev12576/qachannels/0/input/rflfpath 1
+2025.08.12 15:47:39.381   set /dev12576/qachannels/0/input/on 1
+2025.08.12 15:47:39.381   set /dev12576/qachannels/0/input/range 0.0
+2025.08.12 15:47:39.381   set /dev12576/sgchannels/2/output/on 1
+2025.08.12 15:47:39.381   set /dev12576/sgchannels/2/output/range 0.0
+2025.08.12 15:47:39.381   set /dev12576/sgchannels/2/awg/single 1
+2025.08.12 15:47:39.381   set /dev12576/sgchannels/2/awg/modulation/enable 1
+2025.08.12 15:47:39.381   set /dev12576/sgchannels/2/marker/source 0
+2025.08.12 15:47:39.381   set /dev12576/sgchannels/2/trigger/delay 0.0
+2025.08.12 15:47:39.381   set /dev12576/sgchannels/2/output/rflfpath 1
+2025.08.12 15:47:39.381   set /dev12576/sgchannels/2/output/muting/enable 0
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/output/on 1
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/output/range 0.0
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/awg/single 1
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/awg/modulation/enable 1
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/marker/source 0
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/trigger/delay 0.0
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/output/rflfpath 1
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/output/muting/enable 0
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/2/sines/0/oscselect 0
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/2/sines/0/harmonic 1
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/2/sines/0/phaseshift 0
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/sines/0/oscselect 0
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/sines/0/harmonic 1
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/sines/0/phaseshift 0
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 15:47:39.382   set /dev12576/system/internaltrigger/enable 0
+2025.08.12 15:47:39.382   set /dev12576/system/internaltrigger/repetitions 1
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/2/awg/auxtriggers/0/slope 1
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/2/awg/auxtriggers/0/channel 8
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/awg/auxtriggers/0/slope 1
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/awg/auxtriggers/0/channel 8
+2025.08.12 15:47:39.382   set /dev12576/qachannels/0/markers/0/source 32
+2025.08.12 15:47:39.382   set /dev12576/qachannels/0/markers/1/source 36
+2025.08.12 15:47:39.382   set /dev12576/qachannels/0/generator/auxtriggers/0/channel 8
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 15:47:39.382   set /dev12576/synthesizers/2/centerfreq 4800000000.0
+2025.08.12 15:47:39.382   set /dev12576/qachannels/0/centerfreq 7000000000.0
+2025.08.12 15:47:39.382   set /dev12576/qachannels/0/generator/delay 0.0
+2025.08.12 15:47:39.382   set /dev12576/qachannels/0/readout/integration/delay 2.92e-07
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/2/output/delay 0.0
+2025.08.12 15:47:39.382   set /dev12576/sgchannels/3/output/delay 0.0
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/mode 1
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/multistate/qudits/*/enable 0
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/multistate/qudits/0/numstates 2
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/multistate/qudits/0/enable 1
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/multistate/qudits/0/assignmentvec vector (?? B)
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/multistate/qudits/1/numstates 2
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/multistate/qudits/1/enable 1
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/multistate/qudits/1/assignmentvec vector (?? B)
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/result/source 1
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/result/length 6
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/result/averages 1024
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/result/mode 0
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/multistate/qudits/0/thresholds/0/value 0.0
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/multistate/qudits/1/thresholds/0/value 0.0
+2025.08.12 15:47:39.383   set /dev12576/sgchannels/2/awg/elf/data vector (?? B)
+2025.08.12 15:47:39.383   set /dev12576/sgchannels/2/awg/waveform/waves/0 vector (?? B)
+2025.08.12 15:47:39.383   set /dev12576/sgchannels/2/awg/commandtable/data vector (?? B)
+2025.08.12 15:47:39.383   set /dev12576/sgchannels/3/awg/elf/data vector (?? B)
+2025.08.12 15:47:39.383   set /dev12576/sgchannels/3/awg/waveform/waves/0 vector (?? B)
+2025.08.12 15:47:39.383   set /dev12576/sgchannels/3/awg/waveform/waves/1 vector (?? B)
+2025.08.12 15:47:39.383   set /dev12576/sgchannels/3/awg/commandtable/data vector (?? B)
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/result/enable 1
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/spectroscopy/result/enable 0
+2025.08.12 15:47:39.383   set /dev12576/scopes/0/enable 0
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/generator/elf/data vector (?? B)
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/generator/clearwave 1
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/generator/waveforms/1/wave <unexpected type>
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/spectroscopy/envelope/enable 0
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/multistate/qudits/1/weights/0/wave vector (?? B)
+2025.08.12 15:47:39.383   set /dev12576/qachannels/0/readout/integration/length 4000
+2025.08.12 15:47:39.383   set /dev12576/sgchannels/2/awg/enable 1
+2025.08.12 15:47:39.384   set /dev12576/sgchannels/3/awg/enable 1
+2025.08.12 15:47:39.384   set /dev12576/qachannels/0/generator/enable 1
+2025.08.12 15:47:39.384   set /dev12576/system/internaltrigger/enable 1
+2025.08.12 15:47:39.384   set /dev12576/raw/system/awg/runtimechecks/enable 0
+2025.08.12 15:47:39.384   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 15:47:39.384   get /dev12576/raw/error/json/errors -
+2025.08.12 15:47:39.384   get /dev12576/raw/error/json/errors -
+2025.08.12 15:47:39.384   set /dev12576/qachannels/*/spectroscopy/envelope/enable 1
+2025.08.12 15:51:09.771 Node log from the data server with id 'test_server':
+2025.08.12 15:51:09.772   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:51:09.772   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:51:09.772   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:51:09.772   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:51:09.772   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:51:09.772   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:51:09.772   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:51:09.772   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:51:09.772   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:51:09.772   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:51:52.386 Node log from the data server with id 'test_server':
+2025.08.12 15:51:52.386   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:51:52.386   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:51:52.387   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:51:52.387   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:51:52.387   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:51:52.387   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:51:52.387   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:51:52.387   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:51:52.387   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:51:52.387   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:52:16.254 Node log from the data server with id 'test_server':
+2025.08.12 15:52:16.254   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:52:16.254   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:52:16.254   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:52:16.254   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:52:16.254   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:52:16.254   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:52:16.254   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:52:16.254   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:52:16.254   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:52:16.254   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:52:16.294 Node log from the data server with id 'test_server':
+2025.08.12 15:52:16.294   set /dev12576/raw/error/clear 1
+2025.08.12 15:52:16.294   set /dev12576/sgchannels/*/pipeliner/reset 1
+2025.08.12 15:52:16.294   set /dev12576/sgchannels/*/pipeliner/mode 0
+2025.08.12 15:52:16.294   set /dev12576/sgchannels/*/synchronization/enable 0
+2025.08.12 15:52:16.294   set /dev12576/qachannels/*/pipeliner/reset 1
+2025.08.12 15:52:16.294   set /dev12576/qachannels/*/pipeliner/mode 0
+2025.08.12 15:52:16.294   set /dev12576/qachannels/*/synchronization/enable 0
+2025.08.12 15:52:16.294   set /dev12576/sgchannels/*/awg/enable 0
+2025.08.12 15:52:16.294   set /dev12576/qachannels/*/generator/enable 0
+2025.08.12 15:52:16.294   set /dev12576/system/synchronization/source 0
+2025.08.12 15:52:16.294   set /dev12576/system/internaltrigger/synchronization/enable 0
+2025.08.12 15:52:16.294   set /dev12576/qachannels/*/readout/result/enable 0
+2025.08.12 15:52:16.294   set /dev12576/qachannels/*/spectroscopy/psd/enable 0
+2025.08.12 15:52:16.294   set /dev12576/qachannels/*/spectroscopy/result/enable 0
+2025.08.12 15:52:16.294   set /dev12576/qachannels/*/output/rflfinterlock 1
+2025.08.12 15:52:16.294   set /dev12576/qachannels/*/oscs/*/gain 1.0
+2025.08.12 15:52:16.294   set /dev12576/scopes/0/enable 0
+2025.08.12 15:52:16.295   set /dev12576/scopes/0/channels/*/enable 0
+2025.08.12 15:52:16.295   get /dev12576/sgchannels/2/busy -
+2025.08.12 15:52:16.295   get /dev12576/sgchannels/3/busy -
+2025.08.12 15:52:16.295   get /dev12576/qachannels/0/busy -
+2025.08.12 15:52:16.295   get /dev12576/qachannels/0/output/overrangecount -
+2025.08.12 15:52:16.295   get /dev12576/qachannels/0/input/overrangecount -
+2025.08.12 15:52:16.295   get /dev12576/sgchannels/0/output/overrangecount -
+2025.08.12 15:52:16.295   get /dev12576/sgchannels/1/output/overrangecount -
+2025.08.12 15:52:16.295   get /dev12576/sgchannels/2/output/overrangecount -
+2025.08.12 15:52:16.295   get /dev12576/sgchannels/3/output/overrangecount -
+2025.08.12 15:52:16.295   get /dev12576/sgchannels/4/output/overrangecount -
+2025.08.12 15:52:16.295   get /dev12576/sgchannels/5/output/overrangecount -
+2025.08.12 15:52:16.295   set /dev12576/qachannels/0/output/on 1
+2025.08.12 15:52:16.295   set /dev12576/qachannels/0/output/range -25.0
+2025.08.12 15:52:16.295   set /dev12576/qachannels/0/generator/single 1
+2025.08.12 15:52:16.295   set /dev12576/qachannels/0/output/muting/enable 0
+2025.08.12 15:52:16.295   set /dev12576/qachannels/0/input/rflfpath 1
+2025.08.12 15:52:16.295   set /dev12576/qachannels/0/input/on 1
+2025.08.12 15:52:16.295   set /dev12576/qachannels/0/input/range 0.0
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/2/output/on 1
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/2/output/range 0.0
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/2/awg/single 1
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/2/awg/modulation/enable 1
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/2/marker/source 0
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/2/trigger/delay 0.0
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/2/output/rflfpath 1
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/2/output/muting/enable 0
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/3/output/on 1
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/3/output/range 0.0
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/3/awg/single 1
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/3/awg/modulation/enable 1
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/3/marker/source 0
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/3/trigger/delay 0.0
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/3/output/rflfpath 1
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/3/output/muting/enable 0
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/2/sines/0/oscselect 0
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/2/sines/0/harmonic 1
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/2/sines/0/phaseshift 0
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/3/sines/0/oscselect 0
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/3/sines/0/harmonic 1
+2025.08.12 15:52:16.295   set /dev12576/sgchannels/3/sines/0/phaseshift 0
+2025.08.12 15:52:16.296   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 15:52:16.296   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 15:52:16.296   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 15:52:16.296   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 15:52:16.296   set /dev12576/system/internaltrigger/enable 0
+2025.08.12 15:52:16.296   set /dev12576/system/internaltrigger/repetitions 1
+2025.08.12 15:52:16.296   set /dev12576/sgchannels/2/awg/auxtriggers/0/slope 1
+2025.08.12 15:52:16.296   set /dev12576/sgchannels/2/awg/auxtriggers/0/channel 8
+2025.08.12 15:52:16.296   set /dev12576/sgchannels/3/awg/auxtriggers/0/slope 1
+2025.08.12 15:52:16.296   set /dev12576/sgchannels/3/awg/auxtriggers/0/channel 8
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/markers/0/source 32
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/markers/1/source 36
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/generator/auxtriggers/0/channel 8
+2025.08.12 15:52:16.296   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 15:52:16.296   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 15:52:16.296   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 15:52:16.296   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 15:52:16.296   set /dev12576/synthesizers/2/centerfreq 4800000000.0
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/centerfreq 7000000000.0
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/generator/delay 0.0
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/readout/integration/delay 2.92e-07
+2025.08.12 15:52:16.296   set /dev12576/sgchannels/2/output/delay 0.0
+2025.08.12 15:52:16.296   set /dev12576/sgchannels/3/output/delay 0.0
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/mode 1
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/readout/multistate/qudits/*/enable 0
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/readout/multistate/qudits/0/numstates 2
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/readout/multistate/qudits/0/enable 1
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/readout/multistate/qudits/0/assignmentvec vector (?? B)
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/readout/multistate/qudits/1/numstates 2
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/readout/multistate/qudits/1/enable 1
+2025.08.12 15:52:16.296   set /dev12576/qachannels/0/readout/multistate/qudits/1/assignmentvec vector (?? B)
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/readout/result/source 1
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/readout/result/length 6
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/readout/result/averages 1024
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/readout/result/mode 0
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/readout/multistate/qudits/0/thresholds/0/value 0.0
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/readout/multistate/qudits/1/thresholds/0/value 0.0
+2025.08.12 15:52:16.297   set /dev12576/sgchannels/2/awg/elf/data vector (?? B)
+2025.08.12 15:52:16.297   set /dev12576/sgchannels/2/awg/waveform/waves/0 vector (?? B)
+2025.08.12 15:52:16.297   set /dev12576/sgchannels/2/awg/commandtable/data vector (?? B)
+2025.08.12 15:52:16.297   set /dev12576/sgchannels/3/awg/elf/data vector (?? B)
+2025.08.12 15:52:16.297   set /dev12576/sgchannels/3/awg/waveform/waves/0 vector (?? B)
+2025.08.12 15:52:16.297   set /dev12576/sgchannels/3/awg/waveform/waves/1 vector (?? B)
+2025.08.12 15:52:16.297   set /dev12576/sgchannels/3/awg/commandtable/data vector (?? B)
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/readout/result/enable 1
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/spectroscopy/result/enable 0
+2025.08.12 15:52:16.297   set /dev12576/scopes/0/enable 0
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/generator/elf/data vector (?? B)
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/generator/clearwave 1
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/generator/waveforms/1/wave <unexpected type>
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/spectroscopy/envelope/enable 0
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/readout/multistate/qudits/1/weights/0/wave vector (?? B)
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/readout/integration/length 4000
+2025.08.12 15:52:16.297   set /dev12576/sgchannels/2/awg/enable 1
+2025.08.12 15:52:16.297   set /dev12576/sgchannels/3/awg/enable 1
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/generator/enable 1
+2025.08.12 15:52:16.297   set /dev12576/system/internaltrigger/enable 1
+2025.08.12 15:52:16.297   set /dev12576/raw/system/awg/runtimechecks/enable 0
+2025.08.12 15:52:16.297   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 15:52:16.297   get /dev12576/raw/error/json/errors -
+2025.08.12 15:52:16.297   get /dev12576/raw/error/json/errors -
+2025.08.12 15:52:16.297   set /dev12576/qachannels/*/spectroscopy/envelope/enable 1
+2025.08.12 15:53:23.382 Node log from the data server with id 'test_server':
+2025.08.12 15:53:23.382   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:53:23.382   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:53:23.382   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:53:23.382   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:53:23.382   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:53:23.382   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:53:23.382   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:53:23.382   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:53:23.382   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:53:23.382   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:53:23.425 Node log from the data server with id 'test_server':
+2025.08.12 15:53:23.425   set /dev12576/raw/error/clear 1
+2025.08.12 15:53:23.425   set /dev12576/sgchannels/*/pipeliner/reset 1
+2025.08.12 15:53:23.425   set /dev12576/sgchannels/*/pipeliner/mode 0
+2025.08.12 15:53:23.425   set /dev12576/sgchannels/*/synchronization/enable 0
+2025.08.12 15:53:23.425   set /dev12576/qachannels/*/pipeliner/reset 1
+2025.08.12 15:53:23.425   set /dev12576/qachannels/*/pipeliner/mode 0
+2025.08.12 15:53:23.425   set /dev12576/qachannels/*/synchronization/enable 0
+2025.08.12 15:53:23.425   set /dev12576/sgchannels/*/awg/enable 0
+2025.08.12 15:53:23.425   set /dev12576/qachannels/*/generator/enable 0
+2025.08.12 15:53:23.425   set /dev12576/system/synchronization/source 0
+2025.08.12 15:53:23.426   set /dev12576/system/internaltrigger/synchronization/enable 0
+2025.08.12 15:53:23.426   set /dev12576/qachannels/*/readout/result/enable 0
+2025.08.12 15:53:23.426   set /dev12576/qachannels/*/spectroscopy/psd/enable 0
+2025.08.12 15:53:23.426   set /dev12576/qachannels/*/spectroscopy/result/enable 0
+2025.08.12 15:53:23.426   set /dev12576/qachannels/*/output/rflfinterlock 1
+2025.08.12 15:53:23.426   set /dev12576/qachannels/*/oscs/*/gain 1.0
+2025.08.12 15:53:23.426   set /dev12576/scopes/0/enable 0
+2025.08.12 15:53:23.426   set /dev12576/scopes/0/channels/*/enable 0
+2025.08.12 15:53:23.426   get /dev12576/sgchannels/2/busy -
+2025.08.12 15:53:23.426   get /dev12576/sgchannels/3/busy -
+2025.08.12 15:53:23.426   get /dev12576/qachannels/0/busy -
+2025.08.12 15:53:23.426   get /dev12576/qachannels/0/output/overrangecount -
+2025.08.12 15:53:23.426   get /dev12576/qachannels/0/input/overrangecount -
+2025.08.12 15:53:23.426   get /dev12576/sgchannels/0/output/overrangecount -
+2025.08.12 15:53:23.426   get /dev12576/sgchannels/1/output/overrangecount -
+2025.08.12 15:53:23.426   get /dev12576/sgchannels/2/output/overrangecount -
+2025.08.12 15:53:23.426   get /dev12576/sgchannels/3/output/overrangecount -
+2025.08.12 15:53:23.426   get /dev12576/sgchannels/4/output/overrangecount -
+2025.08.12 15:53:23.426   get /dev12576/sgchannels/5/output/overrangecount -
+2025.08.12 15:53:23.426   set /dev12576/qachannels/0/output/on 1
+2025.08.12 15:53:23.426   set /dev12576/qachannels/0/output/range -25.0
+2025.08.12 15:53:23.426   set /dev12576/qachannels/0/generator/single 1
+2025.08.12 15:53:23.426   set /dev12576/qachannels/0/output/muting/enable 0
+2025.08.12 15:53:23.426   set /dev12576/qachannels/0/input/rflfpath 1
+2025.08.12 15:53:23.426   set /dev12576/qachannels/0/input/on 1
+2025.08.12 15:53:23.426   set /dev12576/qachannels/0/input/range 0.0
+2025.08.12 15:53:23.426   set /dev12576/sgchannels/2/output/on 1
+2025.08.12 15:53:23.426   set /dev12576/sgchannels/2/output/range 0.0
+2025.08.12 15:53:23.426   set /dev12576/sgchannels/2/awg/single 1
+2025.08.12 15:53:23.426   set /dev12576/sgchannels/2/awg/modulation/enable 1
+2025.08.12 15:53:23.426   set /dev12576/sgchannels/2/marker/source 0
+2025.08.12 15:53:23.426   set /dev12576/sgchannels/2/trigger/delay 0.0
+2025.08.12 15:53:23.426   set /dev12576/sgchannels/2/output/rflfpath 1
+2025.08.12 15:53:23.426   set /dev12576/sgchannels/2/output/muting/enable 0
+2025.08.12 15:53:23.426   set /dev12576/sgchannels/3/output/on 1
+2025.08.12 15:53:23.426   set /dev12576/sgchannels/3/output/range 0.0
+2025.08.12 15:53:23.426   set /dev12576/sgchannels/3/awg/single 1
+2025.08.12 15:53:23.426   set /dev12576/sgchannels/3/awg/modulation/enable 1
+2025.08.12 15:53:23.426   set /dev12576/sgchannels/3/marker/source 0
+2025.08.12 15:53:23.426   set /dev12576/sgchannels/3/trigger/delay 0.0
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/3/output/rflfpath 1
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/3/output/muting/enable 0
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/2/sines/0/oscselect 0
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/2/sines/0/harmonic 1
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/2/sines/0/phaseshift 0
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/3/sines/0/oscselect 0
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/3/sines/0/harmonic 1
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/3/sines/0/phaseshift 0
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 15:53:23.427   set /dev12576/system/internaltrigger/enable 0
+2025.08.12 15:53:23.427   set /dev12576/system/internaltrigger/repetitions 1
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/2/awg/auxtriggers/0/slope 1
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/2/awg/auxtriggers/0/channel 8
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/3/awg/auxtriggers/0/slope 1
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/3/awg/auxtriggers/0/channel 8
+2025.08.12 15:53:23.427   set /dev12576/qachannels/0/markers/0/source 32
+2025.08.12 15:53:23.427   set /dev12576/qachannels/0/markers/1/source 36
+2025.08.12 15:53:23.427   set /dev12576/qachannels/0/generator/auxtriggers/0/channel 8
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 15:53:23.427   set /dev12576/synthesizers/2/centerfreq 4800000000.0
+2025.08.12 15:53:23.427   set /dev12576/qachannels/0/centerfreq 7000000000.0
+2025.08.12 15:53:23.427   set /dev12576/qachannels/0/generator/delay 0.0
+2025.08.12 15:53:23.427   set /dev12576/qachannels/0/readout/integration/delay 2.92e-07
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/2/output/delay 0.0
+2025.08.12 15:53:23.427   set /dev12576/sgchannels/3/output/delay 0.0
+2025.08.12 15:53:23.427   set /dev12576/qachannels/0/mode 1
+2025.08.12 15:53:23.427   set /dev12576/qachannels/0/readout/multistate/qudits/*/enable 0
+2025.08.12 15:53:23.427   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 15:53:23.427   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 15:53:23.427   set /dev12576/qachannels/0/readout/multistate/qudits/0/numstates 2
+2025.08.12 15:53:23.427   set /dev12576/qachannels/0/readout/multistate/qudits/0/enable 1
+2025.08.12 15:53:23.427   set /dev12576/qachannels/0/readout/multistate/qudits/0/assignmentvec vector (?? B)
+2025.08.12 15:53:23.427   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/readout/multistate/qudits/1/numstates 2
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/readout/multistate/qudits/1/enable 1
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/readout/multistate/qudits/1/assignmentvec vector (?? B)
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/readout/result/source 1
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/readout/result/length 6
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/readout/result/averages 1024
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/readout/result/mode 0
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/readout/multistate/qudits/0/thresholds/0/value 0.0
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/readout/multistate/qudits/1/thresholds/0/value 0.0
+2025.08.12 15:53:23.428   set /dev12576/sgchannels/2/awg/elf/data vector (?? B)
+2025.08.12 15:53:23.428   set /dev12576/sgchannels/2/awg/waveform/waves/0 vector (?? B)
+2025.08.12 15:53:23.428   set /dev12576/sgchannels/2/awg/commandtable/data vector (?? B)
+2025.08.12 15:53:23.428   set /dev12576/sgchannels/3/awg/elf/data vector (?? B)
+2025.08.12 15:53:23.428   set /dev12576/sgchannels/3/awg/waveform/waves/0 vector (?? B)
+2025.08.12 15:53:23.428   set /dev12576/sgchannels/3/awg/waveform/waves/1 vector (?? B)
+2025.08.12 15:53:23.428   set /dev12576/sgchannels/3/awg/commandtable/data vector (?? B)
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/readout/result/enable 1
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/spectroscopy/result/enable 0
+2025.08.12 15:53:23.428   set /dev12576/scopes/0/enable 0
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/generator/elf/data vector (?? B)
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/generator/clearwave 1
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/generator/waveforms/1/wave <unexpected type>
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/spectroscopy/envelope/enable 0
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/readout/multistate/qudits/1/weights/0/wave vector (?? B)
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/readout/integration/length 4000
+2025.08.12 15:53:23.428   set /dev12576/sgchannels/2/awg/enable 1
+2025.08.12 15:53:23.428   set /dev12576/sgchannels/3/awg/enable 1
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/generator/enable 1
+2025.08.12 15:53:23.428   set /dev12576/system/internaltrigger/enable 1
+2025.08.12 15:53:23.428   set /dev12576/raw/system/awg/runtimechecks/enable 0
+2025.08.12 15:53:23.428   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 15:53:23.428   get /dev12576/raw/error/json/errors -
+2025.08.12 15:53:23.428   get /dev12576/raw/error/json/errors -
+2025.08.12 15:53:23.428   set /dev12576/qachannels/*/spectroscopy/envelope/enable 1
+2025.08.12 15:56:19.356 Node log from the data server with id 'test_server':
+2025.08.12 15:56:19.356   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:56:19.356   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:56:19.356   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:56:19.356   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:56:19.356   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:56:19.356   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:56:19.356   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:56:19.356   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:56:19.356   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:56:19.356   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:56:19.396 Node log from the data server with id 'test_server':
+2025.08.12 15:56:19.396   set /dev12576/raw/error/clear 1
+2025.08.12 15:56:19.396   set /dev12576/sgchannels/*/pipeliner/reset 1
+2025.08.12 15:56:19.396   set /dev12576/sgchannels/*/pipeliner/mode 0
+2025.08.12 15:56:19.396   set /dev12576/sgchannels/*/synchronization/enable 0
+2025.08.12 15:56:19.396   set /dev12576/qachannels/*/pipeliner/reset 1
+2025.08.12 15:56:19.396   set /dev12576/qachannels/*/pipeliner/mode 0
+2025.08.12 15:56:19.396   set /dev12576/qachannels/*/synchronization/enable 0
+2025.08.12 15:56:19.396   set /dev12576/sgchannels/*/awg/enable 0
+2025.08.12 15:56:19.396   set /dev12576/qachannels/*/generator/enable 0
+2025.08.12 15:56:19.396   set /dev12576/system/synchronization/source 0
+2025.08.12 15:56:19.396   set /dev12576/system/internaltrigger/synchronization/enable 0
+2025.08.12 15:56:19.396   set /dev12576/qachannels/*/readout/result/enable 0
+2025.08.12 15:56:19.396   set /dev12576/qachannels/*/spectroscopy/psd/enable 0
+2025.08.12 15:56:19.396   set /dev12576/qachannels/*/spectroscopy/result/enable 0
+2025.08.12 15:56:19.396   set /dev12576/qachannels/*/output/rflfinterlock 1
+2025.08.12 15:56:19.396   set /dev12576/qachannels/*/oscs/*/gain 1.0
+2025.08.12 15:56:19.396   set /dev12576/scopes/0/enable 0
+2025.08.12 15:56:19.397   set /dev12576/scopes/0/channels/*/enable 0
+2025.08.12 15:56:19.397   get /dev12576/sgchannels/2/busy -
+2025.08.12 15:56:19.397   get /dev12576/sgchannels/3/busy -
+2025.08.12 15:56:19.397   get /dev12576/qachannels/0/busy -
+2025.08.12 15:56:19.397   get /dev12576/qachannels/0/output/overrangecount -
+2025.08.12 15:56:19.397   get /dev12576/qachannels/0/input/overrangecount -
+2025.08.12 15:56:19.397   get /dev12576/sgchannels/0/output/overrangecount -
+2025.08.12 15:56:19.397   get /dev12576/sgchannels/1/output/overrangecount -
+2025.08.12 15:56:19.397   get /dev12576/sgchannels/2/output/overrangecount -
+2025.08.12 15:56:19.397   get /dev12576/sgchannels/3/output/overrangecount -
+2025.08.12 15:56:19.397   get /dev12576/sgchannels/4/output/overrangecount -
+2025.08.12 15:56:19.397   get /dev12576/sgchannels/5/output/overrangecount -
+2025.08.12 15:56:19.397   set /dev12576/qachannels/0/output/on 1
+2025.08.12 15:56:19.397   set /dev12576/qachannels/0/output/range -25.0
+2025.08.12 15:56:19.397   set /dev12576/qachannels/0/generator/single 1
+2025.08.12 15:56:19.397   set /dev12576/qachannels/0/output/muting/enable 0
+2025.08.12 15:56:19.397   set /dev12576/qachannels/0/input/rflfpath 1
+2025.08.12 15:56:19.397   set /dev12576/qachannels/0/input/on 1
+2025.08.12 15:56:19.397   set /dev12576/qachannels/0/input/range 0.0
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/2/output/on 1
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/2/output/range 0.0
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/2/awg/single 1
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/2/awg/modulation/enable 1
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/2/marker/source 0
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/2/trigger/delay 0.0
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/2/output/rflfpath 1
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/2/output/muting/enable 0
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/3/output/on 1
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/3/output/range 0.0
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/3/awg/single 1
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/3/awg/modulation/enable 1
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/3/marker/source 0
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/3/trigger/delay 0.0
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/3/output/rflfpath 1
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/3/output/muting/enable 0
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/2/sines/0/oscselect 0
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/2/sines/0/harmonic 1
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/2/sines/0/phaseshift 0
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/3/sines/0/oscselect 0
+2025.08.12 15:56:19.397   set /dev12576/sgchannels/3/sines/0/harmonic 1
+2025.08.12 15:56:19.398   set /dev12576/sgchannels/3/sines/0/phaseshift 0
+2025.08.12 15:56:19.398   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 15:56:19.398   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 15:56:19.398   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 15:56:19.398   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 15:56:19.398   set /dev12576/system/internaltrigger/enable 0
+2025.08.12 15:56:19.398   set /dev12576/system/internaltrigger/repetitions 1
+2025.08.12 15:56:19.398   set /dev12576/sgchannels/2/awg/auxtriggers/0/slope 1
+2025.08.12 15:56:19.398   set /dev12576/sgchannels/2/awg/auxtriggers/0/channel 8
+2025.08.12 15:56:19.398   set /dev12576/sgchannels/3/awg/auxtriggers/0/slope 1
+2025.08.12 15:56:19.398   set /dev12576/sgchannels/3/awg/auxtriggers/0/channel 8
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/markers/0/source 32
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/markers/1/source 36
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/generator/auxtriggers/0/channel 8
+2025.08.12 15:56:19.398   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 15:56:19.398   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 15:56:19.398   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 15:56:19.398   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 15:56:19.398   set /dev12576/synthesizers/2/centerfreq 4800000000.0
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/centerfreq 7000000000.0
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/generator/delay 0.0
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/readout/integration/delay 2.92e-07
+2025.08.12 15:56:19.398   set /dev12576/sgchannels/2/output/delay 0.0
+2025.08.12 15:56:19.398   set /dev12576/sgchannels/3/output/delay 0.0
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/mode 1
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/readout/multistate/qudits/*/enable 0
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/readout/multistate/qudits/0/numstates 2
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/readout/multistate/qudits/0/enable 1
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/readout/multistate/qudits/0/assignmentvec vector (?? B)
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/readout/multistate/qudits/1/numstates 2
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/readout/multistate/qudits/1/enable 1
+2025.08.12 15:56:19.398   set /dev12576/qachannels/0/readout/multistate/qudits/1/assignmentvec vector (?? B)
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/readout/result/source 1
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/readout/result/length 6
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/readout/result/averages 1024
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/readout/result/mode 0
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/readout/multistate/qudits/0/thresholds/0/value 0.0
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/readout/multistate/qudits/1/thresholds/0/value 0.0
+2025.08.12 15:56:19.399   set /dev12576/sgchannels/2/awg/elf/data vector (?? B)
+2025.08.12 15:56:19.399   set /dev12576/sgchannels/2/awg/waveform/waves/0 vector (?? B)
+2025.08.12 15:56:19.399   set /dev12576/sgchannels/2/awg/commandtable/data vector (?? B)
+2025.08.12 15:56:19.399   set /dev12576/sgchannels/3/awg/elf/data vector (?? B)
+2025.08.12 15:56:19.399   set /dev12576/sgchannels/3/awg/waveform/waves/0 vector (?? B)
+2025.08.12 15:56:19.399   set /dev12576/sgchannels/3/awg/waveform/waves/1 vector (?? B)
+2025.08.12 15:56:19.399   set /dev12576/sgchannels/3/awg/commandtable/data vector (?? B)
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/readout/result/enable 1
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/spectroscopy/result/enable 0
+2025.08.12 15:56:19.399   set /dev12576/scopes/0/enable 0
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/generator/elf/data vector (?? B)
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/generator/clearwave 1
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/generator/waveforms/1/wave <unexpected type>
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/spectroscopy/envelope/enable 0
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/readout/multistate/qudits/1/weights/0/wave vector (?? B)
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/readout/integration/length 4000
+2025.08.12 15:56:19.399   set /dev12576/sgchannels/2/awg/enable 1
+2025.08.12 15:56:19.399   set /dev12576/sgchannels/3/awg/enable 1
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/generator/enable 1
+2025.08.12 15:56:19.399   set /dev12576/system/internaltrigger/enable 1
+2025.08.12 15:56:19.399   set /dev12576/raw/system/awg/runtimechecks/enable 0
+2025.08.12 15:56:19.399   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 15:56:19.399   get /dev12576/raw/error/json/errors -
+2025.08.12 15:56:19.399   get /dev12576/raw/error/json/errors -
+2025.08.12 15:56:19.399   set /dev12576/qachannels/*/spectroscopy/envelope/enable 1
+2025.08.12 15:57:21.981 Node log from the data server with id 'test_server':
+2025.08.12 15:57:21.981   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:57:21.981   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:57:21.981   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:57:21.981   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:57:21.981   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:57:21.981   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:57:21.981   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:57:21.981   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:57:21.981   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:57:21.981   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:57:22.020 Node log from the data server with id 'test_server':
+2025.08.12 15:57:22.020   set /dev12576/raw/error/clear 1
+2025.08.12 15:57:22.020   set /dev12576/sgchannels/*/pipeliner/reset 1
+2025.08.12 15:57:22.020   set /dev12576/sgchannels/*/pipeliner/mode 0
+2025.08.12 15:57:22.020   set /dev12576/sgchannels/*/synchronization/enable 0
+2025.08.12 15:57:22.020   set /dev12576/qachannels/*/pipeliner/reset 1
+2025.08.12 15:57:22.020   set /dev12576/qachannels/*/pipeliner/mode 0
+2025.08.12 15:57:22.020   set /dev12576/qachannels/*/synchronization/enable 0
+2025.08.12 15:57:22.020   set /dev12576/sgchannels/*/awg/enable 0
+2025.08.12 15:57:22.020   set /dev12576/qachannels/*/generator/enable 0
+2025.08.12 15:57:22.020   set /dev12576/system/synchronization/source 0
+2025.08.12 15:57:22.020   set /dev12576/system/internaltrigger/synchronization/enable 0
+2025.08.12 15:57:22.020   set /dev12576/qachannels/*/readout/result/enable 0
+2025.08.12 15:57:22.020   set /dev12576/qachannels/*/spectroscopy/psd/enable 0
+2025.08.12 15:57:22.020   set /dev12576/qachannels/*/spectroscopy/result/enable 0
+2025.08.12 15:57:22.020   set /dev12576/qachannels/*/output/rflfinterlock 1
+2025.08.12 15:57:22.020   set /dev12576/qachannels/*/oscs/*/gain 1.0
+2025.08.12 15:57:22.020   set /dev12576/scopes/0/enable 0
+2025.08.12 15:57:22.020   set /dev12576/scopes/0/channels/*/enable 0
+2025.08.12 15:57:22.020   get /dev12576/sgchannels/2/busy -
+2025.08.12 15:57:22.020   get /dev12576/sgchannels/3/busy -
+2025.08.12 15:57:22.020   get /dev12576/qachannels/0/busy -
+2025.08.12 15:57:22.020   get /dev12576/qachannels/0/output/overrangecount -
+2025.08.12 15:57:22.020   get /dev12576/qachannels/0/input/overrangecount -
+2025.08.12 15:57:22.021   get /dev12576/sgchannels/0/output/overrangecount -
+2025.08.12 15:57:22.021   get /dev12576/sgchannels/1/output/overrangecount -
+2025.08.12 15:57:22.021   get /dev12576/sgchannels/2/output/overrangecount -
+2025.08.12 15:57:22.021   get /dev12576/sgchannels/3/output/overrangecount -
+2025.08.12 15:57:22.021   get /dev12576/sgchannels/4/output/overrangecount -
+2025.08.12 15:57:22.021   get /dev12576/sgchannels/5/output/overrangecount -
+2025.08.12 15:57:22.021   set /dev12576/qachannels/0/output/on 1
+2025.08.12 15:57:22.021   set /dev12576/qachannels/0/output/range -25.0
+2025.08.12 15:57:22.021   set /dev12576/qachannels/0/generator/single 1
+2025.08.12 15:57:22.021   set /dev12576/qachannels/0/output/muting/enable 0
+2025.08.12 15:57:22.021   set /dev12576/qachannels/0/input/rflfpath 1
+2025.08.12 15:57:22.021   set /dev12576/qachannels/0/input/on 1
+2025.08.12 15:57:22.021   set /dev12576/qachannels/0/input/range 0.0
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/2/output/on 1
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/2/output/range 0.0
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/2/awg/single 1
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/2/awg/modulation/enable 1
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/2/marker/source 0
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/2/trigger/delay 0.0
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/2/output/rflfpath 1
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/2/output/muting/enable 0
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/3/output/on 1
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/3/output/range 0.0
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/3/awg/single 1
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/3/awg/modulation/enable 1
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/3/marker/source 0
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/3/trigger/delay 0.0
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/3/output/rflfpath 1
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/3/output/muting/enable 0
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/2/sines/0/oscselect 0
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/2/sines/0/harmonic 1
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/2/sines/0/phaseshift 0
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/3/sines/0/oscselect 0
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/3/sines/0/harmonic 1
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/3/sines/0/phaseshift 0
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 15:57:22.021   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 15:57:22.022   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 15:57:22.022   set /dev12576/system/internaltrigger/enable 0
+2025.08.12 15:57:22.022   set /dev12576/system/internaltrigger/repetitions 1
+2025.08.12 15:57:22.022   set /dev12576/sgchannels/2/awg/auxtriggers/0/slope 1
+2025.08.12 15:57:22.022   set /dev12576/sgchannels/2/awg/auxtriggers/0/channel 8
+2025.08.12 15:57:22.022   set /dev12576/sgchannels/3/awg/auxtriggers/0/slope 1
+2025.08.12 15:57:22.022   set /dev12576/sgchannels/3/awg/auxtriggers/0/channel 8
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/markers/0/source 32
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/markers/1/source 36
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/generator/auxtriggers/0/channel 8
+2025.08.12 15:57:22.022   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 15:57:22.022   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 15:57:22.022   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 15:57:22.022   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 15:57:22.022   set /dev12576/synthesizers/2/centerfreq 4800000000.0
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/centerfreq 7000000000.0
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/generator/delay 0.0
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/integration/delay 2.92e-07
+2025.08.12 15:57:22.022   set /dev12576/sgchannels/2/output/delay 0.0
+2025.08.12 15:57:22.022   set /dev12576/sgchannels/3/output/delay 0.0
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/mode 1
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/multistate/qudits/*/enable 0
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/multistate/qudits/0/numstates 2
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/multistate/qudits/0/enable 1
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/multistate/qudits/0/assignmentvec vector (?? B)
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/multistate/qudits/1/numstates 2
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/multistate/qudits/1/enable 1
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/multistate/qudits/1/assignmentvec vector (?? B)
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/result/source 1
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/result/length 6
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/result/averages 1024
+2025.08.12 15:57:22.022   set /dev12576/qachannels/0/readout/result/mode 0
+2025.08.12 15:57:22.023   set /dev12576/qachannels/0/readout/multistate/qudits/0/thresholds/0/value 0.0
+2025.08.12 15:57:22.023   set /dev12576/qachannels/0/readout/multistate/qudits/1/thresholds/0/value 0.0
+2025.08.12 15:57:22.023   set /dev12576/sgchannels/2/awg/elf/data vector (?? B)
+2025.08.12 15:57:22.023   set /dev12576/sgchannels/2/awg/waveform/waves/0 vector (?? B)
+2025.08.12 15:57:22.023   set /dev12576/sgchannels/2/awg/commandtable/data vector (?? B)
+2025.08.12 15:57:22.023   set /dev12576/sgchannels/3/awg/elf/data vector (?? B)
+2025.08.12 15:57:22.023   set /dev12576/sgchannels/3/awg/waveform/waves/0 vector (?? B)
+2025.08.12 15:57:22.023   set /dev12576/sgchannels/3/awg/waveform/waves/1 vector (?? B)
+2025.08.12 15:57:22.023   set /dev12576/sgchannels/3/awg/commandtable/data vector (?? B)
+2025.08.12 15:57:22.023   set /dev12576/qachannels/0/readout/result/enable 1
+2025.08.12 15:57:22.023   set /dev12576/qachannels/0/spectroscopy/result/enable 0
+2025.08.12 15:57:22.023   set /dev12576/scopes/0/enable 0
+2025.08.12 15:57:22.023   set /dev12576/qachannels/0/generator/elf/data vector (?? B)
+2025.08.12 15:57:22.023   set /dev12576/qachannels/0/generator/clearwave 1
+2025.08.12 15:57:22.023   set /dev12576/qachannels/0/generator/waveforms/1/wave <unexpected type>
+2025.08.12 15:57:22.023   set /dev12576/qachannels/0/spectroscopy/envelope/enable 0
+2025.08.12 15:57:22.023   set /dev12576/qachannels/0/readout/multistate/qudits/1/weights/0/wave vector (?? B)
+2025.08.12 15:57:22.023   set /dev12576/qachannels/0/readout/integration/length 4000
+2025.08.12 15:57:22.023   set /dev12576/sgchannels/2/awg/enable 1
+2025.08.12 15:57:22.023   set /dev12576/sgchannels/3/awg/enable 1
+2025.08.12 15:57:22.023   set /dev12576/qachannels/0/generator/enable 1
+2025.08.12 15:57:22.023   set /dev12576/system/internaltrigger/enable 1
+2025.08.12 15:57:22.023   set /dev12576/raw/system/awg/runtimechecks/enable 0
+2025.08.12 15:57:22.023   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 15:57:22.023   get /dev12576/raw/error/json/errors -
+2025.08.12 15:57:22.023   get /dev12576/raw/error/json/errors -
+2025.08.12 15:57:22.023   set /dev12576/qachannels/*/spectroscopy/envelope/enable 1
+2025.08.12 15:58:36.826 Node log from the data server with id 'test_server':
+2025.08.12 15:58:36.826   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:58:36.826   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 15:58:36.826   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:58:36.826   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:58:36.826   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:58:36.826   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:58:36.826   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 15:58:36.826   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 15:58:36.826   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 15:58:36.827   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 15:58:36.865 Node log from the data server with id 'test_server':
+2025.08.12 15:58:36.866   set /dev12576/raw/error/clear 1
+2025.08.12 15:58:36.866   set /dev12576/sgchannels/*/pipeliner/reset 1
+2025.08.12 15:58:36.866   set /dev12576/sgchannels/*/pipeliner/mode 0
+2025.08.12 15:58:36.866   set /dev12576/sgchannels/*/synchronization/enable 0
+2025.08.12 15:58:36.866   set /dev12576/qachannels/*/pipeliner/reset 1
+2025.08.12 15:58:36.866   set /dev12576/qachannels/*/pipeliner/mode 0
+2025.08.12 15:58:36.866   set /dev12576/qachannels/*/synchronization/enable 0
+2025.08.12 15:58:36.866   set /dev12576/sgchannels/*/awg/enable 0
+2025.08.12 15:58:36.866   set /dev12576/qachannels/*/generator/enable 0
+2025.08.12 15:58:36.866   set /dev12576/system/synchronization/source 0
+2025.08.12 15:58:36.866   set /dev12576/system/internaltrigger/synchronization/enable 0
+2025.08.12 15:58:36.866   set /dev12576/qachannels/*/readout/result/enable 0
+2025.08.12 15:58:36.866   set /dev12576/qachannels/*/spectroscopy/psd/enable 0
+2025.08.12 15:58:36.866   set /dev12576/qachannels/*/spectroscopy/result/enable 0
+2025.08.12 15:58:36.866   set /dev12576/qachannels/*/output/rflfinterlock 1
+2025.08.12 15:58:36.866   set /dev12576/qachannels/*/oscs/*/gain 1.0
+2025.08.12 15:58:36.866   set /dev12576/scopes/0/enable 0
+2025.08.12 15:58:36.866   set /dev12576/scopes/0/channels/*/enable 0
+2025.08.12 15:58:36.866   get /dev12576/sgchannels/2/busy -
+2025.08.12 15:58:36.866   get /dev12576/sgchannels/3/busy -
+2025.08.12 15:58:36.866   get /dev12576/qachannels/0/busy -
+2025.08.12 15:58:36.866   get /dev12576/qachannels/0/output/overrangecount -
+2025.08.12 15:58:36.866   get /dev12576/qachannels/0/input/overrangecount -
+2025.08.12 15:58:36.866   get /dev12576/sgchannels/0/output/overrangecount -
+2025.08.12 15:58:36.866   get /dev12576/sgchannels/1/output/overrangecount -
+2025.08.12 15:58:36.866   get /dev12576/sgchannels/2/output/overrangecount -
+2025.08.12 15:58:36.866   get /dev12576/sgchannels/3/output/overrangecount -
+2025.08.12 15:58:36.866   get /dev12576/sgchannels/4/output/overrangecount -
+2025.08.12 15:58:36.866   get /dev12576/sgchannels/5/output/overrangecount -
+2025.08.12 15:58:36.866   set /dev12576/qachannels/0/output/on 1
+2025.08.12 15:58:36.866   set /dev12576/qachannels/0/output/range -25.0
+2025.08.12 15:58:36.866   set /dev12576/qachannels/0/generator/single 1
+2025.08.12 15:58:36.866   set /dev12576/qachannels/0/output/muting/enable 0
+2025.08.12 15:58:36.866   set /dev12576/qachannels/0/input/rflfpath 1
+2025.08.12 15:58:36.866   set /dev12576/qachannels/0/input/on 1
+2025.08.12 15:58:36.866   set /dev12576/qachannels/0/input/range 0.0
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/output/on 1
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/output/range 0.0
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/awg/single 1
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/awg/modulation/enable 1
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/marker/source 0
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/trigger/delay 0.0
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/output/rflfpath 1
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/output/muting/enable 0
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/3/output/on 1
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/3/output/range 0.0
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/3/awg/single 1
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/3/awg/modulation/enable 1
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/3/marker/source 0
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/3/trigger/delay 0.0
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/3/output/rflfpath 1
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/3/output/muting/enable 0
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/sines/0/oscselect 0
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/sines/0/harmonic 1
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/sines/0/phaseshift 0
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/3/sines/0/oscselect 0
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/3/sines/0/harmonic 1
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/3/sines/0/phaseshift 0
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 15:58:36.867   set /dev12576/system/internaltrigger/enable 0
+2025.08.12 15:58:36.867   set /dev12576/system/internaltrigger/repetitions 1
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/awg/auxtriggers/0/slope 1
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/awg/auxtriggers/0/channel 8
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/3/awg/auxtriggers/0/slope 1
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/3/awg/auxtriggers/0/channel 8
+2025.08.12 15:58:36.867   set /dev12576/qachannels/0/markers/0/source 32
+2025.08.12 15:58:36.867   set /dev12576/qachannels/0/markers/1/source 36
+2025.08.12 15:58:36.867   set /dev12576/qachannels/0/generator/auxtriggers/0/channel 8
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 15:58:36.867   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 15:58:36.868   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 15:58:36.868   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 15:58:36.868   set /dev12576/synthesizers/2/centerfreq 4800000000.0
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/centerfreq 7000000000.0
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/generator/delay 0.0
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/integration/delay 2.92e-07
+2025.08.12 15:58:36.868   set /dev12576/sgchannels/2/output/delay 0.0
+2025.08.12 15:58:36.868   set /dev12576/sgchannels/3/output/delay 0.0
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/mode 1
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/multistate/qudits/*/enable 0
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/multistate/qudits/0/numstates 2
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/multistate/qudits/0/enable 1
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/multistate/qudits/0/assignmentvec vector (?? B)
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/multistate/qudits/1/numstates 2
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/multistate/qudits/1/enable 1
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/multistate/qudits/1/assignmentvec vector (?? B)
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/result/source 1
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/result/length 6
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/result/averages 1024
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/result/mode 0
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/multistate/qudits/0/thresholds/0/value 0.0
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/multistate/qudits/1/thresholds/0/value 0.0
+2025.08.12 15:58:36.868   set /dev12576/sgchannels/2/awg/elf/data vector (?? B)
+2025.08.12 15:58:36.868   set /dev12576/sgchannels/2/awg/waveform/waves/0 vector (?? B)
+2025.08.12 15:58:36.868   set /dev12576/sgchannels/2/awg/commandtable/data vector (?? B)
+2025.08.12 15:58:36.868   set /dev12576/sgchannels/3/awg/elf/data vector (?? B)
+2025.08.12 15:58:36.868   set /dev12576/sgchannels/3/awg/waveform/waves/0 vector (?? B)
+2025.08.12 15:58:36.868   set /dev12576/sgchannels/3/awg/waveform/waves/1 vector (?? B)
+2025.08.12 15:58:36.868   set /dev12576/sgchannels/3/awg/commandtable/data vector (?? B)
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/readout/result/enable 1
+2025.08.12 15:58:36.868   set /dev12576/qachannels/0/spectroscopy/result/enable 0
+2025.08.12 15:58:36.868   set /dev12576/scopes/0/enable 0
+2025.08.12 15:58:36.869   set /dev12576/qachannels/0/generator/elf/data vector (?? B)
+2025.08.12 15:58:36.869   set /dev12576/qachannels/0/generator/clearwave 1
+2025.08.12 15:58:36.869   set /dev12576/qachannels/0/generator/waveforms/1/wave <unexpected type>
+2025.08.12 15:58:36.869   set /dev12576/qachannels/0/spectroscopy/envelope/enable 0
+2025.08.12 15:58:36.869   set /dev12576/qachannels/0/readout/multistate/qudits/1/weights/0/wave vector (?? B)
+2025.08.12 15:58:36.869   set /dev12576/qachannels/0/readout/integration/length 4000
+2025.08.12 15:58:36.869   set /dev12576/sgchannels/2/awg/enable 1
+2025.08.12 15:58:36.869   set /dev12576/sgchannels/3/awg/enable 1
+2025.08.12 15:58:36.869   set /dev12576/qachannels/0/generator/enable 1
+2025.08.12 15:58:36.869   set /dev12576/system/internaltrigger/enable 1
+2025.08.12 15:58:36.869   set /dev12576/raw/system/awg/runtimechecks/enable 0
+2025.08.12 15:58:36.869   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 15:58:36.869   get /dev12576/raw/error/json/errors -
+2025.08.12 15:58:36.869   get /dev12576/raw/error/json/errors -
+2025.08.12 15:58:36.869   set /dev12576/qachannels/*/spectroscopy/envelope/enable 1
+2025.08.12 16:33:02.508 Node log from the data server with id 'test_server':
+2025.08.12 16:33:02.508   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 16:33:02.508   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 16:33:02.508   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 16:33:02.508   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 16:33:02.509   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 16:33:02.509   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 16:33:02.509   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 16:33:02.509   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 16:33:02.509   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 16:33:02.509   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 16:33:02.553 Node log from the data server with id 'test_server':
+2025.08.12 16:33:02.553   set /dev12576/raw/error/clear 1
+2025.08.12 16:33:02.553   set /dev12576/sgchannels/*/pipeliner/reset 1
+2025.08.12 16:33:02.553   set /dev12576/sgchannels/*/pipeliner/mode 0
+2025.08.12 16:33:02.553   set /dev12576/sgchannels/*/synchronization/enable 0
+2025.08.12 16:33:02.553   set /dev12576/qachannels/*/pipeliner/reset 1
+2025.08.12 16:33:02.553   set /dev12576/qachannels/*/pipeliner/mode 0
+2025.08.12 16:33:02.553   set /dev12576/qachannels/*/synchronization/enable 0
+2025.08.12 16:33:02.553   set /dev12576/sgchannels/*/awg/enable 0
+2025.08.12 16:33:02.554   set /dev12576/qachannels/*/generator/enable 0
+2025.08.12 16:33:02.554   set /dev12576/system/synchronization/source 0
+2025.08.12 16:33:02.554   set /dev12576/system/internaltrigger/synchronization/enable 0
+2025.08.12 16:33:02.554   set /dev12576/qachannels/*/readout/result/enable 0
+2025.08.12 16:33:02.554   set /dev12576/qachannels/*/spectroscopy/psd/enable 0
+2025.08.12 16:33:02.554   set /dev12576/qachannels/*/spectroscopy/result/enable 0
+2025.08.12 16:33:02.554   set /dev12576/qachannels/*/output/rflfinterlock 1
+2025.08.12 16:33:02.554   set /dev12576/qachannels/*/oscs/*/gain 1.0
+2025.08.12 16:33:02.554   set /dev12576/scopes/0/enable 0
+2025.08.12 16:33:02.554   set /dev12576/scopes/0/channels/*/enable 0
+2025.08.12 16:33:02.554   get /dev12576/sgchannels/2/busy -
+2025.08.12 16:33:02.554   get /dev12576/sgchannels/3/busy -
+2025.08.12 16:33:02.554   get /dev12576/qachannels/0/busy -
+2025.08.12 16:33:02.554   get /dev12576/qachannels/0/output/overrangecount -
+2025.08.12 16:33:02.554   get /dev12576/qachannels/0/input/overrangecount -
+2025.08.12 16:33:02.554   get /dev12576/sgchannels/0/output/overrangecount -
+2025.08.12 16:33:02.554   get /dev12576/sgchannels/1/output/overrangecount -
+2025.08.12 16:33:02.554   get /dev12576/sgchannels/2/output/overrangecount -
+2025.08.12 16:33:02.554   get /dev12576/sgchannels/3/output/overrangecount -
+2025.08.12 16:33:02.554   get /dev12576/sgchannels/4/output/overrangecount -
+2025.08.12 16:33:02.554   get /dev12576/sgchannels/5/output/overrangecount -
+2025.08.12 16:33:02.554   set /dev12576/qachannels/0/output/on 1
+2025.08.12 16:33:02.554   set /dev12576/qachannels/0/output/range -25.0
+2025.08.12 16:33:02.554   set /dev12576/qachannels/0/generator/single 1
+2025.08.12 16:33:02.554   set /dev12576/qachannels/0/output/muting/enable 0
+2025.08.12 16:33:02.554   set /dev12576/qachannels/0/input/rflfpath 1
+2025.08.12 16:33:02.554   set /dev12576/qachannels/0/input/on 1
+2025.08.12 16:33:02.554   set /dev12576/qachannels/0/input/range 0.0
+2025.08.12 16:33:02.554   set /dev12576/sgchannels/2/output/on 1
+2025.08.12 16:33:02.554   set /dev12576/sgchannels/2/output/range 0.0
+2025.08.12 16:33:02.554   set /dev12576/sgchannels/2/awg/single 1
+2025.08.12 16:33:02.554   set /dev12576/sgchannels/2/awg/modulation/enable 1
+2025.08.12 16:33:02.554   set /dev12576/sgchannels/2/marker/source 0
+2025.08.12 16:33:02.554   set /dev12576/sgchannels/2/trigger/delay 0.0
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/2/output/rflfpath 1
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/2/output/muting/enable 0
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/output/on 1
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/output/range 0.0
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/awg/single 1
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/awg/modulation/enable 1
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/marker/source 0
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/trigger/delay 0.0
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/output/rflfpath 1
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/output/muting/enable 0
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/2/sines/0/oscselect 0
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/2/sines/0/harmonic 1
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/2/sines/0/phaseshift 0
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/sines/0/oscselect 0
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/sines/0/harmonic 1
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/sines/0/phaseshift 0
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 16:33:02.555   set /dev12576/system/internaltrigger/enable 0
+2025.08.12 16:33:02.555   set /dev12576/system/internaltrigger/repetitions 1
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/2/awg/auxtriggers/0/slope 1
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/2/awg/auxtriggers/0/channel 8
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/awg/auxtriggers/0/slope 1
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/awg/auxtriggers/0/channel 8
+2025.08.12 16:33:02.555   set /dev12576/qachannels/0/markers/0/source 32
+2025.08.12 16:33:02.555   set /dev12576/qachannels/0/markers/1/source 36
+2025.08.12 16:33:02.555   set /dev12576/qachannels/0/generator/auxtriggers/0/channel 8
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 16:33:02.555   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 16:33:02.555   set /dev12576/synthesizers/2/centerfreq 4800000000.0
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/centerfreq 7000000000.0
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/generator/delay 0.0
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/integration/delay 2.92e-07
+2025.08.12 16:33:02.556   set /dev12576/sgchannels/2/output/delay 0.0
+2025.08.12 16:33:02.556   set /dev12576/sgchannels/3/output/delay 0.0
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/mode 1
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/multistate/qudits/*/enable 0
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/multistate/qudits/0/numstates 2
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/multistate/qudits/0/enable 1
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/multistate/qudits/0/assignmentvec vector (?? B)
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/multistate/qudits/1/numstates 2
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/multistate/qudits/1/enable 1
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/multistate/qudits/1/assignmentvec vector (?? B)
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/result/source 1
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/result/length 6
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/result/averages 1024
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/result/mode 0
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/multistate/qudits/0/thresholds/0/value 0.0
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/multistate/qudits/1/thresholds/0/value 0.0
+2025.08.12 16:33:02.556   set /dev12576/sgchannels/2/awg/elf/data vector (?? B)
+2025.08.12 16:33:02.556   set /dev12576/sgchannels/2/awg/waveform/waves/0 vector (?? B)
+2025.08.12 16:33:02.556   set /dev12576/sgchannels/2/awg/commandtable/data vector (?? B)
+2025.08.12 16:33:02.556   set /dev12576/sgchannels/3/awg/elf/data vector (?? B)
+2025.08.12 16:33:02.556   set /dev12576/sgchannels/3/awg/waveform/waves/0 vector (?? B)
+2025.08.12 16:33:02.556   set /dev12576/sgchannels/3/awg/waveform/waves/1 vector (?? B)
+2025.08.12 16:33:02.556   set /dev12576/sgchannels/3/awg/commandtable/data vector (?? B)
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/readout/result/enable 1
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/spectroscopy/result/enable 0
+2025.08.12 16:33:02.556   set /dev12576/scopes/0/enable 0
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/generator/elf/data vector (?? B)
+2025.08.12 16:33:02.556   set /dev12576/qachannels/0/generator/clearwave 1
+2025.08.12 16:33:02.557   set /dev12576/qachannels/0/generator/waveforms/1/wave <unexpected type>
+2025.08.12 16:33:02.557   set /dev12576/qachannels/0/spectroscopy/envelope/enable 0
+2025.08.12 16:33:02.557   set /dev12576/qachannels/0/readout/multistate/qudits/1/weights/0/wave vector (?? B)
+2025.08.12 16:33:02.557   set /dev12576/qachannels/0/readout/integration/length 4000
+2025.08.12 16:33:02.557   set /dev12576/sgchannels/2/awg/enable 1
+2025.08.12 16:33:02.557   set /dev12576/sgchannels/3/awg/enable 1
+2025.08.12 16:33:02.557   set /dev12576/qachannels/0/generator/enable 1
+2025.08.12 16:33:02.557   set /dev12576/system/internaltrigger/enable 1
+2025.08.12 16:33:02.557   set /dev12576/raw/system/awg/runtimechecks/enable 0
+2025.08.12 16:33:02.557   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 16:33:02.557   get /dev12576/raw/error/json/errors -
+2025.08.12 16:33:02.557   get /dev12576/raw/error/json/errors -
+2025.08.12 16:33:02.557   set /dev12576/qachannels/*/spectroscopy/envelope/enable 1
+2025.08.12 17:47:54.846 Node log from the data server with id 'test_server':
+2025.08.12 17:47:54.846   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 17:47:54.846   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 17:47:54.846   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 17:47:54.847   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 17:47:54.847   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 17:47:54.847   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 17:47:54.847   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 17:47:54.847   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 17:47:54.847   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 17:47:54.847   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 17:47:54.894 Node log from the data server with id 'test_server':
+2025.08.12 17:47:54.894   set /dev12576/raw/error/clear 1
+2025.08.12 17:47:54.894   set /dev12576/sgchannels/*/pipeliner/reset 1
+2025.08.12 17:47:54.894   set /dev12576/sgchannels/*/pipeliner/mode 0
+2025.08.12 17:47:54.894   set /dev12576/sgchannels/*/synchronization/enable 0
+2025.08.12 17:47:54.894   set /dev12576/qachannels/*/pipeliner/reset 1
+2025.08.12 17:47:54.894   set /dev12576/qachannels/*/pipeliner/mode 0
+2025.08.12 17:47:54.894   set /dev12576/qachannels/*/synchronization/enable 0
+2025.08.12 17:47:54.894   set /dev12576/sgchannels/*/awg/enable 0
+2025.08.12 17:47:54.894   set /dev12576/qachannels/*/generator/enable 0
+2025.08.12 17:47:54.894   set /dev12576/system/synchronization/source 0
+2025.08.12 17:47:54.894   set /dev12576/system/internaltrigger/synchronization/enable 0
+2025.08.12 17:47:54.894   set /dev12576/qachannels/*/readout/result/enable 0
+2025.08.12 17:47:54.894   set /dev12576/qachannels/*/spectroscopy/psd/enable 0
+2025.08.12 17:47:54.894   set /dev12576/qachannels/*/spectroscopy/result/enable 0
+2025.08.12 17:47:54.894   set /dev12576/qachannels/*/output/rflfinterlock 1
+2025.08.12 17:47:54.894   set /dev12576/qachannels/*/oscs/*/gain 1.0
+2025.08.12 17:47:54.894   set /dev12576/scopes/0/enable 0
+2025.08.12 17:47:54.894   set /dev12576/scopes/0/channels/*/enable 0
+2025.08.12 17:47:54.894   get /dev12576/sgchannels/2/busy -
+2025.08.12 17:47:54.894   get /dev12576/sgchannels/3/busy -
+2025.08.12 17:47:54.894   get /dev12576/qachannels/0/busy -
+2025.08.12 17:47:54.894   get /dev12576/qachannels/0/output/overrangecount -
+2025.08.12 17:47:54.894   get /dev12576/qachannels/0/input/overrangecount -
+2025.08.12 17:47:54.894   get /dev12576/sgchannels/0/output/overrangecount -
+2025.08.12 17:47:54.894   get /dev12576/sgchannels/1/output/overrangecount -
+2025.08.12 17:47:54.894   get /dev12576/sgchannels/2/output/overrangecount -
+2025.08.12 17:47:54.894   get /dev12576/sgchannels/3/output/overrangecount -
+2025.08.12 17:47:54.894   get /dev12576/sgchannels/4/output/overrangecount -
+2025.08.12 17:47:54.894   get /dev12576/sgchannels/5/output/overrangecount -
+2025.08.12 17:47:54.894   set /dev12576/qachannels/0/output/on 1
+2025.08.12 17:47:54.894   set /dev12576/qachannels/0/output/range -25.0
+2025.08.12 17:47:54.894   set /dev12576/qachannels/0/generator/single 1
+2025.08.12 17:47:54.894   set /dev12576/qachannels/0/output/muting/enable 0
+2025.08.12 17:47:54.894   set /dev12576/qachannels/0/input/rflfpath 1
+2025.08.12 17:47:54.894   set /dev12576/qachannels/0/input/on 1
+2025.08.12 17:47:54.894   set /dev12576/qachannels/0/input/range 0.0
+2025.08.12 17:47:54.894   set /dev12576/sgchannels/2/output/on 1
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/2/output/range 0.0
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/2/awg/single 1
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/2/awg/modulation/enable 1
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/2/marker/source 0
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/2/trigger/delay 0.0
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/2/output/rflfpath 1
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/2/output/muting/enable 0
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/output/on 1
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/output/range 0.0
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/awg/single 1
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/awg/modulation/enable 1
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/marker/source 0
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/trigger/delay 0.0
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/output/rflfpath 1
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/output/muting/enable 0
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/2/sines/0/oscselect 0
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/2/sines/0/harmonic 1
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/2/sines/0/phaseshift 0
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/sines/0/oscselect 0
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/sines/0/harmonic 1
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/sines/0/phaseshift 0
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 17:47:54.895   set /dev12576/system/internaltrigger/enable 0
+2025.08.12 17:47:54.895   set /dev12576/system/internaltrigger/repetitions 1
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/2/awg/auxtriggers/0/slope 1
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/2/awg/auxtriggers/0/channel 8
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/awg/auxtriggers/0/slope 1
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/awg/auxtriggers/0/channel 8
+2025.08.12 17:47:54.895   set /dev12576/qachannels/0/markers/0/source 32
+2025.08.12 17:47:54.895   set /dev12576/qachannels/0/markers/1/source 36
+2025.08.12 17:47:54.895   set /dev12576/qachannels/0/generator/auxtriggers/0/channel 8
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 17:47:54.895   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 17:47:54.895   set /dev12576/synthesizers/2/centerfreq 4800000000.0
+2025.08.12 17:47:54.895   set /dev12576/qachannels/0/centerfreq 7000000000.0
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/generator/delay 0.0
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/integration/delay 2.92e-07
+2025.08.12 17:47:54.896   set /dev12576/sgchannels/2/output/delay 0.0
+2025.08.12 17:47:54.896   set /dev12576/sgchannels/3/output/delay 0.0
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/mode 1
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/multistate/qudits/*/enable 0
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/multistate/qudits/0/numstates 2
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/multistate/qudits/0/enable 1
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/multistate/qudits/0/assignmentvec vector (?? B)
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/multistate/qudits/1/numstates 2
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/multistate/qudits/1/enable 1
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/multistate/qudits/1/assignmentvec vector (?? B)
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/result/source 1
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/result/length 6
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/result/averages 1024
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/result/mode 0
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/multistate/qudits/0/thresholds/0/value 0.0
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/multistate/qudits/1/thresholds/0/value 0.0
+2025.08.12 17:47:54.896   set /dev12576/sgchannels/2/awg/elf/data vector (?? B)
+2025.08.12 17:47:54.896   set /dev12576/sgchannels/2/awg/waveform/waves/0 vector (?? B)
+2025.08.12 17:47:54.896   set /dev12576/sgchannels/2/awg/commandtable/data vector (?? B)
+2025.08.12 17:47:54.896   set /dev12576/sgchannels/3/awg/elf/data vector (?? B)
+2025.08.12 17:47:54.896   set /dev12576/sgchannels/3/awg/waveform/waves/0 vector (?? B)
+2025.08.12 17:47:54.896   set /dev12576/sgchannels/3/awg/waveform/waves/1 vector (?? B)
+2025.08.12 17:47:54.896   set /dev12576/sgchannels/3/awg/commandtable/data vector (?? B)
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/result/enable 1
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/spectroscopy/result/enable 0
+2025.08.12 17:47:54.896   set /dev12576/scopes/0/enable 0
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/generator/elf/data vector (?? B)
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/generator/clearwave 1
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/generator/waveforms/1/wave <unexpected type>
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/spectroscopy/envelope/enable 0
+2025.08.12 17:47:54.896   set /dev12576/qachannels/0/readout/multistate/qudits/1/weights/0/wave vector (?? B)
+2025.08.12 17:47:54.897   set /dev12576/qachannels/0/readout/integration/length 4000
+2025.08.12 17:47:54.897   set /dev12576/sgchannels/2/awg/enable 1
+2025.08.12 17:47:54.897   set /dev12576/sgchannels/3/awg/enable 1
+2025.08.12 17:47:54.897   set /dev12576/qachannels/0/generator/enable 1
+2025.08.12 17:47:54.897   set /dev12576/system/internaltrigger/enable 1
+2025.08.12 17:47:54.897   set /dev12576/raw/system/awg/runtimechecks/enable 0
+2025.08.12 17:47:54.897   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 17:47:54.897   get /dev12576/raw/error/json/errors -
+2025.08.12 17:47:54.897   get /dev12576/raw/error/json/errors -
+2025.08.12 17:47:54.897   set /dev12576/qachannels/*/spectroscopy/envelope/enable 1
+2025.08.12 17:49:06.336 Node log from the data server with id 'test_server':
+2025.08.12 17:49:06.336   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 17:49:06.336   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 17:49:06.336   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 17:49:06.336   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 17:49:06.336   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 17:49:06.336   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 17:49:06.336   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 17:49:06.336   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 17:49:06.336   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 17:49:06.336   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 17:49:06.343 Node log from the data server with id 'test_server':
+2025.08.12 17:49:06.343   set /dev12576/raw/error/clear 1
+2025.08.12 17:49:06.343   set /dev12576/sgchannels/*/pipeliner/reset 1
+2025.08.12 17:49:06.343   set /dev12576/sgchannels/*/pipeliner/mode 0
+2025.08.12 17:49:06.343   set /dev12576/sgchannels/*/synchronization/enable 0
+2025.08.12 17:49:06.343   set /dev12576/qachannels/*/pipeliner/reset 1
+2025.08.12 17:49:06.343   set /dev12576/qachannels/*/pipeliner/mode 0
+2025.08.12 17:49:06.343   set /dev12576/qachannels/*/synchronization/enable 0
+2025.08.12 17:49:06.343   set /dev12576/sgchannels/*/awg/enable 0
+2025.08.12 17:49:06.343   set /dev12576/qachannels/*/generator/enable 0
+2025.08.12 17:49:06.343   set /dev12576/system/synchronization/source 0
+2025.08.12 17:49:06.343   set /dev12576/system/internaltrigger/synchronization/enable 0
+2025.08.12 17:49:06.343   set /dev12576/qachannels/*/readout/result/enable 0
+2025.08.12 17:49:06.343   set /dev12576/qachannels/*/spectroscopy/psd/enable 0
+2025.08.12 17:49:06.343   set /dev12576/qachannels/*/spectroscopy/result/enable 0
+2025.08.12 17:49:06.343   set /dev12576/qachannels/*/output/rflfinterlock 1
+2025.08.12 17:49:06.343   set /dev12576/qachannels/*/oscs/*/gain 1.0
+2025.08.12 17:49:06.343   set /dev12576/scopes/0/enable 0
+2025.08.12 17:49:06.344   set /dev12576/scopes/0/channels/*/enable 0
+2025.08.12 17:49:06.344   get /dev12576/sgchannels/2/busy -
+2025.08.12 17:49:06.344   get /dev12576/sgchannels/3/busy -
+2025.08.12 17:49:06.344   get /dev12576/qachannels/0/busy -
+2025.08.12 17:49:06.344   get /dev12576/qachannels/0/output/overrangecount -
+2025.08.12 17:49:06.344   get /dev12576/qachannels/0/input/overrangecount -
+2025.08.12 17:49:06.344   get /dev12576/sgchannels/0/output/overrangecount -
+2025.08.12 17:49:06.344   get /dev12576/sgchannels/1/output/overrangecount -
+2025.08.12 17:49:06.344   get /dev12576/sgchannels/2/output/overrangecount -
+2025.08.12 17:49:06.344   get /dev12576/sgchannels/3/output/overrangecount -
+2025.08.12 17:49:06.344   get /dev12576/sgchannels/4/output/overrangecount -
+2025.08.12 17:49:06.344   get /dev12576/sgchannels/5/output/overrangecount -
+2025.08.12 17:49:06.344   set /dev12576/qachannels/0/output/on 1
+2025.08.12 17:49:06.344   set /dev12576/qachannels/0/output/range -25.0
+2025.08.12 17:49:06.344   set /dev12576/qachannels/0/generator/single 1
+2025.08.12 17:49:06.344   set /dev12576/qachannels/0/output/muting/enable 0
+2025.08.12 17:49:06.344   set /dev12576/qachannels/0/input/rflfpath 1
+2025.08.12 17:49:06.344   set /dev12576/qachannels/0/input/on 1
+2025.08.12 17:49:06.344   set /dev12576/qachannels/0/input/range 0.0
+2025.08.12 17:49:06.344   set /dev12576/sgchannels/2/output/on 1
+2025.08.12 17:49:06.344   set /dev12576/sgchannels/2/output/range 0.0
+2025.08.12 17:49:06.344   set /dev12576/sgchannels/2/awg/single 1
+2025.08.12 17:49:06.344   set /dev12576/sgchannels/2/awg/modulation/enable 1
+2025.08.12 17:49:06.344   set /dev12576/sgchannels/2/marker/source 0
+2025.08.12 17:49:06.344   set /dev12576/sgchannels/2/trigger/delay 0.0
+2025.08.12 17:49:06.344   set /dev12576/sgchannels/2/output/rflfpath 1
+2025.08.12 17:49:06.344   set /dev12576/sgchannels/2/output/muting/enable 0
+2025.08.12 17:49:06.344   set /dev12576/sgchannels/3/output/on 1
+2025.08.12 17:49:06.344   set /dev12576/sgchannels/3/output/range 0.0
+2025.08.12 17:49:06.344   set /dev12576/sgchannels/3/awg/single 1
+2025.08.12 17:49:06.344   set /dev12576/sgchannels/3/awg/modulation/enable 1
+2025.08.12 17:49:06.344   set /dev12576/sgchannels/3/marker/source 0
+2025.08.12 17:49:06.344   set /dev12576/sgchannels/3/trigger/delay 0.0
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/3/output/rflfpath 1
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/3/output/muting/enable 0
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/2/sines/0/oscselect 0
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/2/sines/0/harmonic 1
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/2/sines/0/phaseshift 0
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/3/sines/0/oscselect 0
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/3/sines/0/harmonic 1
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/3/sines/0/phaseshift 0
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 17:49:06.345   set /dev12576/system/internaltrigger/enable 0
+2025.08.12 17:49:06.345   set /dev12576/system/internaltrigger/repetitions 1
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/2/awg/auxtriggers/0/slope 1
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/2/awg/auxtriggers/0/channel 8
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/3/awg/auxtriggers/0/slope 1
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/3/awg/auxtriggers/0/channel 8
+2025.08.12 17:49:06.345   set /dev12576/qachannels/0/markers/0/source 32
+2025.08.12 17:49:06.345   set /dev12576/qachannels/0/markers/1/source 36
+2025.08.12 17:49:06.345   set /dev12576/qachannels/0/generator/auxtriggers/0/channel 8
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 17:49:06.345   set /dev12576/synthesizers/2/centerfreq 4800000000.0
+2025.08.12 17:49:06.345   set /dev12576/qachannels/0/centerfreq 7000000000.0
+2025.08.12 17:49:06.345   set /dev12576/qachannels/0/generator/delay 0.0
+2025.08.12 17:49:06.345   set /dev12576/qachannels/0/readout/integration/delay 2.92e-07
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/2/output/delay 0.0
+2025.08.12 17:49:06.345   set /dev12576/sgchannels/3/output/delay 0.0
+2025.08.12 17:49:06.345   set /dev12576/qachannels/0/mode 1
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/multistate/qudits/*/enable 0
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/multistate/qudits/0/numstates 2
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/multistate/qudits/0/enable 1
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/multistate/qudits/0/assignmentvec vector (?? B)
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/multistate/qudits/1/numstates 2
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/multistate/qudits/1/enable 1
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/multistate/qudits/1/assignmentvec vector (?? B)
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/result/source 1
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/result/length 6
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/result/averages 1024
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/result/mode 0
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/multistate/qudits/0/thresholds/0/value 0.0
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/multistate/qudits/1/thresholds/0/value 0.0
+2025.08.12 17:49:06.346   set /dev12576/sgchannels/2/awg/elf/data vector (?? B)
+2025.08.12 17:49:06.346   set /dev12576/sgchannels/2/awg/waveform/waves/0 vector (?? B)
+2025.08.12 17:49:06.346   set /dev12576/sgchannels/2/awg/commandtable/data vector (?? B)
+2025.08.12 17:49:06.346   set /dev12576/sgchannels/3/awg/elf/data vector (?? B)
+2025.08.12 17:49:06.346   set /dev12576/sgchannels/3/awg/waveform/waves/0 vector (?? B)
+2025.08.12 17:49:06.346   set /dev12576/sgchannels/3/awg/waveform/waves/1 vector (?? B)
+2025.08.12 17:49:06.346   set /dev12576/sgchannels/3/awg/commandtable/data vector (?? B)
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/readout/result/enable 1
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/spectroscopy/result/enable 0
+2025.08.12 17:49:06.346   set /dev12576/scopes/0/enable 0
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/generator/elf/data vector (?? B)
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/generator/clearwave 1
+2025.08.12 17:49:06.346   set /dev12576/qachannels/0/generator/waveforms/1/wave <unexpected type>
+2025.08.12 17:49:06.347   set /dev12576/qachannels/0/spectroscopy/envelope/enable 0
+2025.08.12 17:49:06.347   set /dev12576/qachannels/0/readout/multistate/qudits/1/weights/0/wave vector (?? B)
+2025.08.12 17:49:06.347   set /dev12576/qachannels/0/readout/integration/length 4000
+2025.08.12 17:49:06.347   set /dev12576/sgchannels/2/awg/enable 1
+2025.08.12 17:49:06.347   set /dev12576/sgchannels/3/awg/enable 1
+2025.08.12 17:49:06.347   set /dev12576/qachannels/0/generator/enable 1
+2025.08.12 17:49:06.347   set /dev12576/system/internaltrigger/enable 1
+2025.08.12 17:49:06.347   set /dev12576/raw/system/awg/runtimechecks/enable 0
+2025.08.12 17:49:06.347   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 17:49:06.347   get /dev12576/raw/error/json/errors -
+2025.08.12 17:49:06.347   get /dev12576/raw/error/json/errors -
+2025.08.12 17:49:06.347   set /dev12576/qachannels/*/spectroscopy/envelope/enable 1
+2025.08.12 17:49:26.266 Node log from the data server with id 'test_server':
+2025.08.12 17:49:26.266   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 17:49:26.266   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 17:49:26.266   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 17:49:26.266   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 17:49:26.266   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 17:49:26.266   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 17:49:26.266   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 17:49:26.266   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 17:49:26.266   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 17:49:26.266   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 17:49:26.280 Node log from the data server with id 'test_server':
+2025.08.12 17:49:26.280   set /dev12576/raw/error/clear 1
+2025.08.12 17:49:26.280   set /dev12576/sgchannels/*/pipeliner/reset 1
+2025.08.12 17:49:26.280   set /dev12576/sgchannels/*/pipeliner/mode 0
+2025.08.12 17:49:26.280   set /dev12576/sgchannels/*/synchronization/enable 0
+2025.08.12 17:49:26.280   set /dev12576/qachannels/*/pipeliner/reset 1
+2025.08.12 17:49:26.280   set /dev12576/qachannels/*/pipeliner/mode 0
+2025.08.12 17:49:26.280   set /dev12576/qachannels/*/synchronization/enable 0
+2025.08.12 17:49:26.280   set /dev12576/sgchannels/*/awg/enable 0
+2025.08.12 17:49:26.280   set /dev12576/qachannels/*/generator/enable 0
+2025.08.12 17:49:26.281   set /dev12576/system/synchronization/source 0
+2025.08.12 17:49:26.281   set /dev12576/system/internaltrigger/synchronization/enable 0
+2025.08.12 17:49:26.281   set /dev12576/qachannels/*/readout/result/enable 0
+2025.08.12 17:49:26.281   set /dev12576/qachannels/*/spectroscopy/psd/enable 0
+2025.08.12 17:49:26.281   set /dev12576/qachannels/*/spectroscopy/result/enable 0
+2025.08.12 17:49:26.281   set /dev12576/qachannels/*/output/rflfinterlock 1
+2025.08.12 17:49:26.281   set /dev12576/qachannels/*/oscs/*/gain 1.0
+2025.08.12 17:49:26.281   set /dev12576/scopes/0/enable 0
+2025.08.12 17:49:26.281   set /dev12576/scopes/0/channels/*/enable 0
+2025.08.12 17:49:26.281   get /dev12576/sgchannels/2/busy -
+2025.08.12 17:49:26.281   get /dev12576/sgchannels/3/busy -
+2025.08.12 17:49:26.281   get /dev12576/qachannels/0/busy -
+2025.08.12 17:49:26.281   get /dev12576/qachannels/0/output/overrangecount -
+2025.08.12 17:49:26.281   get /dev12576/qachannels/0/input/overrangecount -
+2025.08.12 17:49:26.282   get /dev12576/sgchannels/0/output/overrangecount -
+2025.08.12 17:49:26.282   get /dev12576/sgchannels/1/output/overrangecount -
+2025.08.12 17:49:26.282   get /dev12576/sgchannels/2/output/overrangecount -
+2025.08.12 17:49:26.282   get /dev12576/sgchannels/3/output/overrangecount -
+2025.08.12 17:49:26.282   get /dev12576/sgchannels/4/output/overrangecount -
+2025.08.12 17:49:26.282   get /dev12576/sgchannels/5/output/overrangecount -
+2025.08.12 17:49:26.282   set /dev12576/qachannels/0/output/on 1
+2025.08.12 17:49:26.282   set /dev12576/qachannels/0/output/range -25.0
+2025.08.12 17:49:26.282   set /dev12576/qachannels/0/generator/single 1
+2025.08.12 17:49:26.282   set /dev12576/qachannels/0/output/muting/enable 0
+2025.08.12 17:49:26.282   set /dev12576/qachannels/0/input/rflfpath 1
+2025.08.12 17:49:26.283   set /dev12576/qachannels/0/input/on 1
+2025.08.12 17:49:26.283   set /dev12576/qachannels/0/input/range 0.0
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/2/output/on 1
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/2/output/range 0.0
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/2/awg/single 1
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/2/awg/modulation/enable 1
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/2/marker/source 0
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/2/trigger/delay 0.0
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/2/output/rflfpath 1
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/2/output/muting/enable 0
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/3/output/on 1
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/3/output/range 0.0
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/3/awg/single 1
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/3/awg/modulation/enable 1
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/3/marker/source 0
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/3/trigger/delay 0.0
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/3/output/rflfpath 1
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/3/output/muting/enable 0
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/2/sines/0/oscselect 0
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/2/sines/0/harmonic 1
+2025.08.12 17:49:26.283   set /dev12576/sgchannels/2/sines/0/phaseshift 0
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/3/sines/0/oscselect 0
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/3/sines/0/harmonic 1
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/3/sines/0/phaseshift 0
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 17:49:26.284   set /dev12576/system/internaltrigger/enable 0
+2025.08.12 17:49:26.284   set /dev12576/system/internaltrigger/repetitions 1
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/2/awg/auxtriggers/0/slope 1
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/2/awg/auxtriggers/0/channel 8
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/3/awg/auxtriggers/0/slope 1
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/3/awg/auxtriggers/0/channel 8
+2025.08.12 17:49:26.284   set /dev12576/qachannels/0/markers/0/source 32
+2025.08.12 17:49:26.284   set /dev12576/qachannels/0/markers/1/source 36
+2025.08.12 17:49:26.284   set /dev12576/qachannels/0/generator/auxtriggers/0/channel 8
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/2/oscs/1/freq -134495208.7488289
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/2/oscs/0/freq -1300000000.0
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/3/oscs/1/freq -134495208.7488289
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/3/oscs/0/freq -1300000000.0
+2025.08.12 17:49:26.284   set /dev12576/synthesizers/2/centerfreq 4800000000.0
+2025.08.12 17:49:26.284   set /dev12576/qachannels/0/centerfreq 7000000000.0
+2025.08.12 17:49:26.284   set /dev12576/qachannels/0/generator/delay 0.0
+2025.08.12 17:49:26.284   set /dev12576/qachannels/0/readout/integration/delay 2.92e-07
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/2/output/delay 0.0
+2025.08.12 17:49:26.284   set /dev12576/sgchannels/3/output/delay 0.0
+2025.08.12 17:49:26.284   set /dev12576/qachannels/0/mode 1
+2025.08.12 17:49:26.284   set /dev12576/qachannels/0/readout/multistate/qudits/*/enable 0
+2025.08.12 17:49:26.284   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 17:49:26.284   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 17:49:26.284   set /dev12576/qachannels/0/readout/multistate/qudits/0/numstates 2
+2025.08.12 17:49:26.284   set /dev12576/qachannels/0/readout/multistate/qudits/0/enable 1
+2025.08.12 17:49:26.284   set /dev12576/qachannels/0/readout/multistate/qudits/0/assignmentvec vector (?? B)
+2025.08.12 17:49:26.284   set /dev12576/qachannels/0/readout/multistate/enable 1
+2025.08.12 17:49:26.284   set /dev12576/qachannels/0/readout/multistate/zsync/packed 1
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/readout/multistate/qudits/1/numstates 2
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/readout/multistate/qudits/1/enable 1
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/readout/multistate/qudits/1/assignmentvec vector (?? B)
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/readout/result/source 1
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/readout/result/length 6
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/readout/result/averages 1024
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/readout/result/mode 0
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/readout/multistate/qudits/0/thresholds/0/value 0.0
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/readout/multistate/qudits/1/thresholds/0/value 0.0
+2025.08.12 17:49:26.285   set /dev12576/sgchannels/2/awg/elf/data vector (?? B)
+2025.08.12 17:49:26.285   set /dev12576/sgchannels/2/awg/waveform/waves/0 vector (?? B)
+2025.08.12 17:49:26.285   set /dev12576/sgchannels/2/awg/commandtable/data vector (?? B)
+2025.08.12 17:49:26.285   set /dev12576/sgchannels/3/awg/elf/data vector (?? B)
+2025.08.12 17:49:26.285   set /dev12576/sgchannels/3/awg/waveform/waves/0 vector (?? B)
+2025.08.12 17:49:26.285   set /dev12576/sgchannels/3/awg/waveform/waves/1 vector (?? B)
+2025.08.12 17:49:26.285   set /dev12576/sgchannels/3/awg/commandtable/data vector (?? B)
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/readout/result/enable 1
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/spectroscopy/result/enable 0
+2025.08.12 17:49:26.285   set /dev12576/scopes/0/enable 0
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/generator/elf/data vector (?? B)
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/generator/clearwave 1
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/generator/waveforms/1/wave <unexpected type>
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/spectroscopy/envelope/enable 0
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/readout/multistate/qudits/1/weights/0/wave vector (?? B)
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/readout/integration/length 4000
+2025.08.12 17:49:26.285   set /dev12576/sgchannels/2/awg/enable 1
+2025.08.12 17:49:26.285   set /dev12576/sgchannels/3/awg/enable 1
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/generator/enable 1
+2025.08.12 17:49:26.285   set /dev12576/system/internaltrigger/enable 1
+2025.08.12 17:49:26.285   set /dev12576/raw/system/awg/runtimechecks/enable 0
+2025.08.12 17:49:26.285   set /dev12576/qachannels/0/readout/result/enable 0
+2025.08.12 17:49:26.285   get /dev12576/raw/error/json/errors -
+2025.08.12 17:49:26.285   get /dev12576/raw/error/json/errors -
+2025.08.12 17:49:26.286   set /dev12576/qachannels/*/spectroscopy/envelope/enable 1
+2025.08.12 19:58:56.923 Node log from the data server with id 'test_server':
+2025.08.12 19:58:56.923   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 19:58:56.923   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 19:58:56.923   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 19:58:56.923   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 19:58:56.923   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 19:58:56.923   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 19:58:56.924   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 19:58:56.924   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 19:58:56.924   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 19:58:56.924   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 20:07:10.609 Node log from the data server with id 'test_server':
+2025.08.12 20:07:10.609   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 20:07:10.609   get /dev12576/raw/system/awg/runtimechecks/enable -
+2025.08.12 20:07:10.610   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 20:07:10.610   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 20:07:10.610   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 20:07:10.610   get /dev12576/system/clocks/referenceclock/in/status -
+2025.08.12 20:07:10.610   get /dev12576/system/clocks/referenceclock/in/freq -
+2025.08.12 20:07:10.610   get /dev12576/system/clocks/referenceclock/in/sourceactual -
+2025.08.12 20:07:10.610   get /dev12576/system/clocks/referenceclock/in/source -
+2025.08.12 20:07:10.610   get /dev12576/system/clocks/referenceclock/in/status -
