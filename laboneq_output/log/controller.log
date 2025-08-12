@@ -1,0 +1,29 @@
+2025.08.12 11:07:53.119 | laboneq.laboneq_logging                       | INFO   Logging initialized from [Default inline config in laboneq.laboneq_logging] logdir is /Users/yalgaeahn/JSAHN/qubit-experiment/laboneq_output/log
+2025.08.12 11:07:53.122 | laboneq.controller.controller                 | INFO   VERSION: laboneq 2.57.0
+2025.08.12 11:07:53.123 | laboneq.controller.devices.device_collection  | INFO   Connecting to data server at 10.172.11.217:8004
+2025.08.12 11:07:53.125 | laboneq.controller.devices.async_support      | INFO   Connected to Zurich Instruments LabOne Data Server version 25.07.0.507 at 10.172.11.217:8004
+2025.08.12 11:07:53.127 | laboneq.controller.devices.device_collection  | INFO   Configuring the device setup
+2025.08.12 11:07:53.129 | laboneq.controller.devices.device_collection  | INFO   The device setup is configured
+2025.08.12 11:09:28.553 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.08.12 11:09:28.554 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'nondsl_direct_cr_hamiltonian_tomography': execution started at [0m[1m   [0m[1m [0m[1m [0m
+2025.08.12 11:09:28.554 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1m2025-08-12 02:09:28.552569Z[0m[1m                                                 [0m[1m [0m[1m [0m
+2025.08.12 11:09:28.554 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.08.12 11:09:28.567 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': started at 2025-08-12 02:09:28.567127Z[0m
+2025.08.12 11:09:28.569 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': ended at 2025-08-12 02:09:28.568759Z[0m
+2025.08.12 11:09:28.571 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': started at 2025-08-12 [0m
+2025.08.12 11:09:28.572 | laboneq.applications                          | INFO   [1m02:09:28.571598Z[0m
+2025.08.12 11:09:28.572 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': ended at 2025-08-12 02:09:28.572693Z[0m
+2025.08.12 11:09:28.574 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': started at 2025-08-12 [0m
+2025.08.12 11:09:28.574 | laboneq.applications                          | INFO   [1m02:09:28.573965Z[0m
+2025.08.12 11:09:28.574 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': ended at 2025-08-12 02:09:28.574744Z[0m
+2025.08.12 11:09:28.577 | laboneq.applications                          | INFO   [1mTask 'create_experiment': started at 2025-08-12 02:09:28.577482Z[0m
+2025.08.12 11:09:28.593 | laboneq.applications                          | INFO   [1mTask 'create_experiment': ended at 2025-08-12 02:09:28.593320Z[0m
+2025.08.12 11:09:28.605 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': started at 2025-08-12 02:09:28.604967Z[0m
+2025.08.12 11:09:28.618 | laboneq.applications                          | ERROR  [1mTask 'compile_experiment': failed at 2025-08-12 02:09:28.617570Z with: [0m
+2025.08.12 11:09:28.620 | laboneq.applications                          | ERROR  [1mRuntimeError("Could not find physical channel for logical signal [0m
+2025.08.12 11:09:28.621 | laboneq.applications                          | ERROR  [1mLogicalSignal(name='drive_cr', group='q17')")[0m
+2025.08.12 11:09:28.622 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': ended at 2025-08-12 02:09:28.622400Z[0m
+2025.08.12 11:09:28.623 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.08.12 11:09:28.623 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'nondsl_direct_cr_hamiltonian_tomography': execution ended at [0m[1m     [0m[1m [0m[1m [0m
+2025.08.12 11:09:28.624 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1m2025-08-12 02:09:28.623544Z[0m[1m                                                 [0m[1m [0m[1m [0m
+2025.08.12 11:09:28.624 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m

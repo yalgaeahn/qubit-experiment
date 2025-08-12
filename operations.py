@@ -12,8 +12,8 @@ from laboneq.dsl.calibration import Oscillator
 from laboneq.dsl.enums import ModulationType
 from laboneq.simple import SectionAlignment, dsl
 
-from krisszi_core.contrib.jsahn.qpu_types.transmon import TransmonQubit
-from krisszi_core.contrib.jsahn import custom_pulse_library
+from qpu_types.transmon import TransmonQubit
+import custom_pulse_library
 
 from laboneq.dsl.parameter import Parameter
 from laboneq.dsl.experiment.pulse import Pulse

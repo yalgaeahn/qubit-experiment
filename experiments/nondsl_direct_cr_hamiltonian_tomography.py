@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
     from laboneq_applications.typing import QuantumElements, QubitSweepPoints
 ##########################################################################
-from krisszi_core.contrib.jsahn.analysis import hamiltonian_tomography
+from analysis import hamiltonian_tomography
 
 #######################EXPERIMENT####################################
 
