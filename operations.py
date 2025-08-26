@@ -1152,7 +1152,6 @@ class TransmonOperations(dsl.QuantumOperations):
         targ: TransmonQubit,
         amplitude: float | SweepParameter| None = None,
         phase: float | SweepParameter | None = None,
-        #increment_oscillator_phase: float | SweepParameter | None = None,
         length: float | SweepParameter | None = None,
         override_params: dict | None = None,
     ) -> None:
@@ -1174,7 +1173,35 @@ class TransmonOperations(dsl.QuantumOperations):
                     #increment_oscillator_phase=increment_oscillator_phase,
                     length=length,
                     pulse=cr_pulse)
+    @dsl.quantum_operation(broadcast=False)
+    def cr_cancel(
+        self,
+        ctrl: TransmonQubit,
+        targ: TransmonQubit,
+        amplitude: float | SweepParameter| None = None,
+        phase: float | SweepParameter | None = None,
+        length: float | SweepParameter | None = None,
+        override_params: dict | None = None,
+    ) -> None:
+        
+        with dsl.section(
+            name=f"cr_cancel_{ctrl.uid}c_{targ.uid}t",
+            on_system_grid=True, # align to 8ns grid 
+            alignment = SectionAlignment.LEFT
+        ):
+            drive_line, params = ctrl.cr_cancel_parameters()
+            
+            cr_pulse = create_pulse(parameters=params["pulse"], overrides=override_params, name="cr_pulse") #overides pulse_parameters
 
+            
+            dsl.play(signal=targ.signals[drive_line],
+                    amplitude=amplitude,
+                    phase=phase,
+                    #increment_oscillator_phase=increment_oscillator_phase,
+                    length=length,
+                    pulse=cr_pulse)
+        
+    
 @dsl.pulse_library.register_pulse_functional
 def x180_ef_reset_pulse(
     x: np.ndarray,

@@ -1,0 +1,353 @@
+{
+    "q15": {
+        "cr_drive_amplitude": null,
+        "cr_drive_length": null,
+        "cr_drive_pulse": {
+            "function": "GaussianSquareDRAG",
+            "sigma": 0.1,
+            "risefall_sigma_ratio": 3.0,
+            "beta0": 0.0,
+            "beta1": 0.0
+        },
+        "custom": {},
+        "drive_lo_frequency": 4800000000.0,
+        "drive_range": 0,
+        "ef_T1": 0,
+        "ef_T2": 0,
+        "ef_T2_star": 0,
+        "ef_drive_amplitude_pi": 1.0,
+        "ef_drive_amplitude_pi2": 0.5,
+        "ef_drive_length": 3.2e-08,
+        "ef_drive_pulse": {
+            "function": "drag",
+            "beta": 0,
+            "sigma": 0.3
+        },
+        "ge_T1": 0,
+        "ge_T2": 0,
+        "ge_T2_star": 0,
+        "ge_chi_shift": 0,
+        "ge_drive_amplitude_pi": 1.0,
+        "ge_drive_amplitude_pi2": 0.5,
+        "ge_drive_length": 3.2e-08,
+        "ge_drive_pulse": {
+            "function": "drag",
+            "beta": 0,
+            "sigma": 0.3
+        },
+        "qubit_resonator_coupling_strength_g": 0,
+        "readout_amplitude": 1.0,
+        "readout_integration_delay": 8e-08,
+        "readout_integration_discrimination_thresholds": [
+            0.0
+        ],
+        "readout_integration_kernels": null,
+        "readout_integration_kernels_type": "default",
+        "readout_integration_length": 2e-06,
+        "readout_length": 2e-06,
+        "readout_lo_frequency": 7000000000.0,
+        "readout_pulse": {
+            "function": "GaussianSquare",
+            "sigma": 0.1,
+            "width": null,
+            "risefall_sigma_ratio": 3.0
+        },
+        "readout_range_in": 0,
+        "readout_range_out": -25,
+        "readout_resonator_frequency": 6922480000.0,
+        "reset_delay_length": 0.0002,
+        "resonance_frequency_ef": 3500000000,
+        "resonance_frequency_ge": 4714044269.052768,
+        "resonance_targ_frequency": null,
+        "spectroscopy_amplitude": 0.01,
+        "spectroscopy_length": 5e-06,
+        "spectroscopy_pulse": {
+            "function": "GaussianSquare",
+            "sigma": 0.2,
+            "width": null,
+            "risefall_sigma_ratio": 3.0
+        },
+        "user_defined": {}
+    },
+    "q16": {
+        "cr_drive_amplitude": null,
+        "cr_drive_length": null,
+        "cr_drive_pulse": {
+            "function": "GaussianSquareDRAG",
+            "sigma": 0.1,
+            "risefall_sigma_ratio": 3.0,
+            "beta0": 0.0,
+            "beta1": 0.0
+        },
+        "custom": {},
+        "drive_lo_frequency": 4800000000.0,
+        "drive_range": 0,
+        "ef_T1": 0,
+        "ef_T2": 0,
+        "ef_T2_star": 0,
+        "ef_drive_amplitude_pi": 1.0,
+        "ef_drive_amplitude_pi2": 0.5,
+        "ef_drive_length": 3.2e-08,
+        "ef_drive_pulse": {
+            "function": "drag",
+            "beta": 0,
+            "sigma": 0.3
+        },
+        "ge_T1": 0,
+        "ge_T2": 0,
+        "ge_T2_star": 0,
+        "ge_chi_shift": 0,
+        "ge_drive_amplitude_pi": 1.0,
+        "ge_drive_amplitude_pi2": 0.5,
+        "ge_drive_length": 3.2e-08,
+        "ge_drive_pulse": {
+            "function": "drag",
+            "beta": 0,
+            "sigma": 0.3
+        },
+        "qubit_resonator_coupling_strength_g": 0,
+        "readout_amplitude": 1.0,
+        "readout_integration_delay": 8e-08,
+        "readout_integration_discrimination_thresholds": [
+            0.0
+        ],
+        "readout_integration_kernels": null,
+        "readout_integration_kernels_type": "default",
+        "readout_integration_length": 2e-06,
+        "readout_length": 2e-06,
+        "readout_lo_frequency": 7000000000.0,
+        "readout_pulse": {
+            "function": "GaussianSquare",
+            "sigma": 0.1,
+            "width": null,
+            "risefall_sigma_ratio": 3.0
+        },
+        "readout_range_in": 0,
+        "readout_range_out": -25,
+        "readout_resonator_frequency": 6843150000.0,
+        "reset_delay_length": 0.0002,
+        "resonance_frequency_ef": 3500000000,
+        "resonance_frequency_ge": 4660651528.411427,
+        "resonance_targ_frequency": null,
+        "spectroscopy_amplitude": 0.01,
+        "spectroscopy_length": 5e-06,
+        "spectroscopy_pulse": {
+            "function": "GaussianSquare",
+            "can_compress": true,
+            "sigma": 0.2,
+            "width": null,
+            "risefall_sigma_ratio": 3.0
+        },
+        "user_defined": {}
+    },
+    "q17": {
+        "cr_drive_amplitude": null,
+        "cr_drive_length": null,
+        "cr_drive_pulse": {
+            "function": "GaussianSquareDRAG",
+            "sigma": 0.1,
+            "risefall_sigma_ratio": 3.0,
+            "beta0": 0.0,
+            "beta1": 0.0
+        },
+        "custom": {},
+        "drive_lo_frequency": 4800000000.0,
+        "drive_range": 0,
+        "ef_T1": 0,
+        "ef_T2": 0,
+        "ef_T2_star": 0,
+        "ef_drive_amplitude_pi": 1.0,
+        "ef_drive_amplitude_pi2": 0.5,
+        "ef_drive_length": 3.2e-08,
+        "ef_drive_pulse": {
+            "function": "drag",
+            "beta": 0,
+            "sigma": 0.3
+        },
+        "ge_T1": 0,
+        "ge_T2": 0,
+        "ge_T2_star": 0,
+        "ge_chi_shift": 0,
+        "ge_drive_amplitude_pi": 0.4154194749597615,
+        "ge_drive_amplitude_pi2": 0.20859876955295278,
+        "ge_drive_length": 3.2e-08,
+        "ge_drive_pulse": {
+            "function": "drag",
+            "beta": 0,
+            "sigma": 0.3
+        },
+        "qubit_resonator_coupling_strength_g": 0,
+        "readout_amplitude": 0.5,
+        "readout_integration_delay": 8e-08,
+        "readout_integration_discrimination_thresholds": [
+            0.0
+        ],
+        "readout_integration_kernels": null,
+        "readout_integration_kernels_type": "default",
+        "readout_integration_length": 2e-06,
+        "readout_length": 2e-06,
+        "readout_lo_frequency": 7000000000.0,
+        "readout_pulse": {
+            "function": "GaussianSquare",
+            "sigma": 0.1,
+            "width": null,
+            "risefall_sigma_ratio": 3.0
+        },
+        "readout_range_in": 0,
+        "readout_range_out": -25,
+        "readout_resonator_frequency": 6922580000.0,
+        "reset_delay_length": 0.0002,
+        "resonance_frequency_ef": 3500000000,
+        "resonance_frequency_ge": 4716088674.2490835,
+        "resonance_targ_frequency": null,
+        "spectroscopy_amplitude": 0.01,
+        "spectroscopy_length": 5e-06,
+        "spectroscopy_pulse": {
+            "function": "GaussianSquare",
+            "sigma": 0.2,
+            "width": null,
+            "risefall_sigma_ratio": 3.0
+        },
+        "user_defined": {}
+    },
+    "q18": {
+        "cr_drive_amplitude": null,
+        "cr_drive_length": null,
+        "cr_drive_pulse": {
+            "function": "GaussianSquareDRAG",
+            "sigma": 0.1,
+            "risefall_sigma_ratio": 3.0,
+            "beta0": 0.0,
+            "beta1": 0.0
+        },
+        "custom": {},
+        "drive_lo_frequency": 4800000000.0,
+        "drive_range": 0,
+        "ef_T1": 0,
+        "ef_T2": 0,
+        "ef_T2_star": 0,
+        "ef_drive_amplitude_pi": 1.0,
+        "ef_drive_amplitude_pi2": 0.5,
+        "ef_drive_length": 3.2e-08,
+        "ef_drive_pulse": {
+            "function": "drag",
+            "beta": 0,
+            "sigma": 0.3
+        },
+        "ge_T1": 0,
+        "ge_T2": 0,
+        "ge_T2_star": 0,
+        "ge_chi_shift": 0,
+        "ge_drive_amplitude_pi": 0.23637639649542397,
+        "ge_drive_amplitude_pi2": 0.11798546623829323,
+        "ge_drive_length": 3.2e-08,
+        "ge_drive_pulse": {
+            "function": "drag",
+            "beta": 0,
+            "sigma": 0.3
+        },
+        "qubit_resonator_coupling_strength_g": 0,
+        "readout_amplitude": 0.5,
+        "readout_integration_delay": 8e-08,
+        "readout_integration_discrimination_thresholds": [
+            0.0
+        ],
+        "readout_integration_kernels": null,
+        "readout_integration_kernels_type": "default",
+        "readout_integration_length": 2e-06,
+        "readout_length": 2e-06,
+        "readout_lo_frequency": 7000000000.0,
+        "readout_pulse": {
+            "function": "GaussianSquare",
+            "sigma": 0.1,
+            "width": null,
+            "risefall_sigma_ratio": 3.0
+        },
+        "readout_range_in": 0,
+        "readout_range_out": -25,
+        "readout_resonator_frequency": 6843350000.0,
+        "reset_delay_length": 0.0002,
+        "resonance_frequency_ef": 3500000000,
+        "resonance_frequency_ge": 4665367927.064393,
+        "resonance_targ_frequency": null,
+        "spectroscopy_amplitude": 0.01,
+        "spectroscopy_length": 5e-06,
+        "spectroscopy_pulse": {
+            "function": "GaussianSquare",
+            "sigma": 0.2,
+            "width": null,
+            "risefall_sigma_ratio": 3.0
+        },
+        "user_defined": {}
+    },
+    "q19": {
+        "cr_drive_amplitude": null,
+        "cr_drive_length": null,
+        "cr_drive_pulse": {
+            "function": "GaussianSquareDRAG",
+            "sigma": 0.1,
+            "risefall_sigma_ratio": 3.0,
+            "beta0": 0.0,
+            "beta1": 0.0
+        },
+        "custom": {},
+        "drive_lo_frequency": 4800000000.0,
+        "drive_range": 0,
+        "ef_T1": 0,
+        "ef_T2": 0,
+        "ef_T2_star": 0,
+        "ef_drive_amplitude_pi": 1.0,
+        "ef_drive_amplitude_pi2": 0.5,
+        "ef_drive_length": 3.2e-08,
+        "ef_drive_pulse": {
+            "function": "drag",
+            "beta": 0,
+            "sigma": 0.3
+        },
+        "ge_T1": 0,
+        "ge_T2": 0,
+        "ge_T2_star": 0,
+        "ge_chi_shift": 0,
+        "ge_drive_amplitude_pi": 1.0,
+        "ge_drive_amplitude_pi2": 0.5,
+        "ge_drive_length": 3.2e-08,
+        "ge_drive_pulse": {
+            "function": "drag",
+            "beta": 0,
+            "sigma": 0.3
+        },
+        "qubit_resonator_coupling_strength_g": 0,
+        "readout_amplitude": 0.5,
+        "readout_integration_delay": 8e-08,
+        "readout_integration_discrimination_thresholds": [
+            0.0
+        ],
+        "readout_integration_kernels": null,
+        "readout_integration_kernels_type": "default",
+        "readout_integration_length": 2e-06,
+        "readout_length": 2e-06,
+        "readout_lo_frequency": 7000000000.0,
+        "readout_pulse": {
+            "function": "GaussianSquare",
+            "sigma": 0.1,
+            "width": null,
+            "risefall_sigma_ratio": 3.0
+        },
+        "readout_range_in": 0,
+        "readout_range_out": -25,
+        "readout_resonator_frequency": 6773896000.0,
+        "reset_delay_length": 0.0002,
+        "resonance_frequency_ef": 3500000000,
+        "resonance_frequency_ge": 4776213555.330961,
+        "resonance_targ_frequency": null,
+        "spectroscopy_amplitude": 0.01,
+        "spectroscopy_length": 5e-06,
+        "spectroscopy_pulse": {
+            "function": "GaussianSquare",
+            "sigma": 0.2,
+            "width": null,
+            "risefall_sigma_ratio": 3.0
+        },
+        "user_defined": {}
+    }
+}

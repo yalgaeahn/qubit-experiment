@@ -5,10 +5,21 @@ from typing import TYPE_CHECKING, Optional, cast
 
 import numpy as np
 from laboneq import workflow
-from laboneq.simple import dsl
-from laboneq.core.types.enums.section_alignment import SectionAlignment
-from laboneq.core.types.enums.acquisition_type import AcquisitionType
-from laboneq.dsl.parameter import SweepParameter
+
+from laboneq.simple import (
+    AveragingMode,
+    Experiment,
+    SectionAlignment,
+    SweepParameter,
+    dsl,
+)
+
+
+#from laboneq.simple import AcquisitionType
+#from laboneq.core.types.enums.section_alignment import SectionAlignment
+#from laboneq.core.types.enums.acquisition_type import AcquisitionType #?? laboneq 자체에 같은 이름의 클래스 벌써 3개...
+
+#from laboneq.dsl.parameter import SweepParameter
 from laboneq.workflow.tasks import (
     compile_experiment,
     run_experiment,
@@ -34,24 +45,9 @@ if TYPE_CHECKING:
 
     from laboneq_applications.typing import QuantumElements, QubitSweepPoints
 ##########################################################################
-from analysis.hamiltonian_tomography import analysis_workflow
-
+from analysis.hamiltonian_tomography import analysis_workflow, HamiltonianTomographyAnalysisOptions
+from options import DirectCRHamiltonianTomographyOptions
 #######################EXPERIMENT####################################
-
-
-
-@workflow.task_options(base_class=BaseExperimentOptions)
-class DirectCRHamiltonianTomographyOptions:
-    """Base options for direct cr hamiltonian tomography experiment"""
-    acquisition_type = workflow.option_field(
-        AcquisitionType.INTEGRATION,
-        description="The type of acquisition to use for the experiment",
-    )
-    risefall = workflow.option_field(
-        50e-9, description="The risefall time of the CR pulse in seconds"
-    )
-
-
 @workflow.workflow(name="direct_cr_hamiltonian_tomography")
 def experiment_workflow(
     session: Session,
@@ -75,10 +71,6 @@ def experiment_workflow(
     - [update_qubits]()
 
     """
-   
-    # Ensure options object exists
-    options = TuneUpWorkflowOptions() if options is None else options
-
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
     ctrl = temporary_quantum_elements_from_qpu(temp_qpu, ctrl)
     targ = temporary_quantum_elements_from_qpu(temp_qpu, targ)
@@ -93,17 +85,13 @@ def experiment_workflow(
     compiled_exp = compile_experiment(session, exp)
     result = run_experiment(session, compiled_exp)
 
-    # Optional analysis plots: raw IQ and magnitude/phase vs (amp, length)
+    
     with workflow.if_(options.do_analysis):
         analysis_result = analysis_workflow(
             result=result,
-            qubits=targ,
-            sweep_points_1d=amplitudes,
-            sweep_points_2d=lengths,
-            label_sweep_points_1d="CR amplitude",
-            label_sweep_points_2d="Pulse length (ns)",
-            scaling_sweep_points_2d=1e9,
-            options=None,
+            qubit=targ,
+            lengths=lengths,
+            amplitudes=amplitudes,
         )
         qubit_parameters = analysis_result.output
         with workflow.if_(options.update):
@@ -122,22 +110,35 @@ def create_experiment(
     amplitudes: QubitSweepPoints,
     lengths : QubitSweepPoints,
     options : DirectCRHamiltonianTomographyOptions | None = None,
-):
+) -> Experiment:
 
     # Define the custom optiopns for the experiment
     opts = DirectCRHamiltonianTomographyOptions() if options is None else options
-    #ctrl, amplitudes = validation.validate_and_convert_single_qubit_sweeps()
-    #ctrl, lenghts = validation.validate_and_convert_single_qubit_sweeps()
-    qop = qpu.quantum_operations
+    ctrl, amplitudes = validation.validate_and_convert_single_qubit_sweeps(ctrl, amplitudes)
+    ctrl, lengths = validation.validate_and_convert_single_qubit_sweeps(ctrl, lengths)
+    
+    if (
+        opts.use_cal_traces
+        and AveragingMode(opts.averaging_mode) == AveragingMode.SEQUENTIAL
+    ):
+        raise ValueError(
+            "'AveragingMode.SEQUENTIAL' (or {AveragingMode.SEQUENTIAL}) cannot be used "
+            "with calibration traces because the calibration traces are added "
+            "outside the sweep."
+        )
+
+
+
+    
     
     ##### Define the sweep parameters ################################################
     amp_sweep_par = SweepParameter(values = np.asarray(amplitudes), axis_name="amp") 
-    basis_sweep_par = SweepParameter(values=np.array([0,1,2]),axis_name="basis") # XYZ
-    state_sweep_par = SweepParameter(values=np.array([0,1]),axis_name="state")  # g e
+    basis_sweep_par = SweepParameter(values=[0,1,2],axis_name="basis") 
+    state_sweep_par = SweepParameter(values=[0,1], axis_name="state")
     length_sweep_par = SweepParameter(values = np.asarray(lengths), axis_name="length")
     ##################################################################################
-    
-
+    #max_measure_section_length = qpu.measure_section_length(ctrl) #for multiplexing
+    qop = qpu.quantum_operations
     with dsl.acquire_loop_rt(
         name="acquire_loop",
         count=opts.count,
@@ -167,21 +168,28 @@ def create_experiment(
                         parameter=length_sweep_par,
                         alignment=SectionAlignment.LEFT,
                     ) as length:
+                       
                         with dsl.match(name="ctrl_prep", sweep_parameter=state) as ctrl_prep:
                             with dsl.case(0):
                                 qop.delay.omit_section(q=ctrl, time=ctrl.parameters.ge_drive_length)
                             with dsl.case(1):
                                 qop.x180.omit_section(ctrl)
-                                
                         with dsl.section(name="main_cr_drive", on_system_grid=True, play_after=ctrl_prep.uid) as main_cr_drive:
                             qop.set_frequency.omit_section(q=ctrl, frequency=targ.parameters.resonance_frequency_ge) #안되면 외부에서 넣어주자
                             qop.direct_cr.omit_section(ctrl=ctrl, 
                                                        targ=targ, 
                                                        amplitude = amplitude, 
-                                                       phase=0.0, 
+                                                       phase= 0.0, 
                                                        length=length, 
                                                        override_params = {'risefall_sigma_ratio': None, 'width': length -2*opts.risefall}) #pulse에는 
-                        
+                            if opts.cancel:
+                                qop.cr_cancel.omit_section(ctrl=ctrl,
+                                                       targ=targ,
+                                                       amplitude=0.0,
+                                                       length=length,
+                                                       override_params = {'risefall_sigma_ratio': None, 'width': length -2*opts.risefall}))
+
+
                         with dsl.match(name="targ_basis_prep", sweep_parameter=basis, play_after=main_cr_drive.uid) as targ_basis_prep:
                             with dsl.case(0): #X
                                 qop.ry.omit_section(q=targ, angle=-np.pi/2)
@@ -191,12 +199,19 @@ def create_experiment(
                                 qop.delay.omit_section(q=targ, time=ctrl.parameters.ge_drive_length)
 
                         with dsl.section(name="measure", play_after=targ_basis_prep.uid) as measure:
-                            qop.measure.omit_section(q=targ, handle=dsl.handles.result_handle(targ.uid))
-                        
+                            qop.measure.omit_section(q=targ, handle=dsl.handles.result_handle(qubit_name=targ.uid))
                         with dsl.section(name="passive_reset", on_system_grid=True, play_after=measure.uid):
                             qop.passive_reset.omit_section(q=targ)
-                            qop.passive_reset.omit_section(q=ctrl)
-                   
+        
+        if opts.use_cal_traces:               
+            qop.calibration_traces.omit_section(
+                qubits=targ,#only target is being measured
+                states=opts.cal_states,
+                active_reset=opts.active_reset,
+                active_reset_states=opts.active_reset_states,
+                active_reset_repetitions=opts.active_reset_repetitions,
+                measure_section_length=None, # should be added for multiplex
+            )           
                         
                                 
     

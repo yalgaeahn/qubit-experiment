@@ -1,13 +1,9 @@
 .venv/
-qubit_parameters/
 
- __pycache__/
- *.pyc
- *.pyo
- *.pyd
+__pycache__
 
+laboneq_output/
 
+experiment-store/
 
-
- # macOS system files
- .DS_Store
+.DS_Store

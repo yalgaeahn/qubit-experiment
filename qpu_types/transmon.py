@@ -156,6 +156,7 @@ class TransmonQubitParameters(QuantumParameters):
     
     cr_drive_amplitude : float | None = None
     cr_drive_length : float | None = None
+    cr_drive_phase : float | None = None
     cr_drive_pulse : dict = attrs.field(
         factory=lambda: {
             "function" : "GaussianSquareDRAG",
@@ -165,6 +166,21 @@ class TransmonQubitParameters(QuantumParameters):
             "beta1" : 0.0
         }
     )
+
+    cr_drive_cancel_amplitude : float | None = None
+    cr_drive_cancel_length : float | None = None
+    cr_drive_cancel_phase : float | None = None
+    cr_drive_cancel_pulse : dict = attrs.field(
+        factory=lambda: {
+            "function" : "GaussianSquareDRAG",
+            "sigma" : 0.1,
+            "risefall_sigma_ratio" : 3.0,
+            "beta0" : 0.0,
+            "beta1" : 0.0
+        }
+    )
+
+
 
     # qubit-resonator coupling parameters
 
@@ -219,6 +235,11 @@ class TransmonQubitParameters(QuantumParameters):
             return None
         return self.resonance_targ_frequency - self.drive_lo_frequency
     
+    @property
+    def drive_frequency_cr_cancel(self) -> float | None:
+        if self.drive_lo_frequency is None or self.resonance_frequency_ge is None:
+            return None
+        return self.resonance_frequency_ge - self.drive_lo_frequency
     #########################################################################################
     @property
     def drive_frequency_ge(self) -> float | None:
@@ -268,9 +289,18 @@ class TransmonQubit(QuantumElement):
         #TODO QPUTopology에서 연결된 그룹 별로 parameter 다르게 가져와야함 
         """
         line = "drive_cr"
-        param_keys = ["amplitude","length","pulse"]
+        param_keys = ["amplitude","length","phase","pulse"]
         params = {
             k: getattr(self.parameters, f"cr_drive_{k}") for k in param_keys
+        }
+        return line, params
+    
+    def cr_cancel_parameters(self) -> tuple[str,dict]:
+
+        line = "drive"
+        param_keys = ["amplitude","length","phase","pulse"]
+        params = {
+            k: getattr(self.parameters, f"cr_drive_cancel_{k}") for k in param_keys
         }
         return line, params
 
@@ -454,7 +484,7 @@ class TransmonQubit(QuantumElement):
             readout_oscillator = Oscillator(
                 uid=f"{self.uid}_readout_acquire_osc",
                 frequency=self.parameters.readout_frequency,
-                modulation_type=ModulationType.AUTO,
+                modulation_type=ModulationType.AUTO
             )
 
         calibration_items = {}
