@@ -1,8 +1,14 @@
 .venv/
-__pycache__
-laboneq_output/
-laboneq_output/log/
+**/__pycache__/
+# Ignore all generated artifacts under laboneq_output, but keep .gitkeep
+laboneq_output/*
+!laboneq_output/.gitkeep
 experiment_store/
 Descriptors/
 qubit_parameters/
 .DS_Store
+**/.DS_Store
+ 
+# Ignore VS Code workspace files but keep the folder placeholder
+.vscode/*
+!.vscode/.gitkeep
