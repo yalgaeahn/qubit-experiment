@@ -46,7 +46,7 @@ if TYPE_CHECKING:
     from laboneq_applications.typing import QuantumElements, QubitSweepPoints
 ##########################################################################
 from analysis.hamiltonian_tomography import analysis_workflow, HamiltonianTomographyAnalysisOptions
-from options import DirectCRHamiltonianTomographyOptions
+from .options import DirectCRHamiltonianTomographyOptions
 #######################EXPERIMENT####################################
 @workflow.workflow(name="direct_cr_hamiltonian_tomography")
 def experiment_workflow(
