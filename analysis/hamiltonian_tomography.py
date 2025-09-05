@@ -346,16 +346,15 @@ def generate_initial_guess(x,x_data, y_data, z_data):
     init_param_set=[]
     
     for omega_shifted in [omega, omega - df / 2, omega + df / 2]: #theta sweep should be added
-        for theta in [theta-]
-            for phi in np.linspace(-np.pi, np.pi, 21):
-                init_param = lmfit.Parameters()
-                init_param.set(
-                    px=dict(value=omega_shifted * np.cos(theta) * np.cos(phi)),
-                    py=dict(value=omega_shifted * np.cos(theta) * np.sin(phi)),
-                    pz=dict(value=omega_shifted * np.sin(theta)),
-                    t_off=dict(value=1e-8,min=0.0, max=np.inf),
-                    b=dict(value=1e-9, min=-1,max=1))
-                init_param_set.append(init_param)
+        for phi in np.linspace(-np.pi, np.pi, 21):
+            init_param = lmfit.Parameters()
+            init_param.set(
+                px=dict(value=omega_shifted * np.cos(theta) * np.cos(phi)),
+                py=dict(value=omega_shifted * np.cos(theta) * np.sin(phi)),
+                pz=dict(value=omega_shifted * np.sin(theta)),
+                t_off=dict(value=1e-8,min=0.0, max=np.inf),
+                b=dict(value=1e-9, min=-1,max=1))
+            init_param_set.append(init_param)
             
     if omega < df:
         print()
