@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qubit-experiment"
+version = "0.1.0"
+description = "Custom LabOne Q experiments and analysis"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+  { name = "Y. Ahn" }
+]
+keywords = ["laboneq", "quantum", "experiments", "analysis", "zhinst"]
+dependencies = [
+  "numpy>=1.23",
+  "matplotlib>=3.7",
+  "uncertainties>=3.1",
+  "lmfit>=1.2",
+  "laboneq>=2.20.0",           # core SDK
+  "laboneq-applications>=0.7.0" # application workflows (adjust if needed)
+]
+
+[project.optional-dependencies]
+dev = [
+  "ruff>=0.5",
+  "black>=24.3",
+  "mypy>=1.8",
+  "pytest>=7.4",
+  "ipykernel",
+  "jupyter"
+]
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+# Explicitly list installable packages and top-level modules
+packages = [
+  "analysis",
+  "experiments",
+  "qpu_types",
+  "helper_functions",
+]
+py-modules = ["helper", "operations"]
+
+[tool.setuptools.package-data]
+# Include any static artifacts produced/saved by workflows if needed
+"*" = [
+  "*.json",
+  "*.yaml",
+  "*.yml",
+  "*.txt"
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+select = [
+  "E",   # pycodestyle errors
+  "F",   # pyflakes
+  "I",   # isort
+  "W",   # warnings
+]
+ignore = [
+  "E203", # whitespace before ':' (compatible with black)
+  "E501", # line length handled by formatter
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+pretty = true
+

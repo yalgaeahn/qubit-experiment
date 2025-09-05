@@ -46,7 +46,7 @@ if TYPE_CHECKING:
     from laboneq_applications.typing import QuantumElements, QubitSweepPoints
 ##########################################################################
 from analysis.hamiltonian_tomography import analysis_workflow, HamiltonianTomographyAnalysisOptions
-from options import DirectCRHamiltonianTomographyOptions
+from .options import DirectCRHamiltonianTomographyOptions
 #######################EXPERIMENT####################################
 @workflow.workflow(name="direct_cr_hamiltonian_tomography")
 def experiment_workflow(
@@ -187,7 +187,7 @@ def create_experiment(
                                                        targ=targ,
                                                        amplitude=0.0,
                                                        length=length,
-                                                       override_params = {'risefall_sigma_ratio': None, 'width': length -2*opts.risefall}))
+                                                       override_params = {'risefall_sigma_ratio': None, 'width': length -2*opts.risefall})
 
 
                         with dsl.match(name="targ_basis_prep", sweep_parameter=basis, play_after=main_cr_drive.uid) as targ_basis_prep:
