@@ -1,0 +1,14 @@
+numpy>=1.23
+matplotlib>=3.7
+uncertainties>=3.1
+lmfit>=1.2
+laboneq>=2.20.0
+laboneq-applications>=0.7.0
+
+[dev]
+ruff>=0.5
+black>=24.3
+mypy>=1.8
+pytest>=7.4
+ipykernel
+jupyter

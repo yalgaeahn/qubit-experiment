@@ -1,0 +1,11 @@
+2025.09.05 21:05:25.627 Node log from the data server with id 'zi_server':
+2025.09.05 21:05:25.628   get /dev12256/raw/system/awg/runtimechecks/enable -
+2025.09.05 21:05:25.628   get /dev12256/raw/system/awg/runtimechecks/enable -
+2025.09.05 21:05:25.628   get /dev12256/system/clocks/referenceclock/in/freq -
+2025.09.05 21:05:25.628   get /dev12256/system/clocks/referenceclock/in/sourceactual -
+2025.09.05 21:05:25.628   get /dev12256/system/clocks/referenceclock/in/source -
+2025.09.05 21:05:25.628   get /dev12256/system/clocks/referenceclock/in/status -
+2025.09.05 21:05:25.628   get /dev12256/system/clocks/referenceclock/in/freq -
+2025.09.05 21:05:25.628   get /dev12256/system/clocks/referenceclock/in/sourceactual -
+2025.09.05 21:05:25.628   get /dev12256/system/clocks/referenceclock/in/source -
+2025.09.05 21:05:25.628   get /dev12256/system/clocks/referenceclock/in/status -
