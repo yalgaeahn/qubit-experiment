@@ -1,15 +1,15 @@
 # Copyright 2024 Zurich Instruments AG
 # SPDX-License-Identifier: Apache-2.0
 
-"""This module defines the amplitude rabi chevron experiment.
+"""This module defines the qubit spectroscopy experiment.
 
 In this experiment, we sweep the frequency and the amplitude
-of the drive pulse.
+of a qubit drive pulse to characterize the qubit transition frequency and its
+amplitude.
 
-The amplitude_rabi_chevron experiment has the following pulse sequence:
+The qubit spectroscopy experiment has the following pulse sequence:
 
-    qb --- [ prep transition ] --- [ qop (swept frequency, swept amplitude)]
-       --- [ measure ]
+    qb --- [ prep transition ] --- [ x180_transition (swept frequency)] --- [ measure ]
 
 If multiple qubits are passed to the `run` workflow, the above pulses are applied
 in parallel on all the qubits.
@@ -19,36 +19,43 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from laboneq import workflow
 from laboneq.simple import Experiment, SweepParameter, dsl
-from laboneq.workflow import if_, task, workflow
 from laboneq.workflow.tasks import (
     compile_experiment,
     run_experiment,
 )
 
-from analysis.amplitude_rabi_chevron import (
+from laboneq_applications.analysis.spectroscopy_two_dimensional_plotting import (
     analysis_workflow,
 )
 from laboneq_applications.core.validation import validate_and_convert_qubits_sweeps
 from laboneq_applications.experiments.options import (
-    TuneupExperimentOptions,
+    QubitSpectroscopyExperimentOptions,
     TuneUpWorkflowOptions,
+)
+from laboneq_applications.tasks.parameter_updating import (
+    temporary_qpu,
+    temporary_quantum_elements_from_qpu,
 )
 
 if TYPE_CHECKING:
+    from laboneq.dsl.quantum import QuantumParameters
     from laboneq.dsl.quantum.qpu import QPU
     from laboneq.dsl.session import Session
 
     from laboneq_applications.typing import QuantumElements, QubitSweepPoints
 
 
-@workflow(name="amplitude_rabi_chevron")
+@workflow.workflow(name="qubit_spectroscopy_amplitude")
 def experiment_workflow(
     session: Session,
     qpu: QPU,
     qubits: QuantumElements,
     frequencies: QubitSweepPoints,
     amplitudes: QubitSweepPoints,
+    temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
+    | None = None,
     options: TuneUpWorkflowOptions | None = None,
 ) -> None:
     """The Qubit Spectroscopy Workflow.
@@ -58,7 +65,7 @@ def experiment_workflow(
     - [create_experiment]()
     - [compile_experiment]()
     - [run_experiment]()
-    - [analysis_workflow]() (optional)
+    - [analysis_workflow]()
 
     Arguments:
         session:
@@ -76,11 +83,15 @@ def experiment_workflow(
             The amplitudes to sweep over for each qubit drive pulse.  `amplitudes` must
             be a list of numbers or an array. Otherwise it must be a list of lists of
              numbers or arrays.
+        temporary_parameters:
+            The temporary parameters with which to update the quantum elements and
+            topology edges. For quantum elements, the dictionary key is the quantum
+            element UID. For topology edges, the dictionary key is the edge tuple
+            `(tag, source node UID, target node UID)`.
         options:
-            The options for building the workflow.
-            In addition to options from [WorkflowOptions], the following
-            custom options are supported:
-                - create_experiment: The options for creating the experiment.
+            The options for building the workflow as an instance of
+            [QubitSpectroscopyWorkflowOptions]. See the docstring of
+            [QubitSpectroscopyWorkflowOptions] for more details.
 
     Returns:
         result:
@@ -89,12 +100,12 @@ def experiment_workflow(
     Example:
         ```python
         options = experiment_workflow.options()
-        options.count(10)
+        options.create_experiment.count(10)
         qpu = QPU(
-            qubits=[TunableTransmonQubit("q0"), TunableTransmonQubit("q1")],
+            quantum_elements=[TunableTransmonQubit("q0"), TunableTransmonQubit("q1")],
             quantum_operations=TunableTransmonOperations(),
         )
-        temp_qubits = qpu.copy_qubits()
+        temp_qubits = qpu.copy_quantum_elements()
         result = experiment_workflow(
             session=session,
             qpu=qpu,
@@ -108,26 +119,36 @@ def experiment_workflow(
         ).run()
         ```
     """
+    temp_qpu = temporary_qpu(qpu, temporary_parameters)
+    qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)
     exp = create_experiment(
-        qpu,
+        temp_qpu,
         qubits,
         frequencies=frequencies,
         amplitudes=amplitudes,
     )
     compiled_exp = compile_experiment(session, exp)
     result = run_experiment(session, compiled_exp)
-    with if_(options.do_analysis):
-        analysis_workflow(result, qubits, frequencies, amplitudes)
+    with workflow.if_(options.do_analysis):
+        analysis_workflow(
+            result=result,
+            qubits=qubits,
+            sweep_points_1d=frequencies,
+            sweep_points_2d=amplitudes,
+            label_sweep_points_1d="Qubit Frequency,\n$f_{\\mathrm{QB}}$ (GHz)",
+            label_sweep_points_2d="Spectroscopy-Drive Amp.,\n$A$ (a.u.)",
+        )
+    workflow.return_(result)
 
 
-@task
+@workflow.task
 @dsl.qubit_experiment
 def create_experiment(
     qpu: QPU,
     qubits: QuantumElements,
     frequencies: QubitSweepPoints,
     amplitudes: QubitSweepPoints,
-    options: TuneupExperimentOptions | None = None,
+    options: QubitSpectroscopyExperimentOptions | None = None,
 ) -> Experiment:
     """Creates a Qubit Spectroscopy Experiment.
 
@@ -146,10 +167,9 @@ def create_experiment(
             or arrays or a list of lists of numbers or arrays.
         options:
             The options for building the experiment.
-            See [TuneupExperimentOptions] and [BaseExperimentOptions] for
+            See [QubitSpectroscopyExperimentOptions] and [BaseExperimentOptions] for
             accepted options.
-            Overwrites the options from [TuneupExperimentOptions] and
-            [BaseExperimentOptions].
+            Overwrites the options from [BaseExperimentOptions].
 
     Returns:
         experiment:
@@ -169,13 +189,13 @@ def create_experiment(
 
     Example:
         ```python
-        options = TuneupExperimentOptions()
+        options = QubitSpectroscopyExperimentOptions()
         options.count = 10
         qpu = QPU(
-            qubits=[TunableTransmonQubit("q0"), TunableTransmonQubit("q1")],
+            quantum_elements=[TunableTransmonQubit("q0"), TunableTransmonQubit("q1")],
             quantum_operations=TunableTransmonOperations(),
         )
-        temp_qubits = qpu.copy_qubits()
+        temp_qubits = qpu.copy_quantum_elements()
         create_experiment(
             qpu=qpu,
             qubits=temp_qubits,
@@ -189,11 +209,12 @@ def create_experiment(
         ```
     """
     # Define the custom options for the experiment
-    opts = TuneupExperimentOptions() if options is None else options
+    opts = QubitSpectroscopyExperimentOptions() if options is None else options
 
     _, frequencies = validate_and_convert_qubits_sweeps(qubits, frequencies)
     qubits, amplitudes = validate_and_convert_qubits_sweeps(qubits, amplitudes)
 
+    max_measure_section_length = qpu.measure_section_length(qubits)
     qop = qpu.quantum_operations
     with dsl.acquire_loop_rt(
         count=opts.count,
@@ -212,19 +233,11 @@ def create_experiment(
                     name=f"freqs_{q.uid}",
                     parameter=SweepParameter(f"frequency_{q.uid}", q_frequencies),
                 ) as frequency:
-                    qop.set_frequency(q, frequency, transition=opts.transition)
-                    qop.x180(q, amplitude=amplitude)
-                    qop.measure(q, dsl.handles.result_handle(q.uid))
-                    qop.passive_reset(q)
-
-                    if opts.use_cal_traces:
-                        with dsl.section(
-                            name=f"cal_{q.uid}",
-                        ):
-                            for state in opts.cal_states:
-                                qop.prepare_state(q, state)
-                                qop.measure(
-                                    q,
-                                    dsl.handles.calibration_trace_handle(q.uid, state),
-                                )
-                                qop.passive_reset(q)
+                    qop.set_frequency(q, frequency)
+                    qop.qubit_spectroscopy_drive(q, amplitude=amplitude)
+                    sec = qop.measure(q, dsl.handles.result_handle(q.uid))
+                    # we fix the length of the measure section to the longest section
+                    # among the qubits to allow the qubits to have different readout
+                    # and/or integration lengths.
+                    sec.length = max_measure_section_length
+                    qop.passive_reset(q, delay=opts.spectroscopy_reset_delay)

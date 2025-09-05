@@ -132,6 +132,18 @@ def adjust_amplitude_for_output_range(initial_output_dbm, initial_amplitude, new
     
     return new_amplitude
 
+def calculate_power(
+        output_dbm,
+        amplitude,
+        attenuation):
+    """
+    Calculate the overall power of the signal in dBm
+    """
+    
+    #Convert dBm to linear power (mW)
+    overall_power_mw = amplitude * (10 ** (output_dbm / 10))
+    overall_power_dbm = 10*np.log10(overall_power_mw)
+    return overall_power_dbm
 
 def dummy(x):
     print(1)

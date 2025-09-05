@@ -160,7 +160,7 @@ class TransmonQubitParameters(QuantumParameters):
     cr_drive_pulse : dict = attrs.field(
         factory=lambda: {
             "function" : "GaussianSquareDRAG",
-            "sigma" : 0.1,
+            "sigma" : 0.2,
             "risefall_sigma_ratio" : 3.0,
             "beta0" : 0.0,
             "beta1" : 0.0
@@ -173,7 +173,7 @@ class TransmonQubitParameters(QuantumParameters):
     cr_drive_cancel_pulse : dict = attrs.field(
         factory=lambda: {
             "function" : "GaussianSquareDRAG",
-            "sigma" : 0.1,
+            "sigma" : 0.2,
             "risefall_sigma_ratio" : 3.0,
             "beta0" : 0.0,
             "beta1" : 0.0
@@ -193,7 +193,9 @@ class TransmonQubitParameters(QuantumParameters):
     readout_length: float = 2e-6
     readout_pulse: dict = attrs.field(
         factory=lambda: {
-            "function": "const",
+            "function": "GaussianSquare",
+            "sigma":0.2,
+            "risefall_sigma_ratio":3.0 
         },
     )
     readout_integration_length: float = 2e-6
@@ -218,8 +220,9 @@ class TransmonQubitParameters(QuantumParameters):
     spectroscopy_amplitude: float | None = 1
     spectroscopy_pulse: dict = attrs.field(
         factory=lambda: {
-            "function": "const",
-            "can_compress": True,
+            "function": "GaussianSquare",
+            "sigma": 0.2,
+            "risefall_sigma_ratio" : 3.0
         },
     )
 

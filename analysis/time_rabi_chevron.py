@@ -29,7 +29,7 @@ from laboneq_applications.analysis.options import (
     BasePlottingOptions,
     TuneUpAnalysisWorkflowOptions,
 )
-from laboneq_applications.contrib.analysis.amplitude_rabi_chevron import (
+from analysis.amplitude_rabi_chevron import (
     calculate_qubit_population_2d,
 )
 from laboneq_applications.core.validation import validate_and_convert_qubits_sweeps

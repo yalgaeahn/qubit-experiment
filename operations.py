@@ -964,7 +964,7 @@ class TransmonOperations(dsl.QuantumOperations):
             else:
                 self.delay(q, time=delay)
             sec_x90_2 = self.x90(
-                q, increment_oscillator_phase=ramsey_phase, transition=transition
+                q, phase=ramsey_phase, transition=transition
             )
             sec_x90_2.alignment = SectionAlignment.RIGHT
 

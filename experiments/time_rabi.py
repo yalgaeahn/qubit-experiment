@@ -25,7 +25,7 @@ from laboneq.workflow.tasks import (
     run_experiment,
 )
 
-from laboneq_applications.contrib.analysis.time_rabi import analysis_workflow
+from analysis.time_rabi import analysis_workflow
 from laboneq_applications.core import validation
 from laboneq_applications.experiments.options import (
     TuneupExperimentOptions,
@@ -181,7 +181,7 @@ def create_experiment(
     """
     # Define the custom options for the experiment
     opts = TuneupExperimentOptions() if options is None else options
-    qubits, lengths = validation.validate_and_convert_qubits_sweeps(qubits, lengths)
+    qubits, lengths = validation.validate_and_convert_single_qubit_sweeps(qubits, lengths)
     qop = qpu.quantum_operations
     with dsl.acquire_loop_rt(
         count=opts.count,
