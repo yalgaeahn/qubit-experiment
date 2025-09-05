@@ -1,0 +1,20 @@
+2025.09.05 21:01:19.546 | laboneq.laboneq_logging                       | INFO   Logging initialized from [Default inline config in laboneq.laboneq_logging] logdir is /Users/yalgaeahn/JSAHN/qubit-experiment/examples/laboneq_output/log
+2025.09.05 21:01:19.547 | laboneq.controller.controller                 | INFO   VERSION: laboneq 2.58.0
+2025.09.05 21:01:19.548 | laboneq.controller.devices.device_collection  | INFO   Connecting to data server at 10.172.11.217:8004
+2025.09.05 21:03:57.046 | laboneq.laboneq_logging                       | INFO   Logging initialized from [Default inline config in laboneq.laboneq_logging] logdir is /Users/yalgaeahn/JSAHN/qubit-experiment/examples/laboneq_output/log
+2025.09.05 21:03:57.048 | laboneq.controller.controller                 | INFO   VERSION: laboneq 2.58.0
+2025.09.05 21:03:57.048 | laboneq.controller.devices.device_collection  | INFO   Connecting to data server at 10.172.11.217:8004
+2025.09.05 21:04:38.533 | laboneq.laboneq_logging                       | INFO   Logging initialized from [Default inline config in laboneq.laboneq_logging] logdir is /Users/yalgaeahn/JSAHN/qubit-experiment/examples/laboneq_output/log
+2025.09.05 21:04:38.534 | laboneq.controller.controller                 | INFO   VERSION: laboneq 2.58.0
+2025.09.05 21:04:38.535 | laboneq.controller.devices.device_collection  | INFO   Connecting to data server at 10.172.11.217:8004
+2025.09.05 21:05:10.410 | laboneq.laboneq_logging                       | INFO   Logging initialized from [Default inline config in laboneq.laboneq_logging] logdir is /Users/yalgaeahn/JSAHN/qubit-experiment/examples/laboneq_output/log
+2025.09.05 21:05:10.411 | laboneq.controller.controller                 | INFO   VERSION: laboneq 2.58.0
+2025.09.05 21:05:10.411 | laboneq.controller.devices.device_collection  | INFO   Connecting to data server at 192.168.0.83:8004
+2025.09.05 21:05:10.438 | laboneq.controller.devices.async_support      | INFO   Connected to Zurich Instruments LabOne Data Server version 25.07.0.507 at 192.168.0.83:8004
+2025.09.05 21:05:10.467 | laboneq.controller.utilities.exception        | CRITICAL SHFQC/QA:dev12256: The expected device options specified in the device setup 'SHFQC/QC6CH' do not match the actual options 'SHFQC/PLUS/QC6CH'.
+2025.09.05 21:05:25.527 | laboneq.laboneq_logging                       | INFO   Logging initialized from [Default inline config in laboneq.laboneq_logging] logdir is /Users/yalgaeahn/JSAHN/qubit-experiment/examples/laboneq_output/log
+2025.09.05 21:05:25.529 | laboneq.controller.controller                 | INFO   VERSION: laboneq 2.58.0
+2025.09.05 21:05:25.530 | laboneq.controller.devices.device_collection  | INFO   Connecting to data server at 192.168.0.83:8004
+2025.09.05 21:05:25.558 | laboneq.controller.devices.async_support      | INFO   Connected to Zurich Instruments LabOne Data Server version 25.07.0.507 at 192.168.0.83:8004
+2025.09.05 21:05:25.598 | laboneq.controller.devices.device_collection  | INFO   Configuring the device setup
+2025.09.05 21:05:25.626 | laboneq.controller.devices.device_collection  | INFO   The device setup is configured
