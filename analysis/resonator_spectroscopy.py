@@ -213,13 +213,20 @@ def analysis_workflow(
         ).run()
         ```
     """
+    # Ensure options have sensible defaults if None
+    opts = (
+        ResonatorSpectroscopyAnalysisWorkflowOptions()
+        if options is None
+        else options
+    )
+
     processed_data_dict = calculate_signal_magnitude_and_phase(
         qubit, result, frequencies
     )
     fit_result = fit_data(processed_data_dict)
     qubit_parameters = extract_qubit_parameters(qubit, processed_data_dict, fit_result)
-    with workflow.if_(options.do_plotting):
-        with workflow.if_(options.do_raw_data_plotting):
+    with workflow.if_(opts.do_plotting):
+        with workflow.if_(opts.do_raw_data_plotting):
             plot_raw_complex_data_1d(
                 qubit,
                 result,
@@ -227,11 +234,11 @@ def analysis_workflow(
                 xlabel="Readout Frequency, $f_{\\mathrm{RO}}$ (GHz)",
                 xscaling=1e-9,
             )
-        with workflow.if_(options.do_plotting_magnitude_phase):
+        with workflow.if_(opts.do_plotting_magnitude_phase):
             plot_magnitude_phase(
                 qubit, processed_data_dict, fit_result, qubit_parameters
             )
-        with workflow.if_(options.do_plotting_real_imaginary):
+        with workflow.if_(opts.do_plotting_real_imaginary):
             #plot_real_imaginary(qubit, result, frequencies, fit_result)
             plot_real_imaginary(qubit, processed_data_dict, fit_result)
     workflow.return_(qubit_parameters)
@@ -296,8 +303,9 @@ def fit_data(
     fit_result = None
 
     if opts.fit_complex_resonator:
-        swpts_fit = processed_data_dict["sweep_points"]
-        raw_data = processed_data_dict["data_raw"]
+        # Normalize shapes/dtypes for fitting
+        swpts_fit = np.asarray(processed_data_dict["sweep_points"], dtype=float).ravel()
+        raw_data = np.asarray(processed_data_dict["data_raw"], dtype=np.complex128).ravel()
         x = np.concatenate([swpts_fit, swpts_fit])
         y = np.concatenate([np.real(raw_data), np.imag(raw_data)])
         def complex_resonator_model(
@@ -329,17 +337,23 @@ def fit_data(
             fr_guess = float(swpts_fit[idx0])
             Q_guess = 1e4
             depth = float(max(1e-6, 1.0 - mag[idx0]))
-            Qc_real_guess = max(10.0, Q_guess / depth)   
+            Qc_real_guess = max(10.0, Q_guess / depth)
+            f_min = float(np.min(swpts_fit))
+            f_max = float(np.max(swpts_fit))
             param_hints = {
-            "amp": {"value": mag[0]},
-            "alpha": {"value": 0.0},
-            "tau": {"value": 0.0},
-            "phi": {"value": np.mean(np.angle(raw_data)), "min" : -2*np.pi, "max" : 2*np.pi},
-            "Q": {"value": Q_guess},
-            "Q_e_real": {"value": Qc_real_guess},
-            "Q_e_imag": {"value": 0},
-            "fr": {"value": fr_guess},
-        }
+                "amp": {"value": float(np.max(mag)), "min": 0.0},
+                "alpha": {"value": 0.0, "min": -2 * np.pi, "max": 2 * np.pi},
+                "tau": {"value": 0.0, "min": -1e-6, "max": 1e-6},
+                "phi": {
+                    "value": float(np.mean(np.angle(raw_data))),
+                    "min": -2 * np.pi,
+                    "max": 2 * np.pi,
+                },
+                "Q": {"value": Q_guess, "min": 1.0},
+                "Q_e_real": {"value": Qc_real_guess, "min": 1.0},
+                "Q_e_imag": {"value": 0.0},
+                "fr": {"value": fr_guess, "min": f_min, "max": f_max},
+            }
         else:
             param_hints = opts.fit_complex_parameters_hints
 
@@ -518,21 +532,43 @@ def plot_magnitude_phase(
     )
     axs[0].set_ylabel("Transmission Signal\nMagnitude, $|S_{21}|$ (a.u.)")
     axs[1].plot(sweep_points / 1e9, phase, "-", zorder=2, label="data")
-    axs[1].set_ylabel("Transmission Signal\nPhase, $|S_{21}|$ (a.u.)")
+    axs[1].set_ylabel("Transmission Signal\nPhase, arg($S_{21}$) (rad)")
     axs[1].set_xlabel("Readout Frequency, $f_{\\mathrm{RO}}$ (GHz)")
     fig.align_ylabels()
     fig.subplots_adjust(hspace=0.1)
 
-    if opts.fit_lorentzian and fit_result is not None:
-        # Plot fit of the magnitude
-        swpts_fine = np.linspace(sweep_points[0], sweep_points[-1], 501)
-        axs[0].plot(
-            swpts_fine / 1e9,
-            fit_result.model.func(swpts_fine, **fit_result.best_values),
-            "r-",
-            zorder=1,
-            label="fit",
-        )
+    if fit_result is not None:
+        # Overlay fit curve depending on model type
+        if opts.fit_lorentzian:
+            # Plot Lorentzian fit of the magnitude
+            swpts_fine = np.linspace(sweep_points[0], sweep_points[-1], 501)
+            axs[0].plot(
+                swpts_fine / 1e9,
+                fit_result.model.func(swpts_fine, **fit_result.best_values),
+                "r-",
+                zorder=1,
+                label="fit",
+            )
+            axs[0].legend(loc="best", frameon=False)
+        else:
+            # If complex resonator fit, overlay magnitude of complex fit
+            try:
+                if all(k in fit_result.params for k in ("Q_e_real", "Q_e_imag", "Q")):
+                    swpts_fine = np.linspace(sweep_points[0], sweep_points[-1], 501)
+                    x_fine = np.concatenate([swpts_fine, swpts_fine])
+                    fit_vals = fit_result.model.func(x_fine, **fit_result.best_values)
+                    n = len(swpts_fine)
+                    mag_fit = np.hypot(fit_vals[:n], fit_vals[n:])
+                    axs[0].plot(
+                        swpts_fine / 1e9,
+                        mag_fit,
+                        "r-",
+                        zorder=1,
+                        label="fit",
+                    )
+                    axs[0].legend(loc="best", frameon=False)
+            except Exception as err:
+                workflow.log(logging.WARNING, "Could not overlay complex fit magnitude: %s", err)
 
     if len(qubit_parameters["new_parameter_values"][qubit.uid]) > 0:
         rr_freq = qubit_parameters["new_parameter_values"][qubit.uid][
@@ -726,6 +762,3 @@ def plot_real_imaginary(
 
     # if opts.close_figures:
     #     plt.close(fig)
-
-    return fig
-
