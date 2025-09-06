@@ -43,7 +43,7 @@ packages = [
   "qpu_types",
   "helper_functions",
 ]
-py-modules = ["helper", "operations"]
+py-modules = ["helper", "operations", "custom_pulse_library"]
 
 [tool.setuptools.package-data]
 # Include any static artifacts produced/saved by workflows if needed
@@ -82,4 +82,3 @@ target-version = ["py310"]
 python_version = "3.10"
 ignore_missing_imports = true
 pretty = true
-
