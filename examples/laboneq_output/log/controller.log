@@ -18,3 +18,9 @@
 2025.09.05 21:05:25.558 | laboneq.controller.devices.async_support      | INFO   Connected to Zurich Instruments LabOne Data Server version 25.07.0.507 at 192.168.0.83:8004
 2025.09.05 21:05:25.598 | laboneq.controller.devices.device_collection  | INFO   Configuring the device setup
 2025.09.05 21:05:25.626 | laboneq.controller.devices.device_collection  | INFO   The device setup is configured
+2025.09.05 21:11:20.000 | laboneq.laboneq_logging                       | INFO   Logging initialized from [Default inline config in laboneq.laboneq_logging] logdir is /Users/yalgaeahn/JSAHN/qubit-experiment/examples/laboneq_output/log
+2025.09.05 21:11:20.001 | laboneq.controller.controller                 | INFO   VERSION: laboneq 2.58.0
+2025.09.05 21:11:20.002 | laboneq.controller.devices.device_collection  | INFO   Connecting to data server at 192.168.0.83:8004
+2025.09.05 21:11:20.035 | laboneq.controller.devices.async_support      | INFO   Connected to Zurich Instruments LabOne Data Server version 25.07.0.507 at 192.168.0.83:8004
+2025.09.05 21:11:20.079 | laboneq.controller.devices.device_collection  | INFO   Configuring the device setup
+2025.09.05 21:11:20.110 | laboneq.controller.devices.device_collection  | INFO   The device setup is configured

@@ -1,5 +1,6 @@
 LICENSE
 README.md
+custom_pulse_library.py
 helper.py
 operations.py
 pyproject.toml
