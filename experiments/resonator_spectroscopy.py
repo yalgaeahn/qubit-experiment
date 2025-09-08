@@ -185,9 +185,11 @@ def create_experiment(
     """
     # Define the custom options for the experiment
     opts = ResonatorSpectroscopyExperimentOptions() if options is None else options
-    qubit, frequencies = validation.validate_and_convert_single_qubit_sweeps(
-        qubit, frequencies
-    )
+    qubit, frequencies = validation.validate_and_convert_single_qubit_sweeps(qubit, frequencies)
+    calibration = dsl.experiment_calibration()
+    signal_calibration = calibration[qubit.signals["acquire"]]
+    signal_calibration.port_delay = 6.8e-9
+
     # guard against wrong options for the acquisition type
     if AcquisitionType(opts.acquisition_type) != AcquisitionType.SPECTROSCOPY:
         raise ValueError(
@@ -205,6 +207,7 @@ def create_experiment(
         repetition_mode=opts.repetition_mode,
         repetition_time=opts.repetition_time,
         reset_oscillator_phase=opts.reset_oscillator_phase,
+
     ):
         with dsl.sweep(
             name=f"freq_{qubit.uid}",
