@@ -539,6 +539,7 @@ class TransmonQubit(QuantumElement):
                 sig_cal.oscillator = readout_oscillator
             sig_cal.local_oscillator = readout_lo
             sig_cal.range = self.parameters.readout_range_in
+            sig_cal.delay_signal = 80e-9
             sig_cal.port_delay = self.parameters.readout_integration_delay
             sig_cal.threshold = (
                 self.parameters.readout_integration_discrimination_thresholds
