@@ -56,6 +56,7 @@ def experiment_workflow(
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,
     options: TuneUpWorkflowOptions | None = None,
+    acquire_port_delay: float | None = None,
 ) -> None:
     """The Resonator Spectroscopy Workflow.
 
@@ -118,6 +119,7 @@ def experiment_workflow(
         temp_qpu,
         qubit,
         frequencies=frequencies,
+        acquire_port_delay=acquire_port_delay,
     )
     compiled_exp = compile_experiment(session, exp)
     result = run_experiment(session, compiled_exp)
@@ -136,6 +138,7 @@ def create_experiment(
     qubit: QuantumElement,
     frequencies: ArrayLike,
     options: ResonatorSpectroscopyExperimentOptions | None = None,
+    acquire_port_delay: float | None = None,
 ) -> Experiment:
     """Creates a Resonator Spectroscopy Experiment.
 
@@ -186,9 +189,6 @@ def create_experiment(
     # Define the custom options for the experiment
     opts = ResonatorSpectroscopyExperimentOptions() if options is None else options
     qubit, frequencies = validation.validate_and_convert_single_qubit_sweeps(qubit, frequencies)
-    calibration = dsl.experiment_calibration()
-    signal_calibration = calibration[qubit.signals["acquire"]]
-    signal_calibration.port_delay = 6.8e-9
 
     # guard against wrong options for the acquisition type
     if AcquisitionType(opts.acquisition_type) != AcquisitionType.SPECTROSCOPY:
@@ -200,6 +200,10 @@ def create_experiment(
         )
 
     qop = qpu.quantum_operations
+    # If provided, explicitly override the acquire line port delay in this experiment.
+    if acquire_port_delay is not None:
+        cal = dsl.experiment_calibration()
+        cal[qubit.signals["acquire"]].port_delay = acquire_port_delay
     with dsl.acquire_loop_rt(
         count=opts.count,
         averaging_mode=opts.averaging_mode,
@@ -215,6 +219,8 @@ def create_experiment(
         ) as frequency:
             qop.set_frequency(qubit, frequency=frequency, readout=True)
             qop.set_readout_amplitude(qubit, amplitude=qubit.parameters.readout_amplitude)
+            # Note: In CW (acquire-only) mode, acquire port_delay has no effect
+            # because there is no measure pulse to align against.
             if opts.use_cw:
                 qop.acquire(qubit, dsl.handles.result_handle(qubit.uid))
             else:

@@ -93,6 +93,13 @@ class FitDataResSpecOptions:
         fit_complex_parameters_hints:
             Parameter hints for the complex resonator model
             Default: `None`.
+        fit_scresonators:
+            Whether to fit using the external scresonators package (DCM method).
+            Default: `False`.
+        scresonators_method:
+            The scresonators method to use (e.g. 'DCM'). Only 'DCM' supported
+            by this integration.
+            Default: `"DCM"`.
     """
 
     fit_lorentzian: bool = workflow.option_field(
@@ -114,6 +121,17 @@ class FitDataResSpecOptions:
         workflow.option_field(
             None, description="Parameter hints for the complex resonator model"
         )
+    )
+
+    fit_scresonators: bool = workflow.option_field(
+        False,
+        description=(
+            "Whether to fit using the external scresonators package (complex S21 circle fit)."
+        ),
+    )
+
+    scresonators_method: str = workflow.option_field(
+        "DCM", description="Method to use with scresonators (currently only 'DCM')."
     )
 
    
@@ -302,7 +320,23 @@ def fit_data(
     opts = FitDataResSpecOptions() if options is None else options
     fit_result = None
 
-    if opts.fit_complex_resonator:
+    if opts.fit_scresonators:
+        # Try scresonators-based complex fit (external package)
+        swpts_fit = np.asarray(processed_data_dict["sweep_points"], dtype=float).ravel()
+        raw_data = np.asarray(processed_data_dict["data_raw"], dtype=np.complex128).ravel()
+        try:
+            from analysis.scresonators_adapter import fit_with_scresonators
+
+            fit_res = fit_with_scresonators(swpts_fit, raw_data, method=opts.scresonators_method)
+            fit_result = fit_res
+        except ImportError:
+            workflow.log(
+                logging.ERROR,
+                "scresonators not available. Install via 'pip install scresonators-fit' to enable.",
+            )
+        except Exception as err:
+            workflow.log(logging.ERROR, "scresonators fit failed: %s", err)
+    elif opts.fit_complex_resonator:
         # Normalize shapes/dtypes for fitting
         swpts_fit = np.asarray(processed_data_dict["sweep_points"], dtype=float).ravel()
         raw_data = np.asarray(processed_data_dict["data_raw"], dtype=np.complex128).ravel()
@@ -438,6 +472,7 @@ def extract_qubit_parameters(
 
     # Extract and store the readout resonator frequency value
     if fit_result is not None:
+        # Extract central frequency depending on model used
         if "position" in fit_result.params:
             rr_freq = unc.ufloat(
                 fit_result.params["position"].value,
@@ -447,6 +482,11 @@ def extract_qubit_parameters(
             rr_freq = unc.ufloat(
                 fit_result.params["fr"].value,
                 fit_result.params["fr"].stderr,
+            )
+        elif "f0" in fit_result.params:
+            rr_freq = unc.ufloat(
+                fit_result.params["f0"].value,
+                getattr(fit_result.params["f0"], "stderr", 0) or 0,
             )
         else:
             rr_freq = None
@@ -465,19 +505,31 @@ def extract_qubit_parameters(
         new_vals["readout_resonator_frequency"] = rr_freq
 
     # If complex fit present, also compute and store Q factors
-    if fit_result is not None and all(k in fit_result.params for k in ("Q", "Q_e_real", "Q_e_imag")):
-        Q_total = float(fit_result.params["Q"].value)
-        Qe_real = float(fit_result.params["Q_e_real"].value)
-        Qe_imag = float(fit_result.params["Q_e_imag"].value)
-        denom = Qe_real * Qe_real + Qe_imag * Qe_imag
-        inv_Qe_real = Qe_real / denom if denom != 0 else 0.0
-        inv_Q_total = 1.0 / Q_total if Q_total != 0 else 0.0
-        inv_Qi = max(inv_Q_total - inv_Qe_real, 0.0)
-        Qi = (1.0 / inv_Qi) if inv_Qi > 0 else float("inf")
-        Qe_external = (1.0 / inv_Qe_real) if inv_Qe_real > 0 else float("inf")
-        new_vals["loaded_quality_factor"] = Q_total
-        new_vals["internal_quality_factor"] = Qi
-        new_vals["external_quality_factor"] = Qe_external
+    if fit_result is not None:
+        # Our internal complex model (Qe_real/Qe_imag)
+        if all(k in fit_result.params for k in ("Q", "Q_e_real", "Q_e_imag")):
+            Q_total = float(fit_result.params["Q"].value)
+            Qe_real = float(fit_result.params["Q_e_real"].value)
+            Qe_imag = float(fit_result.params["Q_e_imag"].value)
+            denom = Qe_real * Qe_real + Qe_imag * Qe_imag
+            inv_Qe_real = Qe_real / denom if denom != 0 else 0.0
+            inv_Q_total = 1.0 / Q_total if Q_total != 0 else 0.0
+            inv_Qi = max(inv_Q_total - inv_Qe_real, 0.0)
+            Qi = (1.0 / inv_Qi) if inv_Qi > 0 else float("inf")
+            Qe_external = (1.0 / inv_Qe_real) if inv_Qe_real > 0 else float("inf")
+            new_vals["loaded_quality_factor"] = Q_total
+            new_vals["internal_quality_factor"] = Qi
+            new_vals["external_quality_factor"] = Qe_external
+        # scresonators: params contain Q (loaded), Qc (external), and they add Qi
+        elif all(k in fit_result.params for k in ("Q", "Qc")):
+            Q_total = float(fit_result.params["Q"].value)
+            Qc = float(fit_result.params["Qc"].value)
+            Qi = fit_result.params.get("Qi")
+            Qi_val = float(Qi.value) if Qi is not None else None
+            new_vals["loaded_quality_factor"] = Q_total
+            if Qi_val is not None:
+                new_vals["internal_quality_factor"] = Qi_val
+            new_vals["external_quality_factor"] = Qc
 
     qubit_parameters["new_parameter_values"][qubit.uid] = new_vals
 
