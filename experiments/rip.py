@@ -295,7 +295,7 @@ def create_experiment(
         repetition_time=opts.repetition_time,
         reset_oscillator_phase=opts.reset_oscillator_phase,
     ):
-        qop.prepare_state.omit_section(ctrl, ctrl_state)
+        
 
         # If frequency is a sweep, create a nested sweep to form a grid:
         if swp_frequency is not None:
@@ -305,10 +305,12 @@ def create_experiment(
                     parameter= swp_delays,#[swp_delays, swp_phases],
                     auto_chunking=True,
                 ) as length:
-                    
-                    with dsl.section(name="main_drive", alignment=SectionAlignment.LEFT):
+                    ctrl_prep = qop.prepare_state(ctrl, ctrl_state)
+                    with dsl.section(name="main_drive", alignment=SectionAlignment.LEFT, play_after=ctrl_prep.uid):
                         # Determine static amplitude if not provided
                         amplitude_i = amplitude if amplitude is not None else getattr(bus.parameters, "cr_drive_amplitude", None)
+                        
+                        
                         qop.rip(
                             q=targ,
                             bus=bus,
