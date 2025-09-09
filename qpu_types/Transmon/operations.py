@@ -1238,11 +1238,12 @@ class TransmonOperations(dsl.QuantumOperations):
         self,
         q: TransmonQubit,
         bus: TransmonQubit,
-        delay: float,
+        delay: float | SweepParameter,
         ramsey_phase: float,
         amplitude : float,
         frequency : float,
         transition: str | None = None,
+        override_params: dict | None = None, 
     ) -> None:
         """Performs a Ramsey operation on a qubit.
         """
@@ -1258,20 +1259,21 @@ class TransmonOperations(dsl.QuantumOperations):
         with dsl.section(
             name=f"rip_{q.uid}",
             on_system_grid=on_system_grid,
-            alignment=SectionAlignment.RIGHT,
+            alignment=SectionAlignment.LEFT,
         ):
             sec_x90_1 = self.x90(q, transition=transition)
-            sec_x90_1.alignment = SectionAlignment.RIGHT
+            sec_x90_1.alignment = SectionAlignment.LEFT
             
             # delay 동안 bus drive
             self.set_frequency.omit_section(q=bus, frequency=frequency)
-            bus_drive = self.bus_drive(bus=bus, amplitude=amplitude, phase=0.0, length=delay, play_after=sec_x90_1.uid)
+            bus_delay= self.delay(bus, time=64e-9)
+            bus_drive = self.bus_drive(bus=bus, amplitude=amplitude, phase=0.0, length=delay, override_params=override_params)
             self.delay(q, time=delay)
 
             sec_x90_2 = self.x90(
-                q, phase=ramsey_phase, transition=transition
+                q, phase=ramsey_phase + np.pi/2, transition=transition
             )
-            sec_x90_2.alignment = SectionAlignment.RIGHT
+            sec_x90_2.alignment = SectionAlignment.LEFT
 
         # to remove the gap due to oscillator switching for driving ef transitions.
         sec_x90_1.on_system_grid = False
