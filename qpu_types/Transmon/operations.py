@@ -1144,7 +1144,38 @@ class TransmonOperations(dsl.QuantumOperations):
                         # Fix the length of the measure section
                         sec.length = measure_section_length
                         self.passive_reset(q)
-    ################################################################################                    
+    ################################################################################       
+    @dsl.quantum_operation(broadcast=False)
+    def bus_drive(
+        self,
+        bus: TransmonQubit,
+        amplitude: float | SweepParameter| None = None,
+        phase: float | SweepParameter | None = None,
+        length: float | SweepParameter | None = None,
+        override_params: dict | None = None,
+        play_after : str | None = None,
+    ) -> None:   
+        with dsl.section(
+            name=f"bus_{bus.uid}",
+            on_system_grid=True, # align to 8ns grid 
+            alignment = SectionAlignment.LEFT,
+            play_after=play_after
+        ):
+            drive_line, params = bus.cr_parameters() #bus element의 cr_parameters!!!
+            
+            cr_pulse = create_pulse(parameters=params["pulse"], overrides=override_params, name="cr_pulse") #overides pulse_parameters
+
+            
+            dsl.play(signal=bus.signals[drive_line],
+                    amplitude=amplitude,
+                    phase=phase,
+                    #increment_oscillator_phase=increment_oscillator_phase,
+                    length=length,
+                    pulse=cr_pulse)       
+        
+
+
+
     @dsl.quantum_operation(broadcast=False)
     def direct_cr(
         self,
@@ -1201,7 +1232,55 @@ class TransmonOperations(dsl.QuantumOperations):
                     length=length,
                     pulse=cr_pulse)
         
-    
+    ##################################################################################    
+    @dsl.quantum_operation(broadcast=False)
+    def rip(
+        self,
+        q: TransmonQubit,
+        bus: TransmonQubit,
+        delay: float,
+        ramsey_phase: float,
+        amplitude : float,
+        frequency : float,
+        transition: str | None = None,
+    ) -> None:
+        """Performs a Ramsey operation on a qubit.
+        """
+        transition = "ge" if transition is None else transition
+        if transition == "ef":
+            on_system_grid = True
+        elif transition == "ge":
+            on_system_grid = False
+        else:
+            raise ValueError(f"Support only ge or ef transitions, not {transition!r}")
+
+
+        with dsl.section(
+            name=f"rip_{q.uid}",
+            on_system_grid=on_system_grid,
+            alignment=SectionAlignment.RIGHT,
+        ):
+            sec_x90_1 = self.x90(q, transition=transition)
+            sec_x90_1.alignment = SectionAlignment.RIGHT
+            
+            # delay 동안 bus drive
+            self.set_frequency.omit_section(q=bus, frequency=frequency)
+            bus_drive = self.bus_drive(bus=bus, amplitude=amplitude, phase=0.0, length=delay, play_after=sec_x90_1.uid)
+            self.delay(q, time=delay)
+
+            sec_x90_2 = self.x90(
+                q, phase=ramsey_phase, transition=transition
+            )
+            sec_x90_2.alignment = SectionAlignment.RIGHT
+
+        # to remove the gap due to oscillator switching for driving ef transitions.
+        sec_x90_1.on_system_grid = False
+        sec_x90_2.on_system_grid = False
+
+
+
+
+
 @dsl.pulse_library.register_pulse_functional
 def x180_ef_reset_pulse(
     x: np.ndarray,
