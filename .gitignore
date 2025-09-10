@@ -2,6 +2,7 @@
 **/__pycache__/
 # Ignore all generated artifacts under laboneq_output, but keep .gitkeep
 laboneq_output/*
+laboneq_output/log/*
 !laboneq_output/.gitkeep
 experiment_store/
 Descriptors/
