@@ -158,8 +158,8 @@ def experiment_workflow(
     )
     compiled_exp = compile_experiment(session, exp)
     result = run_experiment(session, compiled_exp)
-    with workflow.if_(options.do_analysis):
-        analysis_workflow(result, qubits, states)
+    # with workflow.if_(options.do_analysis):
+    #     analysis_workflow(result, qubits, states)
     workflow.return_(result)
 
 
