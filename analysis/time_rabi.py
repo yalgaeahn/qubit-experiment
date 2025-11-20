@@ -310,15 +310,22 @@ def plot_population(
                     markersize=plt.rcParams["lines.markersize"] + 1,
                 )
                 # textbox
-                old_pi_length = qubit_parameters["old_parameter_values"][q.uid][
-                    f"{opts.transition}_drive_length"
-                ]
+                freq_fit = fit_res_qb.best_values["frequency"] / (2*np.pi)
+                freq_fit_err = fit_res_qb.params["frequency"].stderr / (2*np.pi)
                 textstr = (
-                    "$\\tau_{\\pi}$ = "
-                    f"{new_pi_length.nominal_value * 1e9:.4f} $\\pm$ "
-                    f"{new_pi_length.std_dev * 1e9:.4f} ns"
+                    "$\Omega/2\pi$: "
+                    f"\nFitted frequency: {freq_fit / 1e6:.6f} "
+                    f"$\\pm$ {freq_fit_err / 1e6:.4f} MHz"
                 )
-                textstr += "\nOld $\\tau_{\\pi}$ = " + f"{old_pi_length * 1e9:.4f} ns"
+                # old_pi_length = qubit_parameters["old_parameter_values"][q.uid][
+                #     f"{opts.transition}_drive_length"
+                # ]
+                # textstr = (
+                #     "$\\tau_{\\pi}$ = "
+                #     f"{new_pi_length.nominal_value * 1e9:.4f} $\\pm$ "
+                #     f"{new_pi_length.std_dev * 1e9:.4f} ns"
+                # )
+                # textstr += "\nOld $\\tau_{\\pi}$ = " + f"{old_pi_length * 1e9:.4f} ns"
                 ax.text(0, -0.15, textstr, ha="left", va="top", transform=ax.transAxes)
 
         ax.legend(

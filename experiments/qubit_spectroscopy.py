@@ -27,14 +27,14 @@ from laboneq.workflow.tasks import (
 
 from laboneq_applications.analysis.qubit_spectroscopy import analysis_workflow
 from laboneq_applications.core.validation import validate_and_convert_qubits_sweeps
-from laboneq_applications.experiments.options import (
-    QubitSpectroscopyExperimentOptions,
-    TuneUpWorkflowOptions,
-)
+from laboneq_applications.experiments.options import TuneUpWorkflowOptions
+
+
+from experiments.options import QubitSpectroscopyExperimentOptions
 from laboneq_applications.tasks.parameter_updating import (
     temporary_qpu,
     temporary_quantum_elements_from_qpu,
-    update_qubits,
+    update_qpu
 )
 
 if TYPE_CHECKING:
@@ -128,7 +128,7 @@ def experiment_workflow(
         analysis_results = analysis_workflow(result, qubits, frequencies)
         qubit_parameters = analysis_results.output
         with workflow.if_(options.update):
-            update_qubits(qpu, qubit_parameters["new_parameter_values"])
+            update_qpu(qpu, qubit_parameters["new_parameter_values"])
     workflow.return_(result)
 
 
@@ -216,7 +216,6 @@ def create_experiment(
                 name=f"freqs_{q.uid}",
                 parameter=SweepParameter(f"frequency_{q.uid}", q_frequencies),
             ) as frequency:
-                qop.prepare_state(q,"e")
                 qop.set_frequency(q, frequency)
                 qop.qubit_spectroscopy_drive(q)
                 sec = qop.measure(q, dsl.handles.result_handle(q.uid))

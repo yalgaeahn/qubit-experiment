@@ -31,7 +31,7 @@ from laboneq.workflow.tasks import (
     run_experiment,
 )
 
-from laboneq_applications.analysis.dispersive_shift import analysis_workflow
+from analysis.dispersive_shift import analysis_workflow
 from laboneq_applications.core import validation
 from laboneq_applications.experiments.options import (
     BaseExperimentOptions,

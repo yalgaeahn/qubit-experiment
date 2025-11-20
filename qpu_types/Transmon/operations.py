@@ -8,10 +8,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal, ClassVar
 
 import numpy as np
-from laboneq.dsl.calibration import Oscillator
+from laboneq.dsl.calibration import Oscillator, Calibration
 from laboneq.dsl.enums import ModulationType
+from laboneq.dsl.parameter import SweepParameter
 from laboneq.simple import SectionAlignment, dsl
 
+
+from laboneq_applications.typing  import QuantumElements
 from qpu_types.Transmon.transmon import TransmonQubit
 import custom_pulse_library
 
@@ -21,9 +24,8 @@ from laboneq.dsl.experiment import pulse_library, builtins
 
 from collections.abc import Sequence
 
-from laboneq.dsl.calibration import Calibration
-from laboneq.dsl.parameter import SweepParameter
-from laboneq.dsl.quantum.quantum_element import QuantumElement
+
+#from laboneq.dsl.quantum.quantum_element import QuantumElement
 
 # TODO: Implement multistate 0-1-2 measurement operation
 
@@ -281,6 +283,8 @@ class TransmonOperations(dsl.QuantumOperations):
         ro_pulse = create_pulse(
             ro_params["pulse"], readout_pulse, name="readout_pulse"
         )
+
+
         #originally it was dsl.create_pulse
 
         kernels = q.get_integration_kernels(kernel_pulses)
@@ -855,6 +859,7 @@ class TransmonOperations(dsl.QuantumOperations):
         phase: float = 0.0,
         length: float | SweepParameter | None = None,
         pulse: dict | None = None,
+        transition: str | None = None
     ) -> None:
         """Long pulse used for qubit spectroscopy that emulates a coherent field.
 
@@ -882,7 +887,7 @@ class TransmonOperations(dsl.QuantumOperations):
 
                 Otherwise, the values override or extend the existing ones.
         """
-        spec_line, params = q.spectroscopy_parameters()
+        spec_line, params = q.spectroscopy_parameters(transition=transition)
         if amplitude is None:
             amplitude = params["amplitude"]
         if length is None:
@@ -963,8 +968,8 @@ class TransmonOperations(dsl.QuantumOperations):
                 self.delay(q, time=delay / 2)
             else:
                 self.delay(q, time=delay)
-            sec_x90_2 = self.x90(
-                q, phase=ramsey_phase, transition=transition
+            sec_x90_2 = self.x90( #임시로 바꿈 y90 안먹음 확인필요
+                q, phase=np.pi/2+ramsey_phase, transition=transition
             )
             sec_x90_2.alignment = SectionAlignment.RIGHT
 

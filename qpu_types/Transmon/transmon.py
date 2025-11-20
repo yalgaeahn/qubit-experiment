@@ -183,9 +183,13 @@ class TransmonQubitParameters(QuantumParameters):
 
 
     # qubit-resonator coupling parameters
-
     qubit_resonator_coupling_strength_g: float = 0
     ge_chi_shift: float = 0
+
+    #resonator
+
+
+
 
     # readout and integration parameters
 
@@ -367,7 +371,7 @@ class TransmonQubit(QuantumElement):
         }
         return "acquire", params
 
-    def spectroscopy_parameters(self) -> tuple[str, dict]:
+    def spectroscopy_parameters(self,transition: str | None = None) -> tuple[str, dict]:
         """Return the qubit-spectroscopy line and the spectroscopy-pulse parameters.
 
         Returns:
@@ -378,7 +382,8 @@ class TransmonQubit(QuantumElement):
         """
         param_keys = ["amplitude", "length", "pulse"]
         params = {k: getattr(self.parameters, f"spectroscopy_{k}") for k in param_keys}
-        return "drive", params
+        line = "drive_ef" if transition == "ef" else "drive"
+        return line, params
 
     def default_integration_kernels(self) -> list[Pulse]:
         """Return a default list of integration kernels.
