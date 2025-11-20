@@ -197,6 +197,13 @@ def calculate_signal_differences(
 
     return processed_data_dict
 
+# @workflow.task
+# def calculate_dispersive_shift(
+#     qubit: QuantumElement,
+#     result: RunExperimentResults,
+#     frequencies: ArrayLike,
+#     states: Sequence[str],
+# ) -> dict[str, tuple[ArrayLike, ArrayLike, ArrayLike]]:
 
 @workflow.task
 def extract_qubit_parameters(
@@ -291,16 +298,34 @@ def plot_dispersive_shift(
         qubit, frequencies
     )
     validation.validate_result(result)
+    
+
 
     # Plot S21 for each prep state
     fig, ax = plt.subplots()
     ax.set_xlabel("Readout Frequency, $f_{\\mathrm{RO}}$ (GHz)")
     ax.set_ylabel("Signal Magnitude, $|S_{21}|$ (a.u.)")
     ax.set_title(timestamped_title(f"Dispersive Shift {qubit.uid}"))
+    
+    minimas={}
+
     for state in states:
         data_mag = abs(result[dsl.handles.result_handle(qubit.uid, suffix=state)].data)
         ax.plot(frequencies / 1e9, data_mag, label=state)
+        min_idx = np.argmin(data_mag)
+        min_pos = frequencies[min_idx]
+        minimas[state]=min_pos
+        ax.scatter(min_pos/1e9, data_mag[min_idx],s=100)
+        ax.vlines(min_pos/1e9, data_mag[min_idx], np.max(data_mag))
+    
+    twochi = minimas["e"] - minimas["g"]
+    textstr = (
+                "$2\chi= \omega_r^e - \omega_r^g$: "
+                f"{twochi/1e6:.6f}"
+                )
+    ax.text(0, -0.15, textstr, ha="left", va="top", transform=ax.transAxes)
     ax.legend(frameon=False)
+
 
     if opts.save_figures:
         workflow.save_artifact(f"Dispersive_shift_{qubit.uid}", fig)

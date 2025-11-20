@@ -187,9 +187,9 @@ class QubitSpectroscopyExperimentOptions:
             How long to wait after an acquisition in seconds.
             Default: 1e-6.
     """
-
+    init : str = option_field("g",description="init state")
     spectroscopy_reset_delay: float = option_field(
-        1e-6, description="How long to wait after an acquisition in seconds."
+        100e-6, description="How long to wait after an acquisition in seconds."
     )
 
 

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from laboneq.simple import Experiment, SweepParameter, dsl
+from laboneq.simple import Experiment, SweepParameter, dsl, SectionAlignment
 from laboneq.workflow import if_, task, workflow
 from laboneq.workflow.tasks import (
     compile_experiment,
@@ -31,9 +31,15 @@ from laboneq_applications.experiments.options import (
     TuneupExperimentOptions,
     TuneUpWorkflowOptions,
 )
-from laboneq_applications.tasks.parameter_updating import update_qubits
+from laboneq_applications.tasks.parameter_updating import update_qpu
+
+from laboneq_applications.tasks.parameter_updating import (
+    temporary_qpu,
+    temporary_quantum_elements_from_qpu,
+)
 
 if TYPE_CHECKING:
+    from laboneq.dsl.quantum import QuantumParameters
     from laboneq.dsl.quantum.qpu import QPU
     from laboneq.dsl.session import Session
 
@@ -47,6 +53,8 @@ def experiment_workflow(
     qubits: QuantumElements,
     lengths: QubitSweepPoints,
     options: TuneUpWorkflowOptions | None = None,
+    temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
+    | None = None,
 ) -> None:
     """The Time Rabi Workflow.
 
@@ -102,18 +110,23 @@ def experiment_workflow(
         ).run()
         ```
     """
+
+    temp_qpu = temporary_qpu(qpu, temporary_parameters)
+    qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)
+    
     exp = create_experiment(
-        qpu,
+        temp_qpu,
         qubits,
         lengths=lengths,
     )
+  
     compiled_exp = compile_experiment(session, exp)
     _result = run_experiment(session, compiled_exp)
     with if_(options.do_analysis):
         analysis_results = analysis_workflow(_result, qubits, lengths)
         qubit_parameters = analysis_results.tasks["extract_qubit_parameters"].output
         with if_(options.update):
-            update_qubits(qpu, qubit_parameters["new_parameter_values"])
+            update_qpu(qpu, qubit_parameters["new_parameter_values"])
 
 
 @task
@@ -181,7 +194,17 @@ def create_experiment(
     """
     # Define the custom options for the experiment
     opts = TuneupExperimentOptions() if options is None else options
-    qubits, lengths = validation.validate_and_convert_single_qubit_sweeps(qubits, lengths)
+    #qubits, lengths = validation.validate_and_convert_single_qubit_sweeps(qubits, lengths)
+    qubits, lengths = validation.validate_and_convert_qubits_sweeps(
+        qubits, lengths
+    )
+    lengths_sweep_pars = [
+        SweepParameter(f"length_{q.uid}", q_lengths, axis_name=f"{q.uid}")
+        for q, q_lengths in zip(qubits, lengths)
+    ]
+
+
+    max_measure_section_length = qpu.measure_section_length(qubits)
     qop = qpu.quantum_operations
     with dsl.acquire_loop_rt(
         count=opts.count,
@@ -191,23 +214,46 @@ def create_experiment(
         repetition_time=opts.repetition_time,
         reset_oscillator_phase=opts.reset_oscillator_phase,
     ):
-        for q, q_lengths in zip(qubits, lengths):
-            with dsl.sweep(
-                name=f"amps_{q.uid}",
-                parameter=SweepParameter(f"length_{q.uid}", q_lengths),
-            ) as length:
-                qop.prepare_state(q, opts.transition[0])
-                qop.x180(q, length=length, transition=opts.transition)
-                qop.measure(q, dsl.handles.result_handle(q.uid))
-                qop.passive_reset(q)
-            if opts.use_cal_traces:
-                with dsl.section(
-                    name=f"cal_{q.uid}",
-                ):
-                    for state in opts.cal_states:
-                        qop.prepare_state(q, state)
-                        qop.measure(
-                            q,
-                            dsl.handles.calibration_trace_handle(q.uid, state),
+        with dsl.sweep(
+            name="rabi_length_sweep",
+            parameter=lengths_sweep_pars,
+        ):
+            if opts.active_reset:
+                qop.active_reset(
+                    qubits,
+                    active_reset_states=opts.active_reset_states,
+                    number_resets=opts.active_reset_repetitions,
+                    measure_section_length=max_measure_section_length,
+                )
+            with dsl.section(name="main", alignment=SectionAlignment.RIGHT):
+                with dsl.section(name="main_drive", alignment=SectionAlignment.RIGHT):
+                    for q, q_lengths in zip(qubits, lengths_sweep_pars):
+                        qop.prepare_state.omit_section(q, state=opts.transition[0])
+                        
+                
+                        
+                    
+                        sec = qop.qubit_spectroscopy_drive(
+                            q,amplitude=q.parameters.ge_drive_amplitude_pi, phase=0.0, length=q_lengths, pulse={'sigma':0.25, 'risefall_sigma_ratio':None,'width':q_lengths - q.parameters.ge_drive_length}
                         )
+                        
+                        # sec = qop.x180(
+                        #     q, amplitude=q_lengths, transition=opts.transition
+                        # )
+                        sec.alignment = SectionAlignment.RIGHT
+                with dsl.section(name="main_measure", alignment=SectionAlignment.LEFT):
+                    for q in qubits:
+                        sec = qop.measure(q, dsl.handles.result_handle(q.uid))
+                        # Fix the length of the measure section
+                        sec.length = max_measure_section_length
                         qop.passive_reset(q)
+
+        if opts.use_cal_traces:
+            qop.calibration_traces.omit_section(
+                qubits=qubits,
+                states=opts.cal_states,
+                active_reset=opts.active_reset,
+                active_reset_states=opts.active_reset_states,
+                active_reset_repetitions=opts.active_reset_repetitions,
+                measure_section_length=max_measure_section_length,
+            )
