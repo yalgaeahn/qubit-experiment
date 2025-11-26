@@ -23,7 +23,7 @@ from laboneq.workflow.tasks import (
     run_experiment,
 )
 
-from laboneq_applications.analysis.iq_blobs import analysis_workflow
+from analysis.iq_traj import analysis_workflow
 from laboneq_applications.core import validation
 from laboneq_applications.experiments.options import (
     BaseExperimentOptions,
@@ -158,8 +158,8 @@ def experiment_workflow(
     )
     compiled_exp = compile_experiment(session, exp)
     result = run_experiment(session, compiled_exp)
-    # with workflow.if_(options.do_analysis):
-    #     analysis_workflow(result, qubits, states)
+    with workflow.if_(options.do_analysis):
+        analysis_workflow(result, qubits, states)
     workflow.return_(result)
 
 
