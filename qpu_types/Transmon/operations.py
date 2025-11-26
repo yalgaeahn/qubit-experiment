@@ -969,7 +969,7 @@ class TransmonOperations(dsl.QuantumOperations):
             else:
                 self.delay(q, time=delay)
             sec_x90_2 = self.x90( #임시로 바꿈 y90 안먹음 확인필요
-                q, phase=np.pi/2+ramsey_phase, transition=transition
+                q, phase=ramsey_phase, transition=transition
             )
             sec_x90_2.alignment = SectionAlignment.RIGHT
 
