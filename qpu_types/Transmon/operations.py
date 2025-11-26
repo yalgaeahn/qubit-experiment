@@ -904,7 +904,79 @@ class TransmonOperations(dsl.QuantumOperations):
             length=length,
             pulse=spectroscopy_pulse,
         )
+    @dsl.quantum_operation(broadcast=False)
+    def Ramsey(
+        self,
+        q: TransmonQubit,
+        delay: SweepParameter | float,
+        ramsey_phase: SweepParameter | float,
+        echo_pulse: Literal["x180", "y180"] | None = None,
+        transition: str | None = None,
+    ) -> None:
+        """Performs a Ramsey operation on a qubit.
 
+        This operation consists of the following steps:
+        x90 - delay/2 - [x180] or [y180] - delay/2 - x90
+
+        Arguments:
+            q:
+                The qubit to rotate
+            delay:
+                The duration between two rotations, excluding the
+                echo pulse length if an echo pulse is included.
+            ramsey_phase:
+                The phase of the second x90 rotation,
+                this will be applied as a phase increment for the second pulse
+            echo_pulse:
+                The echo pulse to include.
+            transition:
+                The transition to rotate. By default this is "ge"
+                (i.e. the 0-1 transition).
+
+        Raise:
+            ValueError:
+                If the transition is not "ge" nor "ef".
+
+            ValueError:
+                If the echo pulse is not None and not x180 or y180.
+        """
+        transition = "ge" if transition is None else transition
+        if transition == "ef":
+            on_system_grid = True
+        elif transition == "ge":
+            on_system_grid = False
+        else:
+            raise ValueError(f"Support only ge or ef transitions, not {transition!r}")
+
+        if echo_pulse is not None and echo_pulse not in ("x180", "y180"):
+            raise ValueError(
+                f"Support only x180 or y180 for echo pulse, not {echo_pulse}"
+            )
+
+        with dsl.section(
+            name=f"ramsey_{q.uid}",
+            on_system_grid=on_system_grid,
+            alignment=SectionAlignment.RIGHT,
+        ):
+            sec_x90_1 = self.x90(q, transition=transition)
+            sec_x90_1.alignment = SectionAlignment.RIGHT
+            if echo_pulse is not None:
+                self.delay(q, time=delay / 2)
+                sec_echo = self[echo_pulse](q, transition=transition)
+                sec_echo.alignment = SectionAlignment.RIGHT
+                self.delay(q, time=delay / 2)
+            else:
+                self.delay(q, time=delay)
+            sec_x90_2 = self.x90(
+                q, increment_oscillator_phase=ramsey_phase, transition=transition
+            )
+            sec_x90_2.alignment = SectionAlignment.RIGHT
+
+        # to remove the gap due to oscillator switching for driving ef transitions.
+        if echo_pulse is not None:
+            sec_echo.on_system_grid = False
+        sec_x90_1.on_system_grid = False
+        sec_x90_2.on_system_grid = False
     @dsl.quantum_operation(broadcast=False)
     def ramsey(
         self,
