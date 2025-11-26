@@ -12,6 +12,7 @@ analysis/dispersive_shift.py
 analysis/fitting_helpers.py
 analysis/hamiltonian_tomography.py
 analysis/iq_blobs.py
+analysis/iq_traj.py
 analysis/measure_gain_curve.py
 analysis/measurement_qndness.py
 analysis/resonator_spectroscopy.py
@@ -23,6 +24,7 @@ analysis/single_qubit_randomized_benchmarking.py
 analysis/time_rabi.py
 analysis/time_rabi_chevron.py
 analysis/time_traces.py
+analysis/trajectory.py
 experiments/__init__.py
 experiments/amplitude_rabi.py
 experiments/amplitude_rabi_chevron.py
@@ -44,6 +46,12 @@ experiments/ramsey.py
 experiments/resonator_spectroscopy.py
 experiments/resonator_spectroscopy_amplitude.py
 experiments/rip.py
+experiments/rip2.py
+experiments/rip3.py
+experiments/rip4.py
+experiments/rip5.py
+experiments/rip_echo.py
+experiments/rip_refocus.py
 experiments/scan_pump_parameters.py
 experiments/signal_propagation_delay.py
 experiments/single_qubit_randomized_benchmarking.py
@@ -51,6 +59,7 @@ experiments/spin_locking.py
 experiments/time_rabi.py
 experiments/time_rabi_chevron.py
 experiments/time_traces.py
+experiments/trajectory.py
 experiments/twpa_spectroscopy.py
 helper_functions/__init__.py
 helper_functions/data_processor.py
