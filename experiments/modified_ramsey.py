@@ -281,14 +281,14 @@ def create_experiment(
                 with dsl.section(name="main_drive", alignment=SectionAlignment.RIGHT):
                     for q, wait_time, phase in zip(qubits, swp_delays, swp_phases):
                         qop.prepare_state.omit_section(q, opts.transition[0])
-                        qop.ramsey.omit_section(
+                        qop.Ramsey.omit_section(
                             q, wait_time, phase, transition=opts.transition
                         )
                 with dsl.section(name="main_measure", alignment=SectionAlignment.LEFT):
                     for q in qubits:
                         sec = qop.measure(q, dsl.handles.result_handle(q.uid))
                         # Fix the length of the measure section
-                        sec.length = max_measure_section_length
+                        #sec.length = max_measure_section_length
                         qop.passive_reset(q)
         if opts.use_cal_traces:
             qop.calibration_traces.omit_section(
@@ -297,5 +297,5 @@ def create_experiment(
                 active_reset=opts.active_reset,
                 active_reset_states=opts.active_reset_states,
                 active_reset_repetitions=opts.active_reset_repetitions,
-                measure_section_length=max_measure_section_length,
+                #measure_section_length=max_measure_section_length,
             )
