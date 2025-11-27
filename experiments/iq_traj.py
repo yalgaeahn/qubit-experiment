@@ -230,5 +230,5 @@ def create_experiment(
             active_reset=opts.active_reset,
             active_reset_states=opts.active_reset_states,
             active_reset_repetitions=opts.active_reset_repetitions,
-            measure_section_length=max_measure_section_length,
+            #measure_section_length=max_measure_section_length,
         )

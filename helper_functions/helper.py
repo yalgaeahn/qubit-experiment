@@ -97,6 +97,7 @@ def load_qubit_parameters(filename = 'qubit_parameters', save_folder='./qubit_pa
         )
     
     with open(qb_pars_file) as f:
+        print(f"LOADED:{qb_pars_file}")
         file = json.load(f, object_hook=custom_decoder)
     qubits = {}
     for qubit in file:

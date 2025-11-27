@@ -23,7 +23,7 @@ from laboneq.workflow.tasks import (
     run_experiment,
 )
 
-from laboneq_applications.analysis.iq_blobs import analysis_workflow
+from analysis.iq_blobs import analysis_workflow
 from laboneq_applications.core import validation
 from laboneq_applications.experiments.options import (
     BaseExperimentOptions,
@@ -217,5 +217,5 @@ def create_experiment(
             active_reset=opts.active_reset,
             active_reset_states=opts.active_reset_states,
             active_reset_repetitions=opts.active_reset_repetitions,
-            measure_section_length=max_measure_section_length,
+            #measure_section_length=max_measure_section_length,
         )

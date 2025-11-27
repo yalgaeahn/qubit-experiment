@@ -77,7 +77,7 @@ class IQTrajAnalysisWorkflowOptions:
         True, description="Whether to create the IQ-blob plots of the single shots."
     )
     chunk_size: int = workflow.option_field(
-        32, description="Size of chung 32 -> 16ns"
+        8, description="Size of chung 8 -> 4ns"
     )
 
 @workflow.workflow
