@@ -5235,3 +5235,477 @@
 2025.11.26 14:06:12.252 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
 2025.11.26 14:06:12.252 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'ramsey': execution ended at 2025-11-26 05:06:12.252502Z[0m[1m           [0m[1m [0m[1m [0m
 2025.11.26 14:06:12.253 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:01:06.367 | laboneq.laboneq_logging                       | INFO   Logging initialized from [Default inline config in laboneq.laboneq_logging] logdir is /home/yalgaeahn/JSAHN/qubit-experiment/examples/laboneq_output/log
+2025.11.27 19:01:06.368 | laboneq.controller.controller                 | INFO   VERSION: laboneq 25.10.2
+2025.11.27 19:01:06.369 | laboneq.controller.devices.device_collection  | INFO   Connecting to data server at 192.168.0.83:8004
+2025.11.27 19:01:06.497 | laboneq.controller.devices.async_support      | INFO   Connected to Zurich Instruments LabOne Data Server version 25.10.1.4 at 192.168.0.83:8004
+2025.11.27 19:01:06.571 | laboneq.controller.devices.device_collection  | INFO   Configuring the device setup
+2025.11.27 19:01:06.607 | laboneq.controller.devices.device_collection  | INFO   The device setup is configured
+2025.11.27 19:01:53.189 | laboneq.laboneq_logging                       | INFO   Logging initialized from [Default inline config in laboneq.laboneq_logging] logdir is /home/yalgaeahn/JSAHN/qubit-experiment/examples/laboneq_output/log
+2025.11.27 19:01:53.191 | laboneq.controller.controller                 | INFO   VERSION: laboneq 25.10.2
+2025.11.27 19:01:53.191 | laboneq.controller.devices.device_collection  | INFO   Connecting to data server at 192.168.0.83:8004
+2025.11.27 19:01:53.258 | laboneq.controller.devices.async_support      | INFO   Connected to Zurich Instruments LabOne Data Server version 25.10.1.4 at 192.168.0.83:8004
+2025.11.27 19:01:53.292 | laboneq.controller.devices.device_collection  | INFO   Configuring the device setup
+2025.11.27 19:01:53.312 | laboneq.controller.devices.device_collection  | INFO   The device setup is configured
+2025.11.27 19:02:33.802 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:02:33.802 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_traj': execution started at 2025-11-27 10:02:33.802260Z[0m[1m        [0m[1m [0m[1m [0m
+2025.11.27 19:02:33.803 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:02:33.810 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': started at 2025-11-27 10:02:33.810459Z[0m
+2025.11.27 19:02:33.811 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': ended at 2025-11-27 10:02:33.811466Z[0m
+2025.11.27 19:02:33.813 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': started at 2025-11-27 [0m
+2025.11.27 19:02:33.813 | laboneq.applications                          | INFO   [1m10:02:33.813316Z[0m
+2025.11.27 19:02:33.814 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': ended at 2025-11-27 10:02:33.814164Z[0m
+2025.11.27 19:02:33.814 | laboneq.applications                          | INFO   [1mTask 'create_experiment': started at 2025-11-27 10:02:33.814774Z[0m
+2025.11.27 19:02:33.819 | laboneq.applications                          | INFO   [1mTask 'create_experiment': ended at 2025-11-27 10:02:33.819287Z[0m
+2025.11.27 19:02:33.820 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': started at 2025-11-27 10:02:33.820723Z[0m
+2025.11.27 19:02:33.822 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_readout_acquire_osc' on signal '/logical_signal_groups/q0/acquire' to SOFTWARE
+2025.11.27 19:02:33.822 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_drive_ge_osc' on signal '/logical_signal_groups/q0/drive' to HARDWARE
+2025.11.27 19:02:33.822 | laboneq.compiler.workflow.compiler            | INFO   Starting LabOne Q Compiler run...
+2025.11.27 19:02:33.825 | laboneq.applications                          | ERROR  [1mTask 'compile_experiment': failed at 2025-11-27 10:02:33.824799Z with: [0m
+2025.11.27 19:02:33.825 | laboneq.applications                          | ERROR  [1mLabOneQException("Content of section 'measure_q0_0' (1.200e+00 us) does not fit [0m
+2025.11.27 19:02:33.825 | laboneq.applications                          | ERROR  [1minto the requested fixed section length (1.000e+00 us)")[0m
+2025.11.27 19:02:33.826 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': ended at 2025-11-27 10:02:33.826062Z[0m
+2025.11.27 19:02:33.826 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:02:33.826 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_traj': execution ended at 2025-11-27 10:02:33.826426Z[0m[1m          [0m[1m [0m[1m [0m
+2025.11.27 19:02:33.826 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:03:08.265 | laboneq.laboneq_logging                       | INFO   Logging initialized from [Default inline config in laboneq.laboneq_logging] logdir is /home/yalgaeahn/JSAHN/qubit-experiment/examples/laboneq_output/log
+2025.11.27 19:03:08.267 | laboneq.controller.controller                 | INFO   VERSION: laboneq 25.10.2
+2025.11.27 19:03:08.268 | laboneq.controller.devices.device_collection  | INFO   Connecting to data server at 192.168.0.83:8004
+2025.11.27 19:03:08.318 | laboneq.controller.devices.async_support      | INFO   Connected to Zurich Instruments LabOne Data Server version 25.10.1.4 at 192.168.0.83:8004
+2025.11.27 19:03:08.350 | laboneq.controller.devices.device_collection  | INFO   Configuring the device setup
+2025.11.27 19:03:08.371 | laboneq.controller.devices.device_collection  | INFO   The device setup is configured
+2025.11.27 19:03:14.731 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:03:14.732 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_blobs': execution started at 2025-11-27 10:03:14.731538Z[0m[1m       [0m[1m [0m[1m [0m
+2025.11.27 19:03:14.732 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:03:14.740 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': started at 2025-11-27 10:03:14.739904Z[0m
+2025.11.27 19:03:14.740 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': ended at 2025-11-27 10:03:14.740849Z[0m
+2025.11.27 19:03:14.743 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': started at 2025-11-27 [0m
+2025.11.27 19:03:14.743 | laboneq.applications                          | INFO   [1m10:03:14.743344Z[0m
+2025.11.27 19:03:14.744 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': ended at 2025-11-27 10:03:14.744294Z[0m
+2025.11.27 19:03:14.745 | laboneq.applications                          | INFO   [1mTask 'create_experiment': started at 2025-11-27 10:03:14.745580Z[0m
+2025.11.27 19:03:14.750 | laboneq.applications                          | INFO   [1mTask 'create_experiment': ended at 2025-11-27 10:03:14.750263Z[0m
+2025.11.27 19:03:14.752 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': started at 2025-11-27 10:03:14.751942Z[0m
+2025.11.27 19:03:14.753 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_readout_acquire_osc' on signal '/logical_signal_groups/q0/acquire' to SOFTWARE
+2025.11.27 19:03:14.754 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_drive_ge_osc' on signal '/logical_signal_groups/q0/drive' to HARDWARE
+2025.11.27 19:03:14.755 | laboneq.compiler.workflow.compiler            | INFO   Starting LabOne Q Compiler run...
+2025.11.27 19:03:14.758 | laboneq.applications                          | ERROR  [1mTask 'compile_experiment': failed at 2025-11-27 10:03:14.757859Z with: [0m
+2025.11.27 19:03:14.758 | laboneq.applications                          | ERROR  [1mLabOneQException("Content of section 'measure_q0_0' (1.200e+00 us) does not fit [0m
+2025.11.27 19:03:14.759 | laboneq.applications                          | ERROR  [1minto the requested fixed section length (1.000e+00 us)")[0m
+2025.11.27 19:03:14.760 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': ended at 2025-11-27 10:03:14.759875Z[0m
+2025.11.27 19:03:14.760 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:03:14.761 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_blobs': execution ended at 2025-11-27 10:03:14.760477Z[0m[1m         [0m[1m [0m[1m [0m
+2025.11.27 19:03:14.761 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:03:52.831 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:03:52.832 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_blobs': execution started at 2025-11-27 10:03:52.831712Z[0m[1m       [0m[1m [0m[1m [0m
+2025.11.27 19:03:52.832 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:03:52.839 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': started at 2025-11-27 10:03:52.839779Z[0m
+2025.11.27 19:03:52.840 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': ended at 2025-11-27 10:03:52.840696Z[0m
+2025.11.27 19:03:52.842 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': started at 2025-11-27 [0m
+2025.11.27 19:03:52.843 | laboneq.applications                          | INFO   [1m10:03:52.842710Z[0m
+2025.11.27 19:03:52.843 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': ended at 2025-11-27 10:03:52.843477Z[0m
+2025.11.27 19:03:52.844 | laboneq.applications                          | INFO   [1mTask 'create_experiment': started at 2025-11-27 10:03:52.844187Z[0m
+2025.11.27 19:03:52.848 | laboneq.applications                          | INFO   [1mTask 'create_experiment': ended at 2025-11-27 10:03:52.848772Z[0m
+2025.11.27 19:03:52.850 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': started at 2025-11-27 10:03:52.849988Z[0m
+2025.11.27 19:03:52.851 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_readout_acquire_osc' on signal '/logical_signal_groups/q0/acquire' to SOFTWARE
+2025.11.27 19:03:52.852 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_drive_ge_osc' on signal '/logical_signal_groups/q0/drive' to HARDWARE
+2025.11.27 19:03:52.852 | laboneq.compiler.workflow.compiler            | INFO   Starting LabOne Q Compiler run...
+2025.11.27 19:03:52.853 | laboneq.applications                          | ERROR  [1mTask 'compile_experiment': failed at 2025-11-27 10:03:52.853731Z with: [0m
+2025.11.27 19:03:52.854 | laboneq.applications                          | ERROR  [1mLabOneQException("Content of section 'measure_q0_0' (1.200e+00 us) does not fit [0m
+2025.11.27 19:03:52.854 | laboneq.applications                          | ERROR  [1minto the requested fixed section length (1.000e+00 us)")[0m
+2025.11.27 19:03:52.855 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': ended at 2025-11-27 10:03:52.855115Z[0m
+2025.11.27 19:03:52.855 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:03:52.855 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_blobs': execution ended at 2025-11-27 10:03:52.855494Z[0m[1m         [0m[1m [0m[1m [0m
+2025.11.27 19:03:52.855 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:04:05.464 | laboneq.laboneq_logging                       | INFO   Logging initialized from [Default inline config in laboneq.laboneq_logging] logdir is /home/yalgaeahn/JSAHN/qubit-experiment/examples/laboneq_output/log
+2025.11.27 19:04:05.465 | laboneq.controller.controller                 | INFO   VERSION: laboneq 25.10.2
+2025.11.27 19:04:05.466 | laboneq.controller.devices.device_collection  | INFO   Connecting to data server at 192.168.0.83:8004
+2025.11.27 19:04:05.590 | laboneq.controller.devices.async_support      | INFO   Connected to Zurich Instruments LabOne Data Server version 25.10.1.4 at 192.168.0.83:8004
+2025.11.27 19:04:05.650 | laboneq.controller.devices.device_collection  | INFO   Configuring the device setup
+2025.11.27 19:04:05.685 | laboneq.controller.devices.device_collection  | INFO   The device setup is configured
+2025.11.27 19:04:25.881 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:04:25.881 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_traj': execution started at 2025-11-27 10:04:25.880685Z[0m[1m        [0m[1m [0m[1m [0m
+2025.11.27 19:04:25.881 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:04:25.888 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': started at 2025-11-27 10:04:25.888785Z[0m
+2025.11.27 19:04:25.889 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': ended at 2025-11-27 10:04:25.889456Z[0m
+2025.11.27 19:04:25.891 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': started at 2025-11-27 [0m
+2025.11.27 19:04:25.891 | laboneq.applications                          | INFO   [1m10:04:25.891369Z[0m
+2025.11.27 19:04:25.892 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': ended at 2025-11-27 10:04:25.892077Z[0m
+2025.11.27 19:04:25.892 | laboneq.applications                          | INFO   [1mTask 'create_experiment': started at 2025-11-27 10:04:25.892695Z[0m
+2025.11.27 19:04:25.897 | laboneq.applications                          | INFO   [1mTask 'create_experiment': ended at 2025-11-27 10:04:25.897035Z[0m
+2025.11.27 19:04:25.898 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': started at 2025-11-27 10:04:25.898775Z[0m
+2025.11.27 19:04:25.900 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_readout_acquire_osc' on signal '/logical_signal_groups/q0/acquire' to SOFTWARE
+2025.11.27 19:04:25.900 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_drive_ge_osc' on signal '/logical_signal_groups/q0/drive' to HARDWARE
+2025.11.27 19:04:25.900 | laboneq.compiler.workflow.compiler            | INFO   Starting LabOne Q Compiler run...
+2025.11.27 19:04:25.902 | laboneq.compiler.workflow.realtime_compiler   | INFO   Schedule completed. [0.001 s]
+2025.11.27 19:04:25.905 | laboneq.compiler.workflow.realtime_compiler   | INFO   Code generation completed for all AWGs. [0.002 s]
+2025.11.27 19:04:25.905 | laboneq.compiler.workflow.neartime_execution  | INFO   Completed compilation step 1 of 1. [0.003 s]
+2025.11.27 19:04:25.906 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:04:25.907 | laboneq.compiler.workflow.reporter            | INFO    [1m [0m[1mDevice           [0m[1m [0m [1m [0m[1mAWG[0m[1m [0m [1m [0m[1mSeqC LOC[0m[1m [0m [1m [0m[1mCT entries[0m[1m [0m [1m [0m[1mWaveforms[0m[1m [0m [1m [0m[1mSamples[0m[1m [0m 
+2025.11.27 19:04:25.907 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:04:25.907 | laboneq.compiler.workflow.reporter            | INFO     SHFQC_DEV12256        0          9            0           1      4800  
+2025.11.27 19:04:25.907 | laboneq.compiler.workflow.reporter            | INFO     SHFQC_DEV12256_sg     0         12            2           1       256  
+2025.11.27 19:04:25.907 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:04:25.907 | laboneq.compiler.workflow.reporter            | INFO    [1m [0m[1mTOTAL            [0m[1m [0m [1m [0m[1m   [0m[1m [0m [1m [0m[1m      21[0m[1m [0m [1m [0m[1m         2[0m[1m [0m [1m [0m[1m         [0m[1m [0m [1m [0m[1m   5056[0m[1m [0m 
+2025.11.27 19:04:25.907 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:04:25.910 | laboneq.compiler.workflow.compiler            | INFO   Finished LabOne Q Compiler run.
+2025.11.27 19:04:25.911 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': ended at 2025-11-27 10:04:25.911159Z[0m
+2025.11.27 19:04:25.917 | laboneq.applications                          | INFO   [1mTask 'run_experiment': started at 2025-11-27 10:04:25.917246Z[0m
+2025.11.27 19:04:25.983 | laboneq.controller.controller                 | INFO   Starting near-time execution...
+2025.11.27 19:04:28.130 | laboneq.controller.controller                 | INFO   Finished near-time execution.
+2025.11.27 19:04:28.208 | laboneq.applications                          | INFO   [1mTask 'run_experiment': ended at 2025-11-27 10:04:28.208554Z[0m
+2025.11.27 19:04:28.211 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:04:28.212 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_traj': execution ended at 2025-11-27 10:04:28.211306Z[0m[1m          [0m[1m [0m[1m [0m
+2025.11.27 19:04:28.212 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:04:45.357 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:04:45.357 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_traj': execution started at 2025-11-27 10:04:45.356926Z[0m[1m        [0m[1m [0m[1m [0m
+2025.11.27 19:04:45.358 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:04:45.366 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': started at 2025-11-27 10:04:45.366591Z[0m
+2025.11.27 19:04:45.368 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': ended at 2025-11-27 10:04:45.367969Z[0m
+2025.11.27 19:04:45.370 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': started at 2025-11-27 [0m
+2025.11.27 19:04:45.371 | laboneq.applications                          | INFO   [1m10:04:45.370595Z[0m
+2025.11.27 19:04:45.372 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': ended at 2025-11-27 10:04:45.371846Z[0m
+2025.11.27 19:04:45.373 | laboneq.applications                          | INFO   [1mTask 'create_experiment': started at 2025-11-27 10:04:45.372833Z[0m
+2025.11.27 19:04:45.378 | laboneq.applications                          | INFO   [1mTask 'create_experiment': ended at 2025-11-27 10:04:45.378648Z[0m
+2025.11.27 19:04:45.380 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': started at 2025-11-27 10:04:45.380133Z[0m
+2025.11.27 19:04:45.382 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_readout_acquire_osc' on signal '/logical_signal_groups/q0/acquire' to SOFTWARE
+2025.11.27 19:04:45.382 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_drive_ge_osc' on signal '/logical_signal_groups/q0/drive' to HARDWARE
+2025.11.27 19:04:45.382 | laboneq.compiler.workflow.compiler            | INFO   Starting LabOne Q Compiler run...
+2025.11.27 19:04:45.384 | laboneq.compiler.workflow.realtime_compiler   | INFO   Schedule completed. [0.001 s]
+2025.11.27 19:04:45.386 | laboneq.compiler.workflow.realtime_compiler   | INFO   Code generation completed for all AWGs. [0.002 s]
+2025.11.27 19:04:45.386 | laboneq.compiler.workflow.neartime_execution  | INFO   Completed compilation step 1 of 1. [0.003 s]
+2025.11.27 19:04:45.388 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:04:45.389 | laboneq.compiler.workflow.reporter            | INFO    [1m [0m[1mDevice           [0m[1m [0m [1m [0m[1mAWG[0m[1m [0m [1m [0m[1mSeqC LOC[0m[1m [0m [1m [0m[1mCT entries[0m[1m [0m [1m [0m[1mWaveforms[0m[1m [0m [1m [0m[1mSamples[0m[1m [0m 
+2025.11.27 19:04:45.389 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:04:45.389 | laboneq.compiler.workflow.reporter            | INFO     SHFQC_DEV12256        0          9            0           1      4800  
+2025.11.27 19:04:45.389 | laboneq.compiler.workflow.reporter            | INFO     SHFQC_DEV12256_sg     0         12            2           1       256  
+2025.11.27 19:04:45.390 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:04:45.390 | laboneq.compiler.workflow.reporter            | INFO    [1m [0m[1mTOTAL            [0m[1m [0m [1m [0m[1m   [0m[1m [0m [1m [0m[1m      21[0m[1m [0m [1m [0m[1m         2[0m[1m [0m [1m [0m[1m         [0m[1m [0m [1m [0m[1m   5056[0m[1m [0m 
+2025.11.27 19:04:45.390 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:04:45.393 | laboneq.compiler.workflow.compiler            | INFO   Finished LabOne Q Compiler run.
+2025.11.27 19:04:45.394 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': ended at 2025-11-27 10:04:45.394127Z[0m
+2025.11.27 19:04:45.399 | laboneq.applications                          | INFO   [1mTask 'run_experiment': started at 2025-11-27 10:04:45.398896Z[0m
+2025.11.27 19:04:45.455 | laboneq.controller.controller                 | INFO   Starting near-time execution...
+2025.11.27 19:04:47.662 | laboneq.controller.controller                 | INFO   Finished near-time execution.
+2025.11.27 19:04:47.720 | laboneq.applications                          | INFO   [1mTask 'run_experiment': ended at 2025-11-27 10:04:47.720666Z[0m
+2025.11.27 19:04:47.722 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:04:47.723 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_traj': execution ended at 2025-11-27 10:04:47.722706Z[0m[1m          [0m[1m [0m[1m [0m
+2025.11.27 19:04:47.723 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:04:55.340 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:04:55.341 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_traj': execution started at 2025-11-27 10:04:55.340426Z[0m[1m        [0m[1m [0m[1m [0m
+2025.11.27 19:04:55.341 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:04:55.348 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': started at 2025-11-27 10:04:55.348469Z[0m
+2025.11.27 19:04:55.349 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': ended at 2025-11-27 10:04:55.349476Z[0m
+2025.11.27 19:04:55.352 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': started at 2025-11-27 [0m
+2025.11.27 19:04:55.352 | laboneq.applications                          | INFO   [1m10:04:55.351984Z[0m
+2025.11.27 19:04:55.352 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': ended at 2025-11-27 10:04:55.352789Z[0m
+2025.11.27 19:04:55.353 | laboneq.applications                          | INFO   [1mTask 'create_experiment': started at 2025-11-27 10:04:55.353619Z[0m
+2025.11.27 19:04:55.359 | laboneq.applications                          | INFO   [1mTask 'create_experiment': ended at 2025-11-27 10:04:55.359307Z[0m
+2025.11.27 19:04:55.361 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': started at 2025-11-27 10:04:55.360828Z[0m
+2025.11.27 19:04:55.362 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_readout_acquire_osc' on signal '/logical_signal_groups/q0/acquire' to SOFTWARE
+2025.11.27 19:04:55.362 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_drive_ge_osc' on signal '/logical_signal_groups/q0/drive' to HARDWARE
+2025.11.27 19:04:55.363 | laboneq.compiler.workflow.compiler            | INFO   Starting LabOne Q Compiler run...
+2025.11.27 19:04:55.364 | laboneq.compiler.workflow.realtime_compiler   | INFO   Schedule completed. [0.001 s]
+2025.11.27 19:04:55.366 | laboneq.compiler.workflow.realtime_compiler   | INFO   Code generation completed for all AWGs. [0.001 s]
+2025.11.27 19:04:55.366 | laboneq.compiler.workflow.neartime_execution  | INFO   Completed compilation step 1 of 1. [0.003 s]
+2025.11.27 19:04:55.368 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:04:55.368 | laboneq.compiler.workflow.reporter            | INFO    [1m [0m[1mDevice           [0m[1m [0m [1m [0m[1mAWG[0m[1m [0m [1m [0m[1mSeqC LOC[0m[1m [0m [1m [0m[1mCT entries[0m[1m [0m [1m [0m[1mWaveforms[0m[1m [0m [1m [0m[1mSamples[0m[1m [0m 
+2025.11.27 19:04:55.368 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:04:55.368 | laboneq.compiler.workflow.reporter            | INFO     SHFQC_DEV12256        0          9            0           1      4800  
+2025.11.27 19:04:55.369 | laboneq.compiler.workflow.reporter            | INFO     SHFQC_DEV12256_sg     0         12            2           1       256  
+2025.11.27 19:04:55.369 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:04:55.369 | laboneq.compiler.workflow.reporter            | INFO    [1m [0m[1mTOTAL            [0m[1m [0m [1m [0m[1m   [0m[1m [0m [1m [0m[1m      21[0m[1m [0m [1m [0m[1m         2[0m[1m [0m [1m [0m[1m         [0m[1m [0m [1m [0m[1m   5056[0m[1m [0m 
+2025.11.27 19:04:55.369 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:04:55.372 | laboneq.compiler.workflow.compiler            | INFO   Finished LabOne Q Compiler run.
+2025.11.27 19:04:55.372 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': ended at 2025-11-27 10:04:55.372377Z[0m
+2025.11.27 19:04:55.377 | laboneq.applications                          | INFO   [1mTask 'run_experiment': started at 2025-11-27 10:04:55.376978Z[0m
+2025.11.27 19:04:55.459 | laboneq.controller.controller                 | INFO   Starting near-time execution...
+2025.11.27 19:04:57.641 | laboneq.controller.controller                 | INFO   Finished near-time execution.
+2025.11.27 19:04:57.709 | laboneq.applications                          | INFO   [1mTask 'run_experiment': ended at 2025-11-27 10:04:57.709091Z[0m
+2025.11.27 19:04:57.711 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:04:57.712 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'analysis_workflow': execution started at 2025-11-27 [0m[1m              [0m[1m [0m[1m [0m
+2025.11.27 19:04:57.712 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1m10:04:57.711529Z[0m[1m                                                            [0m[1m [0m[1m [0m
+2025.11.27 19:04:57.712 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:04:57.714 | laboneq.applications                          | INFO   [1mTask 'demodulate_time_traces': started at 2025-11-27 10:04:57.714005Z[0m
+2025.11.27 19:04:57.714 | laboneq.applications                          | INFO   [1mTask 'demodulate_time_traces': ended at 2025-11-27 10:04:57.714651Z[0m
+2025.11.27 19:04:57.715 | laboneq.applications                          | INFO   [1mTask 'average_chunk_time_traces': started at 2025-11-27 10:04:57.715414Z[0m
+2025.11.27 19:04:57.716 | laboneq.applications                          | ERROR  [1mTask 'average_chunk_time_traces': failed at 2025-11-27 10:04:57.716268Z with: [0m
+2025.11.27 19:04:57.716 | laboneq.applications                          | ERROR  [1mValueError('cannot reshape array of size 2000 into shape (32)')[0m
+2025.11.27 19:04:57.717 | laboneq.applications                          | INFO   [1mTask 'average_chunk_time_traces': ended at 2025-11-27 10:04:57.717123Z[0m
+2025.11.27 19:04:57.717 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:04:57.717 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'analysis_workflow': execution ended at 2025-11-27 10:04:57.717450Z[0m[1m [0m[1m [0m
+2025.11.27 19:04:57.717 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:04:57.718 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:04:57.718 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_traj': execution ended at 2025-11-27 10:04:57.718114Z[0m[1m          [0m[1m [0m[1m [0m
+2025.11.27 19:04:57.718 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:06:09.494 | laboneq.laboneq_logging                       | INFO   Logging initialized from [Default inline config in laboneq.laboneq_logging] logdir is /home/yalgaeahn/JSAHN/qubit-experiment/examples/laboneq_output/log
+2025.11.27 19:06:09.496 | laboneq.controller.controller                 | INFO   VERSION: laboneq 25.10.2
+2025.11.27 19:06:09.497 | laboneq.controller.devices.device_collection  | INFO   Connecting to data server at 192.168.0.83:8004
+2025.11.27 19:06:09.561 | laboneq.controller.devices.async_support      | INFO   Connected to Zurich Instruments LabOne Data Server version 25.10.1.4 at 192.168.0.83:8004
+2025.11.27 19:06:09.596 | laboneq.controller.devices.device_collection  | INFO   Configuring the device setup
+2025.11.27 19:06:09.622 | laboneq.controller.devices.device_collection  | INFO   The device setup is configured
+2025.11.27 19:06:13.598 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:06:13.598 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_traj': execution started at 2025-11-27 10:06:13.597697Z[0m[1m        [0m[1m [0m[1m [0m
+2025.11.27 19:06:13.598 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:06:13.606 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': started at 2025-11-27 10:06:13.606432Z[0m
+2025.11.27 19:06:13.607 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': ended at 2025-11-27 10:06:13.607343Z[0m
+2025.11.27 19:06:13.609 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': started at 2025-11-27 [0m
+2025.11.27 19:06:13.609 | laboneq.applications                          | INFO   [1m10:06:13.609239Z[0m
+2025.11.27 19:06:13.610 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': ended at 2025-11-27 10:06:13.610165Z[0m
+2025.11.27 19:06:13.610 | laboneq.applications                          | INFO   [1mTask 'create_experiment': started at 2025-11-27 10:06:13.610799Z[0m
+2025.11.27 19:06:13.615 | laboneq.applications                          | INFO   [1mTask 'create_experiment': ended at 2025-11-27 10:06:13.615024Z[0m
+2025.11.27 19:06:13.616 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': started at 2025-11-27 10:06:13.616511Z[0m
+2025.11.27 19:06:13.618 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_readout_acquire_osc' on signal '/logical_signal_groups/q0/acquire' to SOFTWARE
+2025.11.27 19:06:13.618 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_drive_ge_osc' on signal '/logical_signal_groups/q0/drive' to HARDWARE
+2025.11.27 19:06:13.618 | laboneq.compiler.workflow.compiler            | INFO   Starting LabOne Q Compiler run...
+2025.11.27 19:06:13.620 | laboneq.compiler.workflow.realtime_compiler   | INFO   Schedule completed. [0.001 s]
+2025.11.27 19:06:13.622 | laboneq.compiler.workflow.realtime_compiler   | INFO   Code generation completed for all AWGs. [0.002 s]
+2025.11.27 19:06:13.623 | laboneq.compiler.workflow.neartime_execution  | INFO   Completed compilation step 1 of 1. [0.004 s]
+2025.11.27 19:06:13.624 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:06:13.625 | laboneq.compiler.workflow.reporter            | INFO    [1m [0m[1mDevice           [0m[1m [0m [1m [0m[1mAWG[0m[1m [0m [1m [0m[1mSeqC LOC[0m[1m [0m [1m [0m[1mCT entries[0m[1m [0m [1m [0m[1mWaveforms[0m[1m [0m [1m [0m[1mSamples[0m[1m [0m 
+2025.11.27 19:06:13.625 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:06:13.625 | laboneq.compiler.workflow.reporter            | INFO     SHFQC_DEV12256        0          9            0           1      4800  
+2025.11.27 19:06:13.625 | laboneq.compiler.workflow.reporter            | INFO     SHFQC_DEV12256_sg     0         12            2           1       256  
+2025.11.27 19:06:13.625 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:06:13.626 | laboneq.compiler.workflow.reporter            | INFO    [1m [0m[1mTOTAL            [0m[1m [0m [1m [0m[1m   [0m[1m [0m [1m [0m[1m      21[0m[1m [0m [1m [0m[1m         2[0m[1m [0m [1m [0m[1m         [0m[1m [0m [1m [0m[1m   5056[0m[1m [0m 
+2025.11.27 19:06:13.626 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:06:13.629 | laboneq.compiler.workflow.compiler            | INFO   Finished LabOne Q Compiler run.
+2025.11.27 19:06:13.629 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': ended at 2025-11-27 10:06:13.629691Z[0m
+2025.11.27 19:06:13.635 | laboneq.applications                          | INFO   [1mTask 'run_experiment': started at 2025-11-27 10:06:13.635237Z[0m
+2025.11.27 19:06:13.703 | laboneq.controller.controller                 | INFO   Starting near-time execution...
+2025.11.27 19:06:15.885 | laboneq.controller.controller                 | INFO   Finished near-time execution.
+2025.11.27 19:06:15.955 | laboneq.applications                          | INFO   [1mTask 'run_experiment': ended at 2025-11-27 10:06:15.955692Z[0m
+2025.11.27 19:06:15.958 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:06:15.958 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'analysis_workflow': execution started at 2025-11-27 [0m[1m              [0m[1m [0m[1m [0m
+2025.11.27 19:06:15.958 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1m10:06:15.957754Z[0m[1m                                                            [0m[1m [0m[1m [0m
+2025.11.27 19:06:15.958 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:06:15.959 | laboneq.applications                          | INFO   [1mTask 'demodulate_time_traces': started at 2025-11-27 10:06:15.959842Z[0m
+2025.11.27 19:06:15.960 | laboneq.applications                          | INFO   [1mTask 'demodulate_time_traces': ended at 2025-11-27 10:06:15.960470Z[0m
+2025.11.27 19:06:15.961 | laboneq.applications                          | INFO   [1mTask 'average_chunk_time_traces': started at 2025-11-27 10:06:15.961364Z[0m
+2025.11.27 19:06:15.962 | laboneq.applications                          | INFO   [1mTask 'average_chunk_time_traces': ended at 2025-11-27 10:06:15.962353Z[0m
+2025.11.27 19:06:15.962 | laboneq.applications                          | INFO   [1mTask 'plot_iq_trajectories': started at 2025-11-27 10:06:15.962685Z[0m
+2025.11.27 19:06:15.985 | laboneq.applications                          | INFO   [1mTask 'plot_iq_trajectories': ended at 2025-11-27 10:06:15.985251Z[0m
+2025.11.27 19:06:16.300 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:06:16.301 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'analysis_workflow': execution ended at 2025-11-27 10:06:16.300155Z[0m[1m [0m[1m [0m
+2025.11.27 19:06:16.302 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:06:16.303 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:06:16.304 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_traj': execution ended at 2025-11-27 10:06:16.303015Z[0m[1m          [0m[1m [0m[1m [0m
+2025.11.27 19:06:16.304 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:07:43.696 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:07:43.697 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_traj': execution started at 2025-11-27 10:07:43.696072Z[0m[1m        [0m[1m [0m[1m [0m
+2025.11.27 19:07:43.697 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:07:43.706 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': started at 2025-11-27 10:07:43.706179Z[0m
+2025.11.27 19:07:43.707 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': ended at 2025-11-27 10:07:43.707340Z[0m
+2025.11.27 19:07:43.709 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': started at 2025-11-27 [0m
+2025.11.27 19:07:43.710 | laboneq.applications                          | INFO   [1m10:07:43.709744Z[0m
+2025.11.27 19:07:43.710 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': ended at 2025-11-27 10:07:43.710497Z[0m
+2025.11.27 19:07:43.711 | laboneq.applications                          | INFO   [1mTask 'create_experiment': started at 2025-11-27 10:07:43.711329Z[0m
+2025.11.27 19:07:43.717 | laboneq.applications                          | INFO   [1mTask 'create_experiment': ended at 2025-11-27 10:07:43.716833Z[0m
+2025.11.27 19:07:43.718 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': started at 2025-11-27 10:07:43.718125Z[0m
+2025.11.27 19:07:43.720 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_readout_acquire_osc' on signal '/logical_signal_groups/q0/acquire' to SOFTWARE
+2025.11.27 19:07:43.720 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_drive_ge_osc' on signal '/logical_signal_groups/q0/drive' to HARDWARE
+2025.11.27 19:07:43.720 | laboneq.compiler.workflow.compiler            | INFO   Starting LabOne Q Compiler run...
+2025.11.27 19:07:43.722 | laboneq.compiler.workflow.realtime_compiler   | INFO   Schedule completed. [0.001 s]
+2025.11.27 19:07:43.725 | laboneq.compiler.workflow.realtime_compiler   | INFO   Code generation completed for all AWGs. [0.002 s]
+2025.11.27 19:07:43.725 | laboneq.compiler.workflow.neartime_execution  | INFO   Completed compilation step 1 of 1. [0.004 s]
+2025.11.27 19:07:43.728 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:07:43.728 | laboneq.compiler.workflow.reporter            | INFO    [1m [0m[1mDevice           [0m[1m [0m [1m [0m[1mAWG[0m[1m [0m [1m [0m[1mSeqC LOC[0m[1m [0m [1m [0m[1mCT entries[0m[1m [0m [1m [0m[1mWaveforms[0m[1m [0m [1m [0m[1mSamples[0m[1m [0m 
+2025.11.27 19:07:43.728 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:07:43.729 | laboneq.compiler.workflow.reporter            | INFO     SHFQC_DEV12256        0          9            0           1      4800  
+2025.11.27 19:07:43.729 | laboneq.compiler.workflow.reporter            | INFO     SHFQC_DEV12256_sg     0         12            2           1       256  
+2025.11.27 19:07:43.729 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:07:43.730 | laboneq.compiler.workflow.reporter            | INFO    [1m [0m[1mTOTAL            [0m[1m [0m [1m [0m[1m   [0m[1m [0m [1m [0m[1m      21[0m[1m [0m [1m [0m[1m         2[0m[1m [0m [1m [0m[1m         [0m[1m [0m [1m [0m[1m   5056[0m[1m [0m 
+2025.11.27 19:07:43.730 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:07:43.734 | laboneq.compiler.workflow.compiler            | INFO   Finished LabOne Q Compiler run.
+2025.11.27 19:07:43.735 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': ended at 2025-11-27 10:07:43.735001Z[0m
+2025.11.27 19:07:43.740 | laboneq.applications                          | INFO   [1mTask 'run_experiment': started at 2025-11-27 10:07:43.740224Z[0m
+2025.11.27 19:07:43.808 | laboneq.controller.controller                 | INFO   Starting near-time execution...
+2025.11.27 19:07:45.969 | laboneq.controller.controller                 | INFO   Finished near-time execution.
+2025.11.27 19:07:46.049 | laboneq.applications                          | INFO   [1mTask 'run_experiment': ended at 2025-11-27 10:07:46.049659Z[0m
+2025.11.27 19:07:46.051 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:07:46.052 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'analysis_workflow': execution started at 2025-11-27 [0m[1m              [0m[1m [0m[1m [0m
+2025.11.27 19:07:46.052 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1m10:07:46.051524Z[0m[1m                                                            [0m[1m [0m[1m [0m
+2025.11.27 19:07:46.052 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:07:46.053 | laboneq.applications                          | INFO   [1mTask 'demodulate_time_traces': started at 2025-11-27 10:07:46.053275Z[0m
+2025.11.27 19:07:46.054 | laboneq.applications                          | INFO   [1mTask 'demodulate_time_traces': ended at 2025-11-27 10:07:46.053883Z[0m
+2025.11.27 19:07:46.054 | laboneq.applications                          | INFO   [1mTask 'average_chunk_time_traces': started at 2025-11-27 10:07:46.054691Z[0m
+2025.11.27 19:07:46.055 | laboneq.applications                          | INFO   [1mTask 'average_chunk_time_traces': ended at 2025-11-27 10:07:46.055632Z[0m
+2025.11.27 19:07:46.056 | laboneq.applications                          | INFO   [1mTask 'plot_iq_trajectories': started at 2025-11-27 10:07:46.056031Z[0m
+2025.11.27 19:07:46.076 | laboneq.applications                          | INFO   [1mTask 'plot_iq_trajectories': ended at 2025-11-27 10:07:46.076646Z[0m
+2025.11.27 19:07:46.278 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:07:46.279 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'analysis_workflow': execution ended at 2025-11-27 10:07:46.278616Z[0m[1m [0m[1m [0m
+2025.11.27 19:07:46.279 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:07:46.280 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:07:46.280 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_traj': execution ended at 2025-11-27 10:07:46.280247Z[0m[1m          [0m[1m [0m[1m [0m
+2025.11.27 19:07:46.280 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:08:23.299 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:08:23.300 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_blobs': execution started at 2025-11-27 10:08:23.299583Z[0m[1m       [0m[1m [0m[1m [0m
+2025.11.27 19:08:23.300 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:08:23.307 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': started at 2025-11-27 10:08:23.307588Z[0m
+2025.11.27 19:08:23.308 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': ended at 2025-11-27 10:08:23.308336Z[0m
+2025.11.27 19:08:23.310 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': started at 2025-11-27 [0m
+2025.11.27 19:08:23.310 | laboneq.applications                          | INFO   [1m10:08:23.310001Z[0m
+2025.11.27 19:08:23.310 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': ended at 2025-11-27 10:08:23.310572Z[0m
+2025.11.27 19:08:23.311 | laboneq.applications                          | INFO   [1mTask 'create_experiment': started at 2025-11-27 10:08:23.311173Z[0m
+2025.11.27 19:08:23.315 | laboneq.applications                          | INFO   [1mTask 'create_experiment': ended at 2025-11-27 10:08:23.315509Z[0m
+2025.11.27 19:08:23.316 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': started at 2025-11-27 10:08:23.316792Z[0m
+2025.11.27 19:08:23.318 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_readout_acquire_osc' on signal '/logical_signal_groups/q0/acquire' to SOFTWARE
+2025.11.27 19:08:23.318 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_drive_ge_osc' on signal '/logical_signal_groups/q0/drive' to HARDWARE
+2025.11.27 19:08:23.319 | laboneq.compiler.workflow.compiler            | INFO   Starting LabOne Q Compiler run...
+2025.11.27 19:08:23.320 | laboneq.applications                          | ERROR  [1mTask 'compile_experiment': failed at 2025-11-27 10:08:23.320479Z with: [0m
+2025.11.27 19:08:23.320 | laboneq.applications                          | ERROR  [1mLabOneQException("Content of section 'measure_q0_0' (1.200e+00 us) does not fit [0m
+2025.11.27 19:08:23.321 | laboneq.applications                          | ERROR  [1minto the requested fixed section length (1.000e+00 us)")[0m
+2025.11.27 19:08:23.322 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': ended at 2025-11-27 10:08:23.321896Z[0m
+2025.11.27 19:08:23.322 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:08:23.322 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_blobs': execution ended at 2025-11-27 10:08:23.322315Z[0m[1m         [0m[1m [0m[1m [0m
+2025.11.27 19:08:23.322 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:09:12.298 | laboneq.laboneq_logging                       | INFO   Logging initialized from [Default inline config in laboneq.laboneq_logging] logdir is /home/yalgaeahn/JSAHN/qubit-experiment/examples/laboneq_output/log
+2025.11.27 19:09:12.299 | laboneq.controller.controller                 | INFO   VERSION: laboneq 25.10.2
+2025.11.27 19:09:12.300 | laboneq.controller.devices.device_collection  | INFO   Connecting to data server at 192.168.0.83:8004
+2025.11.27 19:09:12.340 | laboneq.controller.devices.async_support      | INFO   Connected to Zurich Instruments LabOne Data Server version 25.10.1.4 at 192.168.0.83:8004
+2025.11.27 19:09:12.368 | laboneq.controller.devices.device_collection  | INFO   Configuring the device setup
+2025.11.27 19:09:12.388 | laboneq.controller.devices.device_collection  | INFO   The device setup is configured
+2025.11.27 19:09:13.013 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:09:13.013 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_blobs': execution started at 2025-11-27 10:09:13.013190Z[0m[1m       [0m[1m [0m[1m [0m
+2025.11.27 19:09:13.014 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:09:13.022 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': started at 2025-11-27 10:09:13.021941Z[0m
+2025.11.27 19:09:13.022 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': ended at 2025-11-27 10:09:13.022796Z[0m
+2025.11.27 19:09:13.024 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': started at 2025-11-27 [0m
+2025.11.27 19:09:13.024 | laboneq.applications                          | INFO   [1m10:09:13.024552Z[0m
+2025.11.27 19:09:13.025 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': ended at 2025-11-27 10:09:13.025154Z[0m
+2025.11.27 19:09:13.025 | laboneq.applications                          | INFO   [1mTask 'create_experiment': started at 2025-11-27 10:09:13.025773Z[0m
+2025.11.27 19:09:13.030 | laboneq.applications                          | INFO   [1mTask 'create_experiment': ended at 2025-11-27 10:09:13.030241Z[0m
+2025.11.27 19:09:13.031 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': started at 2025-11-27 10:09:13.031817Z[0m
+2025.11.27 19:09:13.033 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_readout_acquire_osc' on signal '/logical_signal_groups/q0/acquire' to SOFTWARE
+2025.11.27 19:09:13.033 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_drive_ge_osc' on signal '/logical_signal_groups/q0/drive' to HARDWARE
+2025.11.27 19:09:13.034 | laboneq.compiler.workflow.compiler            | INFO   Starting LabOne Q Compiler run...
+2025.11.27 19:09:13.036 | laboneq.applications                          | ERROR  [1mTask 'compile_experiment': failed at 2025-11-27 10:09:13.036241Z with: [0m
+2025.11.27 19:09:13.036 | laboneq.applications                          | ERROR  [1mLabOneQException("Content of section 'measure_q0_0' (1.200e+00 us) does not fit [0m
+2025.11.27 19:09:13.037 | laboneq.applications                          | ERROR  [1minto the requested fixed section length (1.000e+00 us)")[0m
+2025.11.27 19:09:13.037 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': ended at 2025-11-27 10:09:13.037522Z[0m
+2025.11.27 19:09:13.038 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:09:13.038 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_blobs': execution ended at 2025-11-27 10:09:13.037867Z[0m[1m         [0m[1m [0m[1m [0m
+2025.11.27 19:09:13.038 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:09:33.661 | laboneq.laboneq_logging                       | INFO   Logging initialized from [Default inline config in laboneq.laboneq_logging] logdir is /home/yalgaeahn/JSAHN/qubit-experiment/examples/laboneq_output/log
+2025.11.27 19:09:33.663 | laboneq.controller.controller                 | INFO   VERSION: laboneq 25.10.2
+2025.11.27 19:09:33.664 | laboneq.controller.devices.device_collection  | INFO   Connecting to data server at 192.168.0.83:8004
+2025.11.27 19:09:33.766 | laboneq.controller.devices.async_support      | INFO   Connected to Zurich Instruments LabOne Data Server version 25.10.1.4 at 192.168.0.83:8004
+2025.11.27 19:09:33.809 | laboneq.controller.devices.device_collection  | INFO   Configuring the device setup
+2025.11.27 19:09:33.839 | laboneq.controller.devices.device_collection  | INFO   The device setup is configured
+2025.11.27 19:09:34.543 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:09:34.543 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_blobs': execution started at 2025-11-27 10:09:34.542719Z[0m[1m       [0m[1m [0m[1m [0m
+2025.11.27 19:09:34.544 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:09:34.552 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': started at 2025-11-27 10:09:34.552669Z[0m
+2025.11.27 19:09:34.553 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': ended at 2025-11-27 10:09:34.553497Z[0m
+2025.11.27 19:09:34.555 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': started at 2025-11-27 [0m
+2025.11.27 19:09:34.556 | laboneq.applications                          | INFO   [1m10:09:34.555593Z[0m
+2025.11.27 19:09:34.556 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': ended at 2025-11-27 10:09:34.556499Z[0m
+2025.11.27 19:09:34.557 | laboneq.applications                          | INFO   [1mTask 'create_experiment': started at 2025-11-27 10:09:34.557588Z[0m
+2025.11.27 19:09:34.562 | laboneq.applications                          | INFO   [1mTask 'create_experiment': ended at 2025-11-27 10:09:34.562597Z[0m
+2025.11.27 19:09:34.564 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': started at 2025-11-27 10:09:34.564163Z[0m
+2025.11.27 19:09:34.566 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_readout_acquire_osc' on signal '/logical_signal_groups/q0/acquire' to SOFTWARE
+2025.11.27 19:09:34.566 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_drive_ge_osc' on signal '/logical_signal_groups/q0/drive' to HARDWARE
+2025.11.27 19:09:34.566 | laboneq.compiler.workflow.compiler            | INFO   Starting LabOne Q Compiler run...
+2025.11.27 19:09:34.568 | laboneq.compiler.workflow.realtime_compiler   | INFO   Schedule completed. [0.001 s]
+2025.11.27 19:09:34.571 | laboneq.compiler.workflow.realtime_compiler   | INFO   Code generation completed for all AWGs. [0.002 s]
+2025.11.27 19:09:34.571 | laboneq.compiler.workflow.neartime_execution  | INFO   Completed compilation step 1 of 1. [0.004 s]
+2025.11.27 19:09:34.573 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:09:34.573 | laboneq.compiler.workflow.reporter            | INFO    [1m [0m[1mDevice           [0m[1m [0m [1m [0m[1mAWG[0m[1m [0m [1m [0m[1mSeqC LOC[0m[1m [0m [1m [0m[1mCT entries[0m[1m [0m [1m [0m[1mWaveforms[0m[1m [0m [1m [0m[1mSamples[0m[1m [0m 
+2025.11.27 19:09:34.573 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:09:34.573 | laboneq.compiler.workflow.reporter            | INFO     SHFQC_DEV12256        0          9            0           1      4800  
+2025.11.27 19:09:34.573 | laboneq.compiler.workflow.reporter            | INFO     SHFQC_DEV12256_sg     0         12            2           1       256  
+2025.11.27 19:09:34.573 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:09:34.574 | laboneq.compiler.workflow.reporter            | INFO    [1m [0m[1mTOTAL            [0m[1m [0m [1m [0m[1m   [0m[1m [0m [1m [0m[1m      21[0m[1m [0m [1m [0m[1m         2[0m[1m [0m [1m [0m[1m         [0m[1m [0m [1m [0m[1m   5056[0m[1m [0m 
+2025.11.27 19:09:34.574 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:09:34.577 | laboneq.compiler.workflow.compiler            | INFO   Finished LabOne Q Compiler run.
+2025.11.27 19:09:34.577 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': ended at 2025-11-27 10:09:34.577731Z[0m
+2025.11.27 19:09:34.583 | laboneq.applications                          | INFO   [1mTask 'run_experiment': started at 2025-11-27 10:09:34.583557Z[0m
+2025.11.27 19:09:34.673 | laboneq.controller.controller                 | INFO   Starting near-time execution...
+2025.11.27 19:09:37.486 | laboneq.controller.controller                 | INFO   Finished near-time execution.
+2025.11.27 19:09:37.555 | laboneq.applications                          | INFO   [1mTask 'run_experiment': ended at 2025-11-27 10:09:37.555332Z[0m
+2025.11.27 19:09:37.561 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:09:37.561 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'analysis_workflow': execution started at 2025-11-27 [0m[1m              [0m[1m [0m[1m [0m
+2025.11.27 19:09:37.561 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1m10:09:37.560901Z[0m[1m                                                            [0m[1m [0m[1m [0m
+2025.11.27 19:09:37.561 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:09:37.563 | laboneq.applications                          | INFO   [1mTask 'collect_shots': started at 2025-11-27 10:09:37.562973Z[0m
+2025.11.27 19:09:37.563 | laboneq.applications                          | INFO   [1mTask 'collect_shots': ended at 2025-11-27 10:09:37.563739Z[0m
+2025.11.27 19:09:37.573 | laboneq.applications                          | INFO   [1mTask 'fit_data': started at 2025-11-27 10:09:37.572841Z[0m
+2025.11.27 19:09:37.676 | laboneq.applications                          | INFO   [1mTask 'fit_data': ended at 2025-11-27 10:09:37.675809Z[0m
+2025.11.27 19:09:37.676 | laboneq.workflow.logbook.folder_store         | WARNING Type <class 'dict'> has the following unsupported values: {'mapping': value={0: 1, 1: 0} type=dict}. Only dictionaries with values of the following types are supported: [NoneType, int, float, complex, bool, str, dict, list, tuple, integer, ndarray, ModelResult, Variable, AffineScalarFunc, BaseEstimator]. [name: fit_data.output.q0].
+2025.11.27 19:09:37.677 | laboneq.applications                          | INFO   [1mTask 'calculate_assignment_matrices': started at 2025-11-27 10:09:37.677046Z[0m
+2025.11.27 19:09:37.678 | laboneq.workflow.logbook.folder_store         | WARNING Type <class 'dict'> has the following unsupported values: {'q0': value={'model': GaussianMixture(max_iter=500, n_components=2, random_state=0), 'method': 'gmm', 'mapping': {0: 1, 1: 0}} type=dict}. Only dictionaries with values of the following types are supported: [NoneType, int, float, complex, bool, str, dict, list, tuple, integer, ndarray, ModelResult, Variable, AffineScalarFunc, BaseEstimator]. [name: calculate_assignment_matrices.input.fit_results].
+2025.11.27 19:09:37.689 | laboneq.applications                          | INFO   [1mTask 'calculate_assignment_matrices': ended at 2025-11-27 10:09:37.688897Z[0m
+2025.11.27 19:09:37.690 | laboneq.applications                          | INFO   [1mTask 'calculate_assignment_fidelities': started at 2025-11-27 10:09:37.689852Z[0m
+2025.11.27 19:09:37.690 | laboneq.applications                          | INFO   [1mTask 'calculate_assignment_fidelities': ended at 2025-11-27 10:09:37.690479Z[0m
+2025.11.27 19:09:37.691 | laboneq.applications                          | INFO   [1mTask 'plot_iq_blobs': started at 2025-11-27 10:09:37.690989Z[0m
+2025.11.27 19:09:37.691 | laboneq.workflow.logbook.folder_store         | WARNING Type <class 'dict'> has the following unsupported values: {'q0': value={'model': GaussianMixture(max_iter=500, n_components=2, random_state=0), 'method': 'gmm', 'mapping': {0: 1, 1: 0}} type=dict}. Only dictionaries with values of the following types are supported: [NoneType, int, float, complex, bool, str, dict, list, tuple, integer, ndarray, ModelResult, Variable, AffineScalarFunc, BaseEstimator]. [name: plot_iq_blobs.input.fit_results].
+2025.11.27 19:09:37.843 | laboneq.applications                          | INFO   [1mArtifact: 'IQ_blobs_q0' of type 'Figure' logged at 2025-11-27 10:09:37.843782Z[0m
+2025.11.27 19:09:37.990 | laboneq.applications                          | INFO   [1mTask 'plot_iq_blobs': ended at 2025-11-27 10:09:37.990127Z[0m
+2025.11.27 19:09:37.991 | laboneq.applications                          | INFO   [1mTask 'plot_assignment_matrices': started at 2025-11-27 10:09:37.990889Z[0m
+2025.11.27 19:09:38.002 | laboneq.applications                          | INFO   [1mArtifact: 'Assignment_matrix_q0' of type 'Figure' logged at 2025-11-27 [0m
+2025.11.27 19:09:38.002 | laboneq.applications                          | INFO   [1m10:09:38.001841Z[0m
+2025.11.27 19:09:38.073 | laboneq.applications                          | INFO   [1mTask 'plot_assignment_matrices': ended at 2025-11-27 10:09:38.073705Z[0m
+2025.11.27 19:09:38.074 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:09:38.075 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'analysis_workflow': execution ended at 2025-11-27 10:09:38.074417Z[0m[1m [0m[1m [0m
+2025.11.27 19:09:38.075 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:09:38.075 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:09:38.075 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_blobs': execution ended at 2025-11-27 10:09:38.075509Z[0m[1m         [0m[1m [0m[1m [0m
+2025.11.27 19:09:38.076 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:10:33.962 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:10:33.962 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_blobs': execution started at 2025-11-27 10:10:33.962160Z[0m[1m       [0m[1m [0m[1m [0m
+2025.11.27 19:10:33.963 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:10:33.971 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': started at 2025-11-27 10:10:33.971587Z[0m
+2025.11.27 19:10:33.972 | laboneq.applications                          | INFO   [1mTask 'temporary_qpu': ended at 2025-11-27 10:10:33.972799Z[0m
+2025.11.27 19:10:33.975 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': started at 2025-11-27 [0m
+2025.11.27 19:10:33.975 | laboneq.applications                          | INFO   [1m10:10:33.975075Z[0m
+2025.11.27 19:10:33.976 | laboneq.applications                          | INFO   [1mTask 'temporary_quantum_elements_from_qpu': ended at 2025-11-27 10:10:33.976080Z[0m
+2025.11.27 19:10:33.977 | laboneq.applications                          | INFO   [1mTask 'create_experiment': started at 2025-11-27 10:10:33.977197Z[0m
+2025.11.27 19:10:33.983 | laboneq.applications                          | INFO   [1mTask 'create_experiment': ended at 2025-11-27 10:10:33.982829Z[0m
+2025.11.27 19:10:33.984 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': started at 2025-11-27 10:10:33.984318Z[0m
+2025.11.27 19:10:33.986 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_readout_acquire_osc' on signal '/logical_signal_groups/q0/acquire' to SOFTWARE
+2025.11.27 19:10:33.986 | laboneq.implementation.payload_builder.experiment_info_builder.experiment_info_builder | INFO   Resolved modulation type of oscillator 'q0_drive_ge_osc' on signal '/logical_signal_groups/q0/drive' to HARDWARE
+2025.11.27 19:10:33.987 | laboneq.compiler.workflow.compiler            | INFO   Starting LabOne Q Compiler run...
+2025.11.27 19:10:33.989 | laboneq.compiler.workflow.realtime_compiler   | INFO   Schedule completed. [0.001 s]
+2025.11.27 19:10:33.991 | laboneq.compiler.workflow.realtime_compiler   | INFO   Code generation completed for all AWGs. [0.002 s]
+2025.11.27 19:10:33.991 | laboneq.compiler.workflow.neartime_execution  | INFO   Completed compilation step 1 of 1. [0.003 s]
+2025.11.27 19:10:33.993 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:10:33.993 | laboneq.compiler.workflow.reporter            | INFO    [1m [0m[1mDevice           [0m[1m [0m [1m [0m[1mAWG[0m[1m [0m [1m [0m[1mSeqC LOC[0m[1m [0m [1m [0m[1mCT entries[0m[1m [0m [1m [0m[1mWaveforms[0m[1m [0m [1m [0m[1mSamples[0m[1m [0m 
+2025.11.27 19:10:33.993 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:10:33.994 | laboneq.compiler.workflow.reporter            | INFO     SHFQC_DEV12256        0          9            0           1      4800  
+2025.11.27 19:10:33.994 | laboneq.compiler.workflow.reporter            | INFO     SHFQC_DEV12256_sg     0         12            2           1       256  
+2025.11.27 19:10:33.994 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:10:33.994 | laboneq.compiler.workflow.reporter            | INFO    [1m [0m[1mTOTAL            [0m[1m [0m [1m [0m[1m   [0m[1m [0m [1m [0m[1m      21[0m[1m [0m [1m [0m[1m         2[0m[1m [0m [1m [0m[1m         [0m[1m [0m [1m [0m[1m   5056[0m[1m [0m 
+2025.11.27 19:10:33.994 | laboneq.compiler.workflow.reporter            | INFO    ─────────────────────────────────────────────────────────────────────── 
+2025.11.27 19:10:33.997 | laboneq.compiler.workflow.compiler            | INFO   Finished LabOne Q Compiler run.
+2025.11.27 19:10:33.998 | laboneq.applications                          | INFO   [1mTask 'compile_experiment': ended at 2025-11-27 10:10:33.998491Z[0m
+2025.11.27 19:10:34.003 | laboneq.applications                          | INFO   [1mTask 'run_experiment': started at 2025-11-27 10:10:34.003390Z[0m
+2025.11.27 19:10:34.098 | laboneq.controller.controller                 | INFO   Starting near-time execution...
+2025.11.27 19:10:36.889 | laboneq.controller.controller                 | INFO   Finished near-time execution.
+2025.11.27 19:10:36.945 | laboneq.applications                          | INFO   [1mTask 'run_experiment': ended at 2025-11-27 10:10:36.944965Z[0m
+2025.11.27 19:10:36.949 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:10:36.950 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'analysis_workflow': execution started at 2025-11-27 [0m[1m              [0m[1m [0m[1m [0m
+2025.11.27 19:10:36.950 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1m10:10:36.949720Z[0m[1m                                                            [0m[1m [0m[1m [0m
+2025.11.27 19:10:36.950 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:10:36.951 | laboneq.applications                          | INFO   [1mTask 'collect_shots': started at 2025-11-27 10:10:36.951577Z[0m
+2025.11.27 19:10:36.952 | laboneq.applications                          | INFO   [1mTask 'collect_shots': ended at 2025-11-27 10:10:36.952116Z[0m
+2025.11.27 19:10:36.959 | laboneq.applications                          | INFO   [1mTask 'fit_data': started at 2025-11-27 10:10:36.959421Z[0m
+2025.11.27 19:10:37.052 | laboneq.applications                          | INFO   [1mTask 'fit_data': ended at 2025-11-27 10:10:37.052244Z[0m
+2025.11.27 19:10:37.053 | laboneq.workflow.logbook.folder_store         | WARNING Type <class 'dict'> has the following unsupported values: {'mapping': value={0: 1, 1: 0} type=dict}. Only dictionaries with values of the following types are supported: [NoneType, int, float, complex, bool, str, dict, list, tuple, integer, ndarray, ModelResult, Variable, AffineScalarFunc, BaseEstimator]. [name: fit_data.output.q0].
+2025.11.27 19:10:37.053 | laboneq.applications                          | INFO   [1mTask 'calculate_assignment_matrices': started at 2025-11-27 10:10:37.053423Z[0m
+2025.11.27 19:10:37.054 | laboneq.workflow.logbook.folder_store         | WARNING Type <class 'dict'> has the following unsupported values: {'q0': value={'model': GaussianMixture(max_iter=500, n_components=2, random_state=0), 'method': 'gmm', 'mapping': {0: 1, 1: 0}} type=dict}. Only dictionaries with values of the following types are supported: [NoneType, int, float, complex, bool, str, dict, list, tuple, integer, ndarray, ModelResult, Variable, AffineScalarFunc, BaseEstimator]. [name: calculate_assignment_matrices.input.fit_results].
+2025.11.27 19:10:37.064 | laboneq.applications                          | INFO   [1mTask 'calculate_assignment_matrices': ended at 2025-11-27 10:10:37.064351Z[0m
+2025.11.27 19:10:37.065 | laboneq.applications                          | INFO   [1mTask 'calculate_assignment_fidelities': started at 2025-11-27 10:10:37.065258Z[0m
+2025.11.27 19:10:37.066 | laboneq.applications                          | INFO   [1mTask 'calculate_assignment_fidelities': ended at 2025-11-27 10:10:37.066003Z[0m
+2025.11.27 19:10:37.066 | laboneq.applications                          | INFO   [1mTask 'plot_iq_blobs': started at 2025-11-27 10:10:37.066669Z[0m
+2025.11.27 19:10:37.067 | laboneq.workflow.logbook.folder_store         | WARNING Type <class 'dict'> has the following unsupported values: {'q0': value={'model': GaussianMixture(max_iter=500, n_components=2, random_state=0), 'method': 'gmm', 'mapping': {0: 1, 1: 0}} type=dict}. Only dictionaries with values of the following types are supported: [NoneType, int, float, complex, bool, str, dict, list, tuple, integer, ndarray, ModelResult, Variable, AffineScalarFunc, BaseEstimator]. [name: plot_iq_blobs.input.fit_results].
+2025.11.27 19:10:37.149 | laboneq.applications                          | INFO   [1mArtifact: 'IQ_blobs_q0' of type 'Figure' logged at 2025-11-27 10:10:37.149414Z[0m
+2025.11.27 19:10:37.288 | laboneq.applications                          | INFO   [1mTask 'plot_iq_blobs': ended at 2025-11-27 10:10:37.288041Z[0m
+2025.11.27 19:10:37.289 | laboneq.applications                          | INFO   [1mTask 'plot_assignment_matrices': started at 2025-11-27 10:10:37.289381Z[0m
+2025.11.27 19:10:37.299 | laboneq.applications                          | INFO   [1mArtifact: 'Assignment_matrix_q0' of type 'Figure' logged at 2025-11-27 [0m
+2025.11.27 19:10:37.300 | laboneq.applications                          | INFO   [1m10:10:37.299344Z[0m
+2025.11.27 19:10:37.370 | laboneq.applications                          | INFO   [1mTask 'plot_assignment_matrices': ended at 2025-11-27 10:10:37.370409Z[0m
+2025.11.27 19:10:37.371 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:10:37.371 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'analysis_workflow': execution ended at 2025-11-27 10:10:37.371119Z[0m[1m [0m[1m [0m
+2025.11.27 19:10:37.371 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:10:37.372 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
+2025.11.27 19:10:37.372 | laboneq.applications                          | INFO   [1m [0m[1m [0m[1mWorkflow 'iq_blobs': execution ended at 2025-11-27 10:10:37.372196Z[0m[1m         [0m[1m [0m[1m [0m
+2025.11.27 19:10:37.372 | laboneq.applications                          | INFO   [1m ────────────────────────────────────────────────────────────────────────────── [0m
