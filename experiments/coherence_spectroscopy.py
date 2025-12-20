@@ -8,7 +8,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 from laboneq import workflow
@@ -24,14 +24,15 @@ from laboneq.workflow.tasks import (
     run_experiment,
 )
 
+from analysis import coherence_spectroscopy as analysis_coherence
 from laboneq_applications.analysis.ramsey import (
-    analysis_workflow,
     validate_and_convert_detunings,
 )
 from laboneq_applications.core import validation
 from laboneq_applications.experiments.options import (
     TuneupExperimentOptions,
     TuneUpWorkflowOptions,
+    BaseExperimentOptions
 )
 from laboneq_applications.tasks.parameter_updating import (
     temporary_qpu,
@@ -45,16 +46,44 @@ if TYPE_CHECKING:
     from laboneq.dsl.quantum import QuantumParameters
     from laboneq.dsl.quantum.qpu import QPU
     from laboneq.dsl.session import Session
+    from laboneq.dsl.quantum_element import QuantumElement
+    from laboneq_applications.typing import QubitSweepPoints
 
-    from laboneq_applications.typing import QuantumElements, QubitSweepPoints
 
 
-@workflow.workflow(name="ramsey")
+
+@workflow.task_options(base_class=BaseExperimentOptions)
+class CoherenceSpectroscopyExperimentOptions:
+
+    ring_up: float = workflow.option_field(
+        200e-9, description="Waiting for cavity to ring up"
+    )
+ 
+    use_cal_traces: bool = workflow.option_field(
+        True, description="Whether to include calibration traces in the experiment."
+    )
+    cal_states: str | tuple = workflow.option_field(
+        "ge", description="The states to prepare in the calibration traces."
+    )
+    transition: Literal["ge", "ef"] = workflow.option_field(
+        "ge",
+        description="Transition to perform the experiment on. May be any"
+        " transition supported by the quantum operations.",
+    )
+
+
+
+
+@workflow.workflow(name="coherence_spectroscopy")
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
+    qubit: QuantumElement,
+    bus: QuantumElement,
     delays: QubitSweepPoints,
+    CW_frequencies: QubitSweepPoints,
+    CW_amplitude: float,
+    CW_phase: float,
     detunings: float | Sequence[float] | None = None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,
@@ -101,38 +130,27 @@ def experiment_workflow(
             The result of the workflow.
 
     Example:
-        ```python
-        options = experiment_workflow.options()
-        options.create_experiment.count(10)
-        options.create_experiment.transition("ge")
-        setup = DeviceSetup("my_device")
-        qpu = QPU(
-            quantum_elements=[TunableTransmonQubit("q0"), TunableTransmonQubit("q1")],
-            quantum_operations=TunableTransmonOperations(),
-        )
-        temp_qubits = qpu.copy_quantum_elements()
-        result = experiment_workflow(
-            session=session,
-            qpu=qpu,
-            qubits=temp_qubits,
-            delays=[[0.1, 0.5, 1], [0.1, 0.5, 1]],
-            detunings = {'q0':1e6,'q1':1.346e6},
-            options=options,
-        ).run()
-        ```
+ 
+        
     """
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
-    qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)
+    qubit = temporary_quantum_elements_from_qpu(temp_qpu, qubit)
     exp = create_experiment(
         temp_qpu,
-        qubits,
-        delays=delays,
-        detunings=detunings,
+        qubit,
+        bus,
+        delays,
+        CW_frequencies,
+        CW_amplitude,
+        CW_phase,
+        detunings,
     )
     compiled_exp = compile_experiment(session, exp)
     result = run_experiment(session, compiled_exp)
     with workflow.if_(options.do_analysis):
-        analysis_results = analysis_workflow(result, qubits, delays, detunings)
+        analysis_results = analysis_coherence.analysis_workflow(
+            result, qubit, delays, CW_frequencies, detunings
+        )
         qubit_parameters = analysis_results.output
         with workflow.if_(options.update):
             update_qpu(qpu, qubit_parameters["new_parameter_values"])
@@ -143,10 +161,14 @@ def experiment_workflow(
 @dsl.qubit_experiment
 def create_experiment(
     qpu: QPU,
-    qubits: QuantumElements,
+    qubit: QuantumElement,
+    bus: QuantumElement,
     delays: QubitSweepPoints,
+    CW_frequencies: QubitSweepPoints,
+    CW_amplitude : float,
+    CW_phase: float,
     detunings: float | Sequence[float] | None = None,
-    options: TuneupExperimentOptions | None = None,
+    options: CoherenceSpectroscopyExperimentOptions | None = None,
 ) -> Experiment:
     """Creates a Ramsey Experiment where the phase of the second pulse is swept.
 
@@ -196,30 +218,15 @@ def create_experiment(
             If the experiment uses calibration traces and the averaging mode is
             sequential.
 
-    Example:
-        ```python
-        options = TuneupExperimentOptions()
-        qpu = QPU(
-            quantum_elements=[TunableTransmonQubit("q0"), TunableTransmonQubit("q1")],
-            quantum_operations=TunableTransmonOperations(),
-        )
-        temp_qubits = qpu.copy_quantum_elements()
-        create_experiment(
-            qpu=qpu,
-            qubits=temp_qubits,
-            delays=[
-                np.linspace(0, 20e-6, 51),
-                np.linspace(0, 30e-6, 52),
-            ],
-            detunings = [1e6, 1.346e6],
-            options=options,
-        )
-        ```
     """
     # Define the custom options for the experiment
-    opts = TuneupExperimentOptions() if options is None else options
-    qubits, delays = validation.validate_and_convert_qubits_sweeps(qubits, delays)
-    detunings = validate_and_convert_detunings(qubits, detunings)
+    opts = CoherenceSpectroscopyExperimentOptions() if options is None else options
+    
+    bus, frequencies = validation.validate_and_convert_single_qubit_sweeps(bus, CW_frequencies)
+    q, delays = validation.validate_and_convert_single_qubit_sweeps(qubit,delays)
+    detunings = validate_and_convert_detunings(qubit, detunings)
+    detuning = detunings[0]
+    
     if (
         opts.use_cal_traces
         and AveragingMode(opts.averaging_mode) == AveragingMode.SEQUENTIAL
@@ -229,34 +236,29 @@ def create_experiment(
             "with calibration traces because the calibration traces are added "
             "outside the sweep."
         )
+    
 
-    swp_delays = []
-    swp_phases = []
-    for i, q in enumerate(qubits):
-        q_delays = delays[i]
-        swp_delays += [
-            SweepParameter(
-                uid=f"wait_time_{q.uid}",
-                values=q_delays,
-            ),
-        ]
-        swp_phases += [
-            SweepParameter(
+
+
+
+    swp_delays = SweepParameter(uid=f"wait_time_{q.uid}",values=delays) 
+    swp_phases = SweepParameter(
                 uid=f"x90_phases_{q.uid}",
                 values=np.array(
                     [
-                        ((wait_time - q_delays[0]) * detunings[i] * 2 * np.pi)
+                        ((wait_time - delays[0]) * detuning * 2 * np.pi)
                         % (2 * np.pi)
-                        for wait_time in q_delays
+                        for wait_time in delays
                     ]
-                ),
-            ),
-        ]
+                    )
+                )
+
+    # len(swp_delays)=len(swp_phases) => multi dimensional sweep 할때 1d 병렬 sweep으로 동작
 
     # We will fix the length of the measure section to the longest section among
     # the qubits to allow the qubits to have different readout and/or
     # integration lengths.
-    max_measure_section_length = qpu.measure_section_length(qubits)
+    #max_measure_section_length = qpu.measure_section_length(q)
     qop = qpu.quantum_operations
     with dsl.acquire_loop_rt(
         count=opts.count,
@@ -266,33 +268,52 @@ def create_experiment(
         repetition_time=opts.repetition_time,
         reset_oscillator_phase=opts.reset_oscillator_phase,
     ):
+        
         with dsl.sweep(
-            name="ramsey_sweep",
-            parameter=swp_delays + swp_phases,
-        ):
-            if opts.active_reset:
-                qop.active_reset(
-                    qubits,
-                    active_reset_states=opts.active_reset_states,
-                    number_resets=opts.active_reset_repetitions,
-                    measure_section_length=max_measure_section_length,
-                )
-            with dsl.section(name="main", alignment=SectionAlignment.RIGHT):
-                with dsl.section(name="main_drive", alignment=SectionAlignment.RIGHT):
-                    for q, wait_time, phase in zip(qubits, swp_delays, swp_phases):
-                        qop.prepare_state.omit_section(q, opts.transition[0])
-                        qop.Ramsey.omit_section(
-                            q, wait_time, phase, transition=opts.transition
+            name="CW_freq_sweep",
+            parameter=SweepParameter("CW_drive_freqs",frequencies),
+            auto_chunking=True,
+        ) as frequency:
+            qop.set_frequency.omit_section(bus,frequency)
+            # qop.qubit_spectroscopy_drive(bus,CW_amplitude,CW_phase)
+        
+        
+            with dsl.sweep(
+                name="ramsey_sweep",
+                parameter=[swp_delays, swp_phases],
+            ):
+                
+                with dsl.section(name="main", alignment=SectionAlignment.LEFT):
+                    with dsl.section(
+                        name="spec_drive", alignment=SectionAlignment.LEFT
+                    ):
+                        qop.qubit_spectroscopy_drive(
+                            bus,
+                            amplitude=CW_amplitude,
+                            phase=CW_phase,
+                            #length=drive_length,
                         )
-                with dsl.section(name="main_measure", alignment=SectionAlignment.LEFT):
-                    for q in qubits:
+                    with dsl.section(name="main_drive", alignment=SectionAlignment.LEFT):
+                        qop.delay(q,opts.ring_up)
+                        qop.prepare_state.omit_section(q, opts.transition[0])
+                        qop.ramsey.omit_section(
+                            q, swp_delays, swp_phases,echo_pulse="x180", transition=opts.transition 
+                        )
+                    with dsl.section(name="main_measure", alignment=SectionAlignment.LEFT):
                         sec = qop.measure(q, dsl.handles.result_handle(q.uid))
                         # Fix the length of the measure section
                         #sec.length = max_measure_section_length
                         qop.passive_reset(q)
+        
+        
+        
+        
+        
+        
+        
         if opts.use_cal_traces:
             qop.calibration_traces.omit_section(
-                qubits=qubits,
+                qubits=qubit,
                 states=opts.cal_states,
                 active_reset=opts.active_reset,
                 active_reset_states=opts.active_reset_states,
