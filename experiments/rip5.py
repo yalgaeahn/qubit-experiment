@@ -274,8 +274,7 @@ def create_experiment(
                 uid=f"x90_phases_{targ.uid}",
                 values=np.array(
                     [
-                        ((wait_time - delays[0]) * detunings * 2 * np.pi)
-                        % (2 * np.pi)
+                        ((wait_time - delays[0]) * detunings * 2 * np.pi) % (2 * np.pi)
                         for wait_time in delays
                     ]
                     )
