@@ -1,6 +1,7 @@
 .venv/
 **/__pycache__/
 # Ignore all generated artifacts under laboneq_output, but keep .gitkeep
+examples/laboneq_output/log/*
 laboneq_output/*
 laboneq_output/log/*
 !laboneq_output/.gitkeep
