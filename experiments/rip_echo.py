@@ -308,7 +308,7 @@ def create_experiment(
                     targ,
                     active_reset_states=opts.active_reset_states,
                     number_resets=opts.active_reset_repetitions,
-                    measure_section_length=max_measure_section_length,
+                    #measure_section_length=max_measure_section_length,
                 )
 
             with dsl.section(name="ctrl_prep", alignment=SectionAlignment.LEFT) as ctrl_prep:
@@ -339,7 +339,7 @@ def create_experiment(
                 with dsl.section(name="main_measure", alignment=SectionAlignment.LEFT):
                     sec = qop.measure(targ, dsl.handles.result_handle(targ.uid))
                     # Fix the length of the measure section
-                    sec.length = max_measure_section_length
+                    #sec.length = max_measure_section_length
                     qop.passive_reset(targ)
         if opts.use_cal_traces:
             qop.calibration_traces.omit_section(
@@ -348,5 +348,5 @@ def create_experiment(
                 active_reset=opts.active_reset,
                 active_reset_states=opts.active_reset_states,
                 active_reset_repetitions=opts.active_reset_repetitions,
-                measure_section_length=max_measure_section_length,
+                #measure_section_length=max_measure_section_length,
             )
