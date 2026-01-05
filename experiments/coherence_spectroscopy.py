@@ -297,7 +297,7 @@ def create_experiment(
                         qop.delay(q,opts.ring_up)
                         qop.prepare_state.omit_section(q, opts.transition[0])
                         qop.ramsey.omit_section(
-                            q, swp_delays, swp_phases,echo_pulse="x180", transition=opts.transition 
+                            q, swp_delays, swp_phases, transition=opts.transition 
                         )
                     with dsl.section(name="main_measure", alignment=SectionAlignment.LEFT):
                         sec = qop.measure(q, dsl.handles.result_handle(q.uid))
