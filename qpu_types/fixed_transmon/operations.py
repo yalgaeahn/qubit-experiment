@@ -11,7 +11,7 @@ from typing import Literal
 import numpy as np
 from laboneq.dsl.calibration import Calibration, Oscillator
 from laboneq.dsl.enums import ModulationType
-from laboneq.dsl.parameter import SweepParameter
+from laboneq.dsl.parameter import SweepParameter, Parameter
 from laboneq.simple import SectionAlignment, dsl
 
 from laboneq_applications.typing import QuantumElements
@@ -1306,4 +1306,3 @@ def create_pulse(
         pulse_cache.store(pulse, name, function, parameters)
 
     return pulse
-

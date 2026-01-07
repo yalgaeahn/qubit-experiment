@@ -12,7 +12,9 @@ from laboneq.core.utilities.dsl_dataclass_decorator import classformatter
 from laboneq.dsl.calibration import (
     Calibration,
     SignalCalibration,
+    Oscillator,
 )
+from laboneq.dsl.enums import ModulationType
 from laboneq.dsl.quantum import (
     QuantumElement,
     QuantumParameters,
@@ -43,10 +45,10 @@ class BusCavityParameters(QuantumParameters):
     rip_amplitude: float = 1.0
     rip_length: float = 1e-6
     rip_pulse: dict = attrs.field(
-        factory=lambda: {"pulse": {"function": "NestedCosine"}}
+        factory=lambda: {"function": "NestedCosine"}
     )
 
-    rip_detunning: float | None = None
+    rip_detuning: float | None = None
 
 
 
@@ -59,13 +61,11 @@ class BusCavityParameters(QuantumParameters):
     kappa : float | None = None
 
 
-@property
-def drive_frequency_bus(self) -> float | None:
-    if self.drive_lo_frequency is None or self.resonance_frequency_bus is None or self.rip_detunning is None:
-        return None
-    return self.resonance_freqeuency_bus + self.rip_detunning - self.drive_lo_freqeuency
-
-
+    @property
+    def drive_frequency_bus(self) -> float | None:
+        if self.drive_lo_frequency is None or self.resonance_frequency_bus is None or self.rip_detuning is None:
+            return None
+        return self.resonance_frequency_bus + self.rip_detuning - self.drive_lo_frequency
 
 
 
@@ -93,7 +93,7 @@ class BusCavity(QuantumElement):
         """
         drive_lo = None
 
-        if self.parameters.drive_lo_frequeny is not None:
+        if self.parameters.drive_lo_frequency is not None:
             drive_lo = Oscillator(
                 uid=f"{self.uid}_drive_local_osc",
                 frequency=self.parameters.drive_lo_frequency,
@@ -102,15 +102,15 @@ class BusCavity(QuantumElement):
         calibration_items = {}
         if "drive" in self.signals:
             sig_cal = SignalCalibration()
-            if self.parameters.drive_frequency is not None:
+            if self.parameters.drive_frequency_bus is not None:
                 sig_cal.oscillator = Oscillator(
                     uid=f"{self.uid}_drive_osc",
-                    frequency=self.parameters.drive_frequency,
+                    frequency=self.parameters.drive_frequency_bus,
                     modulation_type=ModulationType.AUTO,
                 )
                 sig_cal.local_oscillator = drive_lo
                 sig_cal.range = self.parameters.drive_range
                 calibration_items[self.signals["drive"]] = sig_cal
-            calibration_items[self.signals["bus"]] = sig_cal
+            calibration_items[self.signals["drive"]] = sig_cal
 
         return Calibration(calibration_items)
