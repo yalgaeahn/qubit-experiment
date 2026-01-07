@@ -6,6 +6,6 @@ Note: Avoid importing optional subpackages here to prevent circular or
 runtime import errors in environments where those extras are not needed.
 """
 
-from .Transmon.transmon import TransmonQubit, TransmonQubitParameters  # noqa: F401
+# from .Transmon.transmon import TransmonQubit, TransmonQubitParameters  # noqa: F401
 
-__all__ = ["TransmonQubit", "TransmonQubitParameters"]
+# __all__ = ["TransmonQubit", "TransmonQubitParameters"]

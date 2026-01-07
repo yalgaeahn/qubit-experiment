@@ -954,7 +954,7 @@ class TransmonOperations(dsl.QuantumOperations):
             )
 
         with dsl.section(
-            name=f"ramsey_{q.uid}",
+            name=f"Ramsey_{q.uid}",
             on_system_grid=on_system_grid,
             alignment=SectionAlignment.RIGHT,
         ):
@@ -967,8 +967,10 @@ class TransmonOperations(dsl.QuantumOperations):
                 self.delay(q, time=delay / 2)
             else:
                 self.delay(q, time=delay)
+            
+            sec_vz = self.rz(q,ramsey_phase)
             sec_x90_2 = self.x90(
-                q, increment_oscillator_phase=ramsey_phase, transition=transition
+                q, transition=transition
             )
             sec_x90_2.alignment = SectionAlignment.RIGHT
 

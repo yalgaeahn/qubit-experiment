@@ -249,7 +249,35 @@ def GaussianSquare(
         gauss_sq /= 1- delta
     return gauss_sq 
 
+##################################################################################################
+@register_pulse_functional
+def NestedCosine(
+    x, # dimensionless and spans [-1,1]
+    t_nc_rel : float = 0.0,
+    tau_rel: float = 1.0,
+    **_
+):
+    
+    """
+    From PRA 105, 022607 (2022) 
+    """
+    #map range of x [-1,1] to [0,1]
+    u = 0.5 * (x + 1.0)
 
+    t_nc_rel = float(t_nc_rel)
+    tau_rel = float(tau_rel)
+
+    y = np.zeros_like(u, dtype=float)
+
+    if tau_rel <= 0.0:
+        return y
+    
+    dt = u - t_nc_rel
+    mask = (dt > 0.0) & (dt < tau_rel)
+
+    y[mask] = 0.5 * (np.cos(np.pi * np.cos(np.pi * dt[mask] / tau_rel)) + 1.0)
+
+    return y
 ##################################################################################################
 
 def sampled_pulse(
