@@ -262,7 +262,7 @@ def create_experiment(
                         qop.rip(bus, amplitude=bus.parameters.rip_amplitude, length=swp_delays)
                     
                     qop.delay(targ, time=swp_delays)
-                    qop.x90(targ) #increment_oscillator_phase = swp_phases)
+                    qop.x90(targ, increment_oscillator_phase = np.pi/2)
 
                  
                     with dsl.section(name="main_measure", alignment=SectionAlignment.LEFT):

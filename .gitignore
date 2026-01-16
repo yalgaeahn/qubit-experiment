@@ -2,6 +2,8 @@
 **/__pycache__/
 # Ignore all generated artifacts under laboneq_output, but keep .gitkeep
 examples/laboneq_output/log/*
+examples/selective/selectiveRIP/qpu_parameters/*
+
 laboneq_output/*
 laboneq_output/log/*
 !laboneq_output/.gitkeep
