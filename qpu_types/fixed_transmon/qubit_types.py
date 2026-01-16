@@ -447,6 +447,7 @@ class FixedTransmonQubit(QuantumElement):
                 )
             sig_cal.local_oscillator = drive_lo
             sig_cal.range = self.parameters.drive_range
+            sig_cal.automute = True
             calibration_items[self.signals["drive"]] = sig_cal
         if "drive_ef" in self.signals:
             sig_cal = SignalCalibration()
@@ -458,6 +459,7 @@ class FixedTransmonQubit(QuantumElement):
                 )
             sig_cal.local_oscillator = drive_lo
             sig_cal.range = self.parameters.drive_range
+            sig_cal.automute = True
             calibration_items[self.signals["drive_ef"]] = sig_cal
         if "measure" in self.signals:
             sig_cal = SignalCalibration()
@@ -465,6 +467,7 @@ class FixedTransmonQubit(QuantumElement):
                 sig_cal.oscillator = readout_oscillator
             sig_cal.local_oscillator = readout_lo
             sig_cal.range = self.parameters.readout_range_out
+            sig_cal.automute = True
             calibration_items[self.signals["measure"]] = sig_cal
         if "acquire" in self.signals:
             sig_cal = SignalCalibration()

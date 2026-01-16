@@ -225,6 +225,30 @@ class FixedTransmonOperations(dsl.QuantumOperations):
         signal_calibration.amplitude = amplitude
 
     @dsl.quantum_operation
+    #TODO: This should be integrated with measure()
+    def multiplexed_readout(
+        self,
+        qubits: QuantumElements,
+        handles: Sequence[str] | None = None,
+        readout_pulses: Sequence[dict | None] | None = None,
+        kernel_pulses: Sequence[list[dict] | Literal["default"] | None] | None = None,
+        measure_section_length: float | None = None
+    ) -> None:
+        if isinstance(qubits, FixedTransmonQubit):
+            qubits = [qubits]
+
+        with dsl.section(name="multipexed", alignment=SectionAlignment.LEFT):
+            for i,q in enumerate(qubits):
+                sec = self.measure(
+                    q,
+                    handle=dsl.handles.result_handle(qubit_name=q.uid),
+                    readout_pulse=None if readout_pulses is None else readout_pulses[i],
+                    kernel_pulses=None if kernel_pulses is None else kernel_pulses[i]
+                    )
+                sec.length = measure_section_length
+                self.passive_reset(q)
+
+    @dsl.quantum_operation
     def measure(
         self,
         q: FixedTransmonQubit,

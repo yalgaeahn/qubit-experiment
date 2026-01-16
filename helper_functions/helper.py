@@ -6,7 +6,7 @@ from datetime import datetime
 from copy import deepcopy
 import math
 
-from qpu_types.Transmon.transmon import TransmonQubit
+# from qpu_types.Transmon.transmon import TransmonQubit
 
 
 

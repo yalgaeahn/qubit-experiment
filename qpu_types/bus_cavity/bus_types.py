@@ -110,6 +110,7 @@ class BusCavity(QuantumElement):
                 )
                 sig_cal.local_oscillator = drive_lo
                 sig_cal.range = self.parameters.drive_range
+                sig_cal.automute = True
                 calibration_items[self.signals["drive"]] = sig_cal
             calibration_items[self.signals["drive"]] = sig_cal
 
