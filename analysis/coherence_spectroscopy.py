@@ -15,7 +15,7 @@ from laboneq import workflow
 from laboneq_applications.analysis.calibration_traces_rotation import (
     calculate_qubit_population_2d,
 )
-from laboneq_applications.analysis.fitting_helpers import cosine_oscillatory_decay_fit
+from analysis.fitting_helpers import cosine_oscillatory_decay_fit, coherent_spec_fit
 from laboneq_applications.analysis.options import (
     ExtractQubitParametersTransitionOptions,
     FitDataOptions,
@@ -179,6 +179,7 @@ def analysis_workflow(
     )
     fit_results = fit_data(qubits, processed_data_dict)
     qubit_parameters = extract_qubit_parameters(qubits, fit_results, detunings)
+    mid_fit_results = fit_mid_rate_data(qubits, qubit_parameters)
     with workflow.if_(options.do_plotting):
         with workflow.if_(options.do_raw_data_plotting):
             plot_raw_iq_heatmap_2d(qubits, processed_data_dict)
@@ -188,6 +189,7 @@ def analysis_workflow(
                 qubits, processed_data_dict, fit_results, qubit_parameters, detunings
             )
             plot_t2_star_vs_frequency(qubits, qubit_parameters)
+            plot_MID_rate_vs_frequency(qubits, qubit_parameters, mid_fit_results)
     workflow.return_(qubit_parameters)
 
 
@@ -373,11 +375,36 @@ def extract_qubit_parameters(
         finite_mask = np.isfinite(t2_values)
         best_index = int(np.nanargmax(t2_values)) if finite_mask.any() else 0
 
+        # Estimate measurement-induced dephasing rate Γm by subtracting a baseline
+        # dephasing rate taken at the longest (best) T2* point.
+        valid_mask = finite_mask & (t2_values > 0)
+        if valid_mask.any():
+            baseline_index = int(np.nanargmax(t2_values[valid_mask]))
+            baseline_actual_index = int(valid_mask.nonzero()[0][baseline_index])
+            baseline_t2 = t2_list[baseline_actual_index]
+        else:
+            baseline_actual_index = 0
+            baseline_t2 = unc.ufloat(np.nan, np.nan)
+        baseline_gamma = (1 / baseline_t2) if valid_mask.any() else unc.ufloat(np.nan, np.nan)
+
+        mid_rate_list: list[unc.core.Variable] = []
+        for t2_star in t2_list:
+            if not np.isfinite(t2_star.n) or t2_star.n <= 0 or not np.isfinite(baseline_gamma.n):
+                mid_rate_list.append(unc.ufloat(np.nan, np.nan))
+                continue
+            gamma_total = 1 / t2_star
+            gamma_mid = gamma_total - baseline_gamma
+            if gamma_mid.n < 0:
+                gamma_mid = unc.ufloat(0.0, gamma_mid.s)
+            mid_rate_list.append(gamma_mid)
+
         qubit_parameters["per_frequency"][q.uid] = {
             "frequencies": cw_freqs,
             "t2_star": t2_list,
             "fit_frequency": qb_freq_list,
             "best_index": best_index,
+            "mid_rate": mid_rate_list,
+            "mid_baseline_index": baseline_actual_index,
         }
 
         if finite_mask.any():
@@ -388,6 +415,42 @@ def extract_qubit_parameters(
             }
 
     return qubit_parameters
+
+
+@workflow.task
+def fit_mid_rate_data(
+    qubits: QuantumElements,
+    qubit_parameters: dict[str, dict[str, dict[str, int | float | unc.core.Variable]]],
+    param_hints: dict[str, dict[str, float | bool | str]] | None = None,
+) -> dict[str, object]:
+    """Fit the extracted MID rate Γm as a function of CW frequency."""
+    qubits = validate_and_convert_qubits_sweeps(qubits)
+    fit_results: dict[str, object] = {}
+
+    for q in qubits:
+        per_freq = qubit_parameters["per_frequency"].get(q.uid, {})
+        if not per_freq:
+            continue
+        freqs = np.asarray(per_freq.get("frequencies", []), dtype=float)
+        mid_rates = per_freq.get("mid_rate", [])
+        if len(freqs) == 0 or len(mid_rates) == 0:
+            continue
+
+        mid_nom = np.array([rate.n for rate in mid_rates], dtype=float)
+        mask = np.isfinite(freqs) & np.isfinite(mid_nom) & (mid_nom >= 0)
+        if np.count_nonzero(mask) < 4:  # noqa: PLR2004
+            logging.warning("Not enough finite MID-rate points to fit for %s.", q.uid)
+            fit_results[q.uid] = None
+            continue
+
+        try:
+            fit_res = coherent_spec_fit(freqs[mask], mid_nom[mask], param_hints=param_hints)
+            fit_results[q.uid] = fit_res
+        except ValueError as err:
+            logging.error("MID fit failed for %s: %s.", q.uid, err)
+            fit_results[q.uid] = None
+
+    return fit_results
 
 
 @workflow.task
@@ -586,8 +649,81 @@ def plot_t2_star_vs_frequency(
 
         figures[q.uid] = fig
     return figures
+########################### 
+@workflow.task
+def plot_MID_rate_vs_frequency(
+    qubits: QuantumElements,
+    qubit_parameters: dict[str, dict[str, dict[str, int | float | unc.core.Variable]]],
+    mid_fit_results: dict[str, object] | None = None,
+) -> dict[str, mpl.figure.Figure]:
+    r"""Plot extracted MID rate $\Gamma_m$ as a function of the CW drive frequency."""
+    qubits = validate_and_convert_qubits_sweeps(qubits)
+    figures: dict[str, mpl.figure.Figure] = {}
+
+    for q in qubits:
+        per_freq = qubit_parameters["per_frequency"].get(q.uid, {})
+        if not per_freq:
+            continue
+        freqs = np.asarray(per_freq.get("frequencies", []), dtype=float)
+        mid_rates = per_freq.get("mid_rate", [])
+        if len(freqs) == 0 or len(mid_rates) == 0:
+            continue
+
+        mid_nom = np.array([rate.n for rate in mid_rates], dtype=float)
+        mid_err = np.array([rate.s for rate in mid_rates], dtype=float)
+        mask = np.isfinite(freqs) & np.isfinite(mid_nom)
+        if np.count_nonzero(mask) == 0:
+            continue
+
+        f_plot = freqs[mask]
+        g_plot = mid_nom[mask]
+        g_err = mid_err[mask]
+
+        fig, ax = plt.subplots()
+        ax.errorbar(
+            f_plot / 1e9,
+            g_plot / 1e6,
+            yerr=g_err / 1e6,
+            fmt="o",
+            capsize=3,
+            label="$\\Gamma_m$ (extracted)",
+        )
+        ax.set_xlabel("CW frequency (GHz)")
+        ax.set_ylabel("$\\Gamma_m$ (MHz)")
+        ax.set_title(timestamped_title(f"MID rate vs CW freq ({q.uid})"))
+        ax.grid(True, alpha=0.3)
+
+        fit_res = mid_fit_results.get(q.uid) if mid_fit_results else None
+        if fit_res is not None:
+            swpts_fine = np.linspace(np.min(f_plot), np.max(f_plot), 801)
+            fit_curve = fit_res.model.func(swpts_fine, **fit_res.best_values)
+            ax.plot(
+                swpts_fine / 1e9,
+                fit_curve / 1e6,
+                "r-",
+                label="MID model fit",
+            )
+
+            kappa_fit = fit_res.best_values.get("kappa", np.nan)
+            chi_fit = fit_res.best_values.get("chi", np.nan)
+            eps_fit = fit_res.best_values.get("epsilon_rf", np.nan)
+            bare_fit = fit_res.best_values.get("bare_freq", np.nan)
+            textstr = (
+                f"$\\kappa$: {kappa_fit / 1e6:.3f} MHz\n"
+                f"$\\chi$: {chi_fit / 1e6:.3f} MHz\n"
+                f"$\\epsilon_{{rf}}$: {eps_fit / 1e6:.3f} MHz\n"
+                f"$f_r$: {bare_fit / 1e9:.6f} GHz"
+            )
+            ax.text(0.02, 0.98, textstr, ha="left", va="top", transform=ax.transAxes)
+
+        ax.legend(loc="best")
+        figures[q.uid] = fig
+
+    return figures
 
 
+
+######################
 @workflow.task
 def plot_population_heatmap_2d(
     qubits: QuantumElements,

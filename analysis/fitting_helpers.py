@@ -499,14 +499,132 @@ def blochtrajectory_fit(
     return best_result
 
     
-   
+######COHERENCE SPECTROSCOPY#####
+def coherent_spec_mid_rate(
+    x: ArrayLike,
+    kappa: float,
+    chi: float,
+    epsilon_rf: float,
+    bare_freq: float,
+) -> ArrayLike:
+    """Measurement-induced dephasing rate model Γm(ωd).
 
-    
+    Implements the expressions shown in the reference image:
+        Γm = Ds * κ / 2
+        Ds = 2( n̄+ + n̄- ) χ^2 / (κ^2/4 + χ^2 + Δr^2)
+        n̄± = ε_rf^2 / (κ^2/4 + (Δr ± χ)^2)
+
+    Notes:
+        - All frequencies/rates are assumed to be in the same units (typically Hz).
+        - The independent variable `x` is the applied CW drive frequency ωd.
+    """
+    freq_arr = np.asarray(x, dtype=float)
+    delta_r = freq_arr - bare_freq
+
+    denom_plus = (kappa**2) / 4 + (delta_r + chi) ** 2
+    denom_minus = (kappa**2) / 4 + (delta_r - chi) ** 2
+    n_plus = (epsilon_rf**2) / denom_plus
+    n_minus = (epsilon_rf**2) / denom_minus
+
+    ds_denom = (kappa**2) / 4 + chi**2 + delta_r**2
+    d_s = 2 * (n_plus + n_minus) * (chi**2) / ds_denom
+
+    gamma_m = d_s * kappa / 2
+    return gamma_m
 
 
+def coherent_spec_fit(
+    freq: ArrayLike,
+    gamma_m: ArrayLike,
+    param_hints: dict[str, dict[str, float | bool | str]] | None = None,
+) -> lmfit.model.ModelResult:
+    """Fit Γm(ωd) using the measurement-induced dephasing model.
 
-    return #SHOULD RETURN LMFIT RESULT 
-    
+    This routine tries to detect two separated peaks in the data and uses them
+    to initialize `bare_freq` (midpoint) and `chi` (half-separation). User
+    `param_hints` still take precedence.
+    """
+    freq_arr = np.asarray(freq, dtype=float)
+    gamma_arr = np.asarray(gamma_m, dtype=float)
+    mask = np.isfinite(freq_arr) & np.isfinite(gamma_arr)
+    if np.count_nonzero(mask) < 4:  # noqa: PLR2004
+        raise ValueError("Need at least 4 finite points to fit the MID rate model.")
+
+    f_fit = freq_arr[mask]
+    g_fit = gamma_arr[mask]
+
+    # Sort by frequency for more stable peak detection.
+    order = np.argsort(f_fit)
+    f_sorted = f_fit[order]
+    g_sorted = g_fit[order]
+
+    freq_span = float(np.max(f_fit) - np.min(f_fit))
+    freq_span = freq_span if freq_span > 0 else max(abs(np.mean(f_fit)), 1.0)
+    kappa_guess = max(freq_span / 5, 1e6)
+    chi_guess = max(kappa_guess / 10, 1e5)
+    center_guess = float(f_sorted[int(np.nanargmax(g_sorted))])
+    drive_guess = max(np.sqrt(max(float(np.nanmax(g_fit)), 0.0)) * kappa_guess / 2, 1e3)
+
+    def _two_peak_initialization(freqs: np.ndarray, values: np.ndarray) -> tuple[float, float] | None:
+        """Return (center, chi) from two separated peaks if possible."""
+        n = len(values)
+        if n < 6:  # noqa: PLR2004
+            return None
+
+        win = 5 if n >= 5 else 3
+        kernel = np.ones(win, dtype=float) / win
+        smooth = np.convolve(values, kernel, mode="same")
+
+        min_sep = max(1, n // 8)
+        candidates = np.argsort(smooth)[::-1]
+        peaks: list[int] = []
+        for idx in candidates:
+            if not peaks or all(abs(idx - p) >= min_sep for p in peaks):
+                peaks.append(int(idx))
+            if len(peaks) == 2:
+                break
+        if len(peaks) < 2:
+            return None
+
+        i1, i2 = sorted(peaks)
+        f1 = float(freqs[i1])
+        f2 = float(freqs[i2])
+        center = 0.5 * (f1 + f2)
+        chi = 0.5 * abs(f2 - f1)
+        if not np.isfinite(center) or not np.isfinite(chi) or chi == 0:
+            return None
+        return center, chi
+
+    peak_init = _two_peak_initialization(f_sorted, g_sorted)
+    if peak_init is not None:
+        center_guess, chi_from_peaks = peak_init
+        chi_guess = float(np.clip(chi_from_peaks, 1e3, freq_span))
+
+    if param_hints is None:
+        param_hints = {}
+
+    param_hints_default = {
+        "kappa": {"value": kappa_guess, "min": 1e3, "max": 10 * freq_span},
+        "chi": {"value": chi_guess, "min": 0.0, "max": 5 * kappa_guess},
+        "epsilon_rf": {"value": drive_guess, "min": 0.0},
+        "bare_freq": {
+            "value": center_guess,
+            "min": float(np.min(f_fit) - freq_span),
+            "max": float(np.max(f_fit) + freq_span),
+        },
+    }
+    # Merge per-parameter so user hints don't discard default constraints.
+    for name, hints in param_hints.items():
+        merged = dict(param_hints_default.get(name, {}))
+        merged.update(hints)
+        param_hints_default[name] = merged
+
+    return fit_data_lmfit(
+        coherent_spec_mid_rate,
+        f_fit,
+        g_fit,
+        param_hints=param_hints_default,
+    )
 
 
 def is_data_convex(x: ArrayLike, y: ArrayLike) -> bool:

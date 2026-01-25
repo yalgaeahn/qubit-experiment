@@ -135,6 +135,8 @@ def experiment_workflow(
     """
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
     qubit = temporary_quantum_elements_from_qpu(temp_qpu, qubit)
+    bus = temporary_quantum_elements_from_qpu(temp_qpu, bus)
+
     exp = create_experiment(
         temp_qpu,
         qubit,
@@ -253,6 +255,11 @@ def create_experiment(
                     )
                 )
 
+    # Match the RIP drive length to ring-up + Ramsey section length.
+    # Ramsey consists of two x90 pulses plus the swept delay.
+    _, transition_params = q.transition_parameters(opts.transition)
+    ramsey_section_length = swp_delays + 2 * transition_params["length"]
+
     # len(swp_delays)=len(swp_phases) => multi dimensional sweep 할때 1d 병렬 sweep으로 동작
 
     # We will fix the length of the measure section to the longest section among
@@ -272,32 +279,36 @@ def create_experiment(
         with dsl.sweep(
             name="CW_freq_sweep",
             parameter=SweepParameter("CW_drive_freqs",frequencies),
-            auto_chunking=True,
+            auto_chunking=False,
         ) as frequency:
-            qop.set_frequency.omit_section(bus,frequency)
+            qop.set_bus_frequency.omit_section(bus,frequency)
             # qop.qubit_spectroscopy_drive(bus,CW_amplitude,CW_phase)
         
         
             with dsl.sweep(
                 name="ramsey_sweep",
                 parameter=[swp_delays, swp_phases],
+                auto_chunking=True,
             ):
                 
                 with dsl.section(name="main", alignment=SectionAlignment.LEFT):
-                    with dsl.section(
-                        name="spec_drive", alignment=SectionAlignment.LEFT
-                    ):
-                        qop.qubit_spectroscopy_drive(
-                            bus,
-                            amplitude=CW_amplitude,
-                            phase=CW_phase,
-                            #length=drive_length,
-                        )
-                    with dsl.section(name="main_drive", alignment=SectionAlignment.LEFT):
+                    with dsl.section(name="qubit_drive", alignment=SectionAlignment.LEFT):
                         qop.delay(q,opts.ring_up)
                         qop.prepare_state.omit_section(q, opts.transition[0])
                         qop.ramsey.omit_section(
                             q, swp_delays, swp_phases, transition=opts.transition 
+                        )
+
+                        
+
+                    with dsl.section(
+                        name="rip_drive", alignment=SectionAlignment.LEFT
+                    ):
+                        qop.rip.omit_section(
+                            bus,
+                            amplitude=CW_amplitude,
+                            phase=CW_phase,
+                            length=opts.ring_up + ramsey_section_length,
                         )
                     with dsl.section(name="main_measure", alignment=SectionAlignment.LEFT):
                         sec = qop.measure(q, dsl.handles.result_handle(q.uid))
