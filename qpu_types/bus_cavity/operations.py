@@ -37,6 +37,59 @@ class BusCavityOperations(dsl.QuantumOperations):
     _PI_BY_2 = np.pi / 2
 
     @dsl.quantum_operation
+    def bus_spectroscopy_drive(
+        self,
+        b: BusCavity,
+        amplitude: float | SweepParameter | None = None,
+        phase: float = 0.0,
+        length: float | SweepParameter | None = None,
+        pulse: dict | None = None,
+    ) -> None:
+        """Long pulse used for qubit spectroscopy that emulates a coherent field.
+
+        Arguments:
+            q:
+                The qubit to apply the spectroscopy drive.
+            amplitude:
+                The amplitude of the pulse. By default, the
+                qubit parameter "spectroscopy_amplitude".
+            phase:
+                The phase of the pulse in radians. By default,
+                this is 0.0.
+            length:
+                The duration of the rotation pulse. By default, this
+                is determined by the qubit parameters.
+            pulse:
+                A dictionary of overrides for the qubit-spectroscopy pulse parameters.
+
+                The dictionary may contain sweep parameters for the pulse
+                parameters other than `function`.
+
+                If the `function` parameter is different to the one
+                specified for the qubit, then this override dictionary
+                completely replaces the existing pulse parameters.
+
+                Otherwise, the values override or extend the existing ones.
+        """
+        spec_line, params = b.spectroscopy_parameters()
+        if amplitude is None:
+            amplitude = params["amplitude"]
+        if length is None:
+            length = params["length"]
+
+        spectroscopy_pulse = dsl.create_pulse(
+            params["pulse"], pulse, name="bus_spectroscopy_pulse"
+        )
+
+        dsl.play(
+            b.signals[spec_line],
+            amplitude=amplitude,
+            phase=phase,
+            length=length,
+            pulse=spectroscopy_pulse,
+        )
+
+    @dsl.quantum_operation
     def rip(self, 
             b: BusCavity,
             amplitude: float | None = None,

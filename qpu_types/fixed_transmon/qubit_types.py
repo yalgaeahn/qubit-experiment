@@ -178,7 +178,8 @@ class FixedTransmonQubitParameters(QuantumParameters):
         factory=lambda: {
             "function": "GaussianSquare",
             "sigma":0.2,
-            "risefall_sigma_ratio":3.0 
+            "risefall_sigma_ratio":3.0, 
+            "can_compress": True
         },
     )
     readout_integration_length: float = 2e-6

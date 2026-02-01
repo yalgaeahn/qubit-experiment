@@ -51,10 +51,23 @@ class BusCavityParameters(QuantumParameters):
     rip_detuning: float | None = None
 
 
-
     drive_lo_frequency : float | None = None
     drive_range: float = 10
 
+    #spectroscopy parameters
+    spectroscopy_length: float | None = 5e-6
+    spectroscopy_amplitude: float | None = 1
+    spectroscopy_pulse: dict = attrs.field(
+        factory=lambda: {
+            "function": "GaussianSquare",
+            "sigma":0.2,
+            "risefall_sigma_ratio":1.0, 
+            "can_compress": True
+        },
+    )
+    
+    
+    
     # characterization parameter
     
     resonance_frequency_bus: float | None = None
@@ -82,6 +95,19 @@ class BusCavity(QuantumElement):
     def rip_parameters(self) -> tuple[str, dict]:
         param_keys = ["amplitude", "length", "pulse"]
         params = {k: getattr(self.parameters, f"rip_{k}") for k in param_keys}
+        return "drive", params
+    
+    def spectroscopy_parameters(self) -> tuple[str, dict]:
+        """Return the qubit-spectroscopy line and the spectroscopy-pulse parameters.
+
+        Returns:
+           line:
+               The qubit-spectroscopy drive line of the qubit.
+           params:
+               The spectroscopy-pulse parameters.
+        """
+        param_keys = ["amplitude", "length", "pulse"]
+        params = {k: getattr(self.parameters, f"spectroscopy_{k}") for k in param_keys}
         return "drive", params
 
 

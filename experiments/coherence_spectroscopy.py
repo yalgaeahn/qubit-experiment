@@ -56,7 +56,11 @@ if TYPE_CHECKING:
 class CoherenceSpectroscopyExperimentOptions:
 
     ring_up: float = workflow.option_field(
-        200e-9, description="Waiting for cavity to ring up"
+        10e-6, description="Waiting for cavity to ring up"
+    )
+
+    ring_down: float = workflow.option_field(
+        100e-9, description="waiting for cavtiy to ring down"
     )
  
     use_cal_traces: bool = workflow.option_field(
@@ -294,7 +298,7 @@ def create_experiment(
                 with dsl.section(name="main", alignment=SectionAlignment.LEFT):
                     with dsl.section(name="qubit_drive", alignment=SectionAlignment.LEFT):
                         qop.delay(q,opts.ring_up)
-                        qop.prepare_state.omit_section(q, opts.transition[0])
+                        #qop.prepare_state.omit_section(q, opts.transition[0])
                         qop.ramsey.omit_section(
                             q, swp_delays, swp_phases, transition=opts.transition 
                         )
@@ -302,15 +306,15 @@ def create_experiment(
                         
 
                     with dsl.section(
-                        name="rip_drive", alignment=SectionAlignment.LEFT
-                    ):
-                        qop.rip.omit_section(
+                        name="bus_spec_drive", alignment=SectionAlignment.LEFT
+                    ) as bus_spec:
+                        qop.bus_spectroscopy_drive.omit_section(
                             bus,
                             amplitude=CW_amplitude,
                             phase=CW_phase,
-                            length=opts.ring_up + ramsey_section_length,
+                            length=opts.ring_up + ramsey_section_length +opts.ring_down,
                         )
-                    with dsl.section(name="main_measure", alignment=SectionAlignment.LEFT):
+                    with dsl.section(name="main_measure", alignment=SectionAlignment.LEFT, play_after=bus_spec.uid):
                         sec = qop.measure(q, dsl.handles.result_handle(q.uid))
                         # Fix the length of the measure section
                         #sec.length = max_measure_section_length
