@@ -297,23 +297,23 @@ def create_experiment(
                 
                 with dsl.section(name="main", alignment=SectionAlignment.LEFT):
                     with dsl.section(name="qubit_drive", alignment=SectionAlignment.LEFT):
-                        qop.delay(q,opts.ring_up)
+                        qop.delay(q,opts.ring_up*0.9) 
                         #qop.prepare_state.omit_section(q, opts.transition[0])
                         qop.ramsey.omit_section(
                             q, swp_delays, swp_phases, transition=opts.transition 
                         )
 
                         
-
                     with dsl.section(
                         name="bus_spec_drive", alignment=SectionAlignment.LEFT
                     ) as bus_spec:
-                        qop.bus_spectroscopy_drive.omit_section(
+                        qop.bus_spectroscopy_drive(
                             bus,
                             amplitude=CW_amplitude,
                             phase=CW_phase,
-                            length=opts.ring_up + ramsey_section_length +opts.ring_down,
+                            length=opts.ring_up + ramsey_section_length,
                         )
+                        qop.bus_delay(bus, opts.ring_down)
                     with dsl.section(name="main_measure", alignment=SectionAlignment.LEFT, play_after=bus_spec.uid):
                         sec = qop.measure(q, dsl.handles.result_handle(q.uid))
                         # Fix the length of the measure section

@@ -61,7 +61,7 @@ class BusCavityParameters(QuantumParameters):
         factory=lambda: {
             "function": "GaussianSquare",
             "sigma":0.2,
-            "risefall_sigma_ratio":1.0, 
+            "risefall_sigma_ratio":0.5, 
             "can_compress": True
         },
     )
