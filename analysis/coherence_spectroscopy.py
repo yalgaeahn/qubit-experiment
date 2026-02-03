@@ -376,11 +376,20 @@ def extract_qubit_parameters(
         best_index = int(np.nanargmax(t2_values)) if finite_mask.any() else 0
 
         # Estimate measurement-induced dephasing rate Γm by subtracting a baseline
-        # dephasing rate taken at the longest (best) T2* point.
+        # dephasing rate computed from the median of the top 10% largest T2* values.
         valid_mask = finite_mask & (t2_values > 0)
         if valid_mask.any():
-            baseline_index = int(np.nanargmax(t2_values[valid_mask]))
-            baseline_actual_index = int(valid_mask.nonzero()[0][baseline_index])
+            valid_indices = np.where(valid_mask)[0]
+            valid_t2 = t2_values[valid_mask]
+            top_thresh = np.nanpercentile(valid_t2, 90.0)
+            top_mask = valid_t2 >= top_thresh
+            if np.count_nonzero(top_mask) == 0:
+                top_mask = np.ones_like(valid_t2, dtype=bool)
+            top_t2 = valid_t2[top_mask]
+            baseline_target = float(np.nanmedian(top_t2))
+            candidate_indices = valid_indices[top_mask]
+            closest = np.nanargmin(np.abs(t2_values[candidate_indices] - baseline_target))
+            baseline_actual_index = int(candidate_indices[int(closest)])
             baseline_t2 = t2_list[baseline_actual_index]
         else:
             baseline_actual_index = 0
@@ -641,6 +650,39 @@ def plot_t2_star_vs_frequency(
             capsize=3,
             label="$T_2^*$",
         )
+        # Mark which point was used as the MID baseline (largest T2*)
+        baseline_index = per_freq.get("mid_baseline_index", None)
+        if baseline_index is not None and 0 <= int(baseline_index) < len(freqs):
+            baseline_freq = freqs[int(baseline_index)]
+            baseline_t2 = t2_vals[int(baseline_index)]
+            baseline_t2_ufloat = t2_list[int(baseline_index)]
+            baseline_gamma = (
+                (1 / baseline_t2_ufloat) if np.isfinite(baseline_t2_ufloat.n) else None
+            )
+            ax.axhline(
+                baseline_t2,
+                color="k",
+                linestyle="--",
+                linewidth=1.0,
+                alpha=0.7,
+                label="Baseline (top 10% median $T_2^*$)",
+            )
+            ax.plot(
+                baseline_freq / 1e9,
+                baseline_t2,
+                "ks",
+                markersize=5,
+                label="Baseline point",
+            )
+            if baseline_gamma is not None and np.isfinite(baseline_gamma.n):
+                ax.text(
+                    0.98,
+                    0.02,
+                    f"Baseline $\\Gamma_0$: {baseline_gamma.n / 1e6:.3f} MHz",
+                    ha="right",
+                    va="bottom",
+                    transform=ax.transAxes,
+                )
         ax.set_xlabel("CW frequency (GHz)")
         ax.set_ylabel("$T_2^*$ ($\\mu$s)")
         ax.set_title(timestamped_title(f"Coherence vs CW freq ({q.uid})"))
