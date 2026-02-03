@@ -55,16 +55,22 @@ class BusCavityParameters(QuantumParameters):
     drive_range: float = 10
 
     #spectroscopy parameters
-    spectroscopy_length: float | None = 5e-6
+    spectroscopy_length: float | None = 100e-6
     spectroscopy_amplitude: float | None = 1
     spectroscopy_pulse: dict = attrs.field(
         factory=lambda: {
-            "function": "GaussianSquare",
-            "sigma":0.2,
-            "risefall_sigma_ratio":0.5, 
-            "can_compress": True
+            "function": "const",
+            "can_compress": True,
         },
     )
+    # spectroscopy_pulse: dict = attrs.field(
+    #     factory=lambda: {
+    #         "function": "GaussianSquare",
+    #         "sigma":0.2,
+    #         "risefall_sigma_ratio":0.5, 
+    #         "can_compress": True
+    #     },
+    # )
     
     
     
