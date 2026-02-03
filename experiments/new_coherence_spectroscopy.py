@@ -62,7 +62,12 @@ class CoherenceSpectroscopyExperimentOptions:
     ring_down: float = workflow.option_field(
         100e-9, description="waiting for cavtiy to ring down"
     )
- 
+    
+    readout_section_length : None | float = workflow.option_field(
+        None, description="Waiting for qubit to ring down"
+    )
+
+
     use_cal_traces: bool = workflow.option_field(
         True, description="Whether to include calibration traces in the experiment."
     )
@@ -264,7 +269,7 @@ def create_experiment(
     _, transition_params = q.transition_parameters(opts.transition)
     ramsey_section_length = swp_delays + 2 * transition_params["length"]
 
-    readout_section_length = 2.0e-6 #max(q.parameters.readout_integration_length,q.parameters.readout_length)
+    readout_section_length = opts.readout_section_length if opts.readout_section_length is not None else 2e-6#max(q.parameters.readout_integration_length,q.parameters.readout_length)
     # len(swp_delays)=len(swp_phases) => multi dimensional sweep 할때 1d 병렬 sweep으로 동작
 
     # We will fix the length of the measure section to the longest section among

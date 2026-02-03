@@ -506,6 +506,7 @@ def coherent_spec_mid_rate(
     chi: float,
     epsilon_rf: float,
     bare_freq: float,
+    eta: float = 0.0,
 ) -> ArrayLike:
     """Measurement-induced dephasing rate model Γm(ωd).
 
@@ -525,12 +526,36 @@ def coherent_spec_mid_rate(
     denom_minus = (kappa**2) / 4 + (delta_r - chi) ** 2
     n_plus = (epsilon_rf**2) / denom_plus
     n_minus = (epsilon_rf**2) / denom_minus
+    # Asymmetry correction (e.g., from T1): eta = 0 recovers the symmetric model.
+    n_plus *= (1.0 + eta)
+    n_minus *= (1.0 - eta)
 
     ds_denom = (kappa**2) / 4 + chi**2 + delta_r**2
     d_s = 2 * (n_plus + n_minus) * (chi**2) / ds_denom
 
     gamma_m = d_s * kappa / 2
     return gamma_m
+
+
+def coherent_spec_photon_numbers(
+    x: ArrayLike,
+    kappa: float,
+    chi: float,
+    epsilon_rf: float,
+    bare_freq: float,
+    eta: float = 0.0,
+) -> tuple[ArrayLike, ArrayLike]:
+    """Return n_plus, n_minus for the coherent spec model."""
+    freq_arr = np.asarray(x, dtype=float)
+    delta_r = freq_arr - bare_freq
+
+    denom_plus = (kappa**2) / 4 + (delta_r + chi) ** 2
+    denom_minus = (kappa**2) / 4 + (delta_r - chi) ** 2
+    n_plus = (epsilon_rf**2) / denom_plus
+    n_minus = (epsilon_rf**2) / denom_minus
+    n_plus *= (1.0 + eta)
+    n_minus *= (1.0 - eta)
+    return n_plus, n_minus
 
 
 def coherent_spec_fit(
@@ -607,6 +632,7 @@ def coherent_spec_fit(
         "kappa": {"value": kappa_guess, "min": 1e3, "max": 10 * freq_span},
         "chi": {"value": chi_guess, "min": 0.0, "max": 5 * kappa_guess},
         "epsilon_rf": {"value": drive_guess, "min": 0.0},
+        "eta": {"value": 0.0, "min": -0.9, "max": 0.9},
         "bare_freq": {
             "value": center_guess,
             "min": float(np.min(f_fit) - freq_span),

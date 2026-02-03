@@ -15,7 +15,11 @@ from laboneq import workflow
 from laboneq_applications.analysis.calibration_traces_rotation import (
     calculate_qubit_population_2d,
 )
-from analysis.fitting_helpers import cosine_oscillatory_decay_fit, coherent_spec_fit
+from analysis.fitting_helpers import (
+    coherent_spec_fit,
+    coherent_spec_photon_numbers,
+    cosine_oscillatory_decay_fit,
+)
 from laboneq_applications.analysis.options import (
     ExtractQubitParametersTransitionOptions,
     FitDataOptions,
@@ -190,6 +194,7 @@ def analysis_workflow(
             )
             plot_t2_star_vs_frequency(qubits, qubit_parameters)
             plot_MID_rate_vs_frequency(qubits, qubit_parameters, mid_fit_results)
+            plot_photon_numbers_vs_frequency(qubits, qubit_parameters)
     workflow.return_(qubit_parameters)
 
 
@@ -353,8 +358,25 @@ def extract_qubit_parameters(
 
         t2_list = []
         qb_freq_list = []
+        fit_success_list = []
         for fit_res in fits:
-            if fit_res is None:
+            min_t2_star = 0.1e-6  # 0.1 us in seconds
+            max_rel_t2_err = 0.5
+            t2_value = fit_res.params["decay_time"].value
+            t2_stderr = fit_res.params["decay_time"].stderr
+            rel_t2_err = np.inf
+            if t2_stderr is not None and np.isfinite(t2_stderr) and t2_value != 0:
+                rel_t2_err = abs(t2_stderr / t2_value)
+            is_success = (
+                fit_res is not None
+                and getattr(fit_res, "success", True)
+                and np.isfinite(fit_res.params["frequency"].value)
+                and np.isfinite(t2_value)
+                and t2_value > min_t2_star
+                and rel_t2_err <= max_rel_t2_err
+            )
+            fit_success_list.append(bool(is_success))
+            if not is_success:
                 t2_list.append(unc.ufloat(np.nan, np.nan))
                 qb_freq_list.append(unc.ufloat(np.nan, np.nan))
                 continue
@@ -414,6 +436,7 @@ def extract_qubit_parameters(
             "best_index": best_index,
             "mid_rate": mid_rate_list,
             "mid_baseline_index": baseline_actual_index,
+            "fit_success": fit_success_list,
         }
 
         if finite_mask.any():
@@ -446,7 +469,10 @@ def fit_mid_rate_data(
             continue
 
         mid_nom = np.array([rate.n for rate in mid_rates], dtype=float)
-        mask = np.isfinite(freqs) & np.isfinite(mid_nom) & (mid_nom >= 0)
+        fit_success = np.asarray(per_freq.get("fit_success", []), dtype=bool)
+        if fit_success.size != mid_nom.size:
+            fit_success = np.ones_like(mid_nom, dtype=bool)
+        mask = np.isfinite(freqs) & np.isfinite(mid_nom) & (mid_nom >= 0) & fit_success
         if np.count_nonzero(mask) < 4:  # noqa: PLR2004
             logging.warning("Not enough finite MID-rate points to fit for %s.", q.uid)
             fit_results[q.uid] = None
@@ -455,11 +481,63 @@ def fit_mid_rate_data(
         try:
             fit_res = coherent_spec_fit(freqs[mask], mid_nom[mask], param_hints=param_hints)
             fit_results[q.uid] = fit_res
+            kappa = fit_res.best_values.get("kappa", np.nan)
+            chi = fit_res.best_values.get("chi", np.nan)
+            eps = fit_res.best_values.get("epsilon_rf", np.nan)
+            bare = fit_res.best_values.get("bare_freq", np.nan)
+            eta = fit_res.best_values.get("eta", 0.0)
+            if np.all(np.isfinite([kappa, chi, eps, bare])):
+                n_plus, n_minus = coherent_spec_photon_numbers(
+                    freqs, kappa, chi, eps, bare, eta
+                )
+            else:
+                n_plus = np.full_like(freqs, np.nan, dtype=float)
+                n_minus = np.full_like(freqs, np.nan, dtype=float)
+            per_freq["n_plus"] = n_plus
+            per_freq["n_minus"] = n_minus
         except ValueError as err:
             logging.error("MID fit failed for %s: %s.", q.uid, err)
             fit_results[q.uid] = None
+            per_freq["n_plus"] = np.full_like(freqs, np.nan, dtype=float)
+            per_freq["n_minus"] = np.full_like(freqs, np.nan, dtype=float)
 
     return fit_results
+
+
+@workflow.task
+def plot_photon_numbers_vs_frequency(
+    qubits: QuantumElements,
+    qubit_parameters: dict[str, dict[str, dict[str, int | float | unc.core.Variable]]],
+) -> dict[str, mpl.figure.Figure]:
+    """Plot extracted photon numbers n_plus/n_minus as a function of CW frequency."""
+    qubits = validate_and_convert_qubits_sweeps(qubits)
+    figures: dict[str, mpl.figure.Figure] = {}
+
+    for q in qubits:
+        per_freq = qubit_parameters["per_frequency"].get(q.uid, {})
+        if not per_freq:
+            continue
+        freqs = np.asarray(per_freq.get("frequencies", []), dtype=float)
+        n_plus = np.asarray(per_freq.get("n_plus", []), dtype=float)
+        n_minus = np.asarray(per_freq.get("n_minus", []), dtype=float)
+        if freqs.size == 0 or n_plus.size == 0 or n_minus.size == 0:
+            continue
+
+        mask = np.isfinite(freqs) & np.isfinite(n_plus) & np.isfinite(n_minus)
+        if np.count_nonzero(mask) == 0:
+            continue
+
+        fig, ax = plt.subplots()
+        ax.plot(freqs[mask] / 1e9, n_plus[mask], "o-", label="$\\bar{n}_+$")
+        ax.plot(freqs[mask] / 1e9, n_minus[mask], "o-", label="$\\bar{n}_-$")
+        ax.set_xlabel("CW frequency (GHz)")
+        ax.set_ylabel("Photon number")
+        ax.set_title(timestamped_title(f"Photon numbers vs CW freq ({q.uid})"))
+        ax.grid(True, alpha=0.3)
+        ax.legend(loc="best")
+        figures[q.uid] = fig
+
+    return figures
 
 
 @workflow.task
@@ -713,7 +791,10 @@ def plot_MID_rate_vs_frequency(
 
         mid_nom = np.array([rate.n for rate in mid_rates], dtype=float)
         mid_err = np.array([rate.s for rate in mid_rates], dtype=float)
-        mask = np.isfinite(freqs) & np.isfinite(mid_nom)
+        fit_success = np.asarray(per_freq.get("fit_success", []), dtype=bool)
+        if fit_success.size != mid_nom.size:
+            fit_success = np.ones_like(mid_nom, dtype=bool)
+        mask = np.isfinite(freqs) & np.isfinite(mid_nom) & fit_success
         if np.count_nonzero(mask) == 0:
             continue
 
@@ -749,11 +830,13 @@ def plot_MID_rate_vs_frequency(
             kappa_fit = fit_res.best_values.get("kappa", np.nan)
             chi_fit = fit_res.best_values.get("chi", np.nan)
             eps_fit = fit_res.best_values.get("epsilon_rf", np.nan)
+            eta_fit = fit_res.best_values.get("eta", np.nan)
             bare_fit = fit_res.best_values.get("bare_freq", np.nan)
             textstr = (
                 f"$\\kappa$: {kappa_fit / 1e6:.3f} MHz\n"
                 f"$\\chi$: {chi_fit / 1e6:.3f} MHz\n"
                 f"$\\epsilon_{{rf}}$: {eps_fit / 1e6:.3f} MHz\n"
+                f"$\\eta$: {eta_fit:.3f}\n"
                 f"$f_r$: {bare_fit / 1e9:.6f} GHz"
             )
             ax.text(0.02, 0.98, textstr, ha="left", va="top", transform=ax.transAxes)
