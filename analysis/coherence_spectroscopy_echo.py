@@ -18,7 +18,7 @@ from laboneq_applications.analysis.calibration_traces_rotation import (
 from analysis.fitting_helpers import (
     coherent_spec_fit,
     coherent_spec_photon_numbers,
-    cosine_oscillatory_decay_fit,
+    exponential_decay_fit,
 )
 from laboneq_applications.analysis.options import (
     ExtractQubitParametersTransitionOptions,
@@ -122,10 +122,9 @@ def analysis_workflow(
     qubits: QuantumElements,
     delays: QubitSweepPoints,
     frequencies: QubitSweepPoints,
-    detunings: float | Sequence[float] | None = None,
     options: TuneUpAnalysisWorkflowOptions | None = None,
 ) -> None:
-    """The Ramsey analysis Workflow.
+    """The Echo analysis Workflow.
 
     The workflow consists of the following steps:
 
@@ -143,15 +142,9 @@ def analysis_workflow(
             The qubits on which to run the analysis. May be either a single qubit or
             a list of qubits. The UIDs of these qubits must exist in the result.
         delays:
-            The delays that were swept over in the Ramsey experiment for
+            The delays that were swept over in the Echo experiment for
             each qubit. If `qubits` is a single qubit, `delays` must be an array of
             numbers. Otherwise, it must be a list of arrays of numbers.
-        detunings:
-            The detuning in Hz introduced in order to generate oscillations of the qubit
-            state vector around the Bloch sphere. This detuning and the frequency of the
-            fitted oscillations is used to calculate the true qubit resonance frequency.
-            `detunings` is a list of float values for each qubit following the order
-            in qubits.
         options:
             The options for building the workflow, passed as an instance of
             [TuneUpAnalysisWorkflowOptions]. See the docstring of this class for
@@ -170,7 +163,6 @@ def analysis_workflow(
                 np.linspace(0, 20e-6, 51),
                 np.linspace(0, 30e-6, 52),
             ],
-            detunings = [1e6, 1.346e6],
             options=analysis_workflow.options()
         ).run()
         ```
@@ -182,7 +174,7 @@ def analysis_workflow(
         sweep_points_2d=frequencies,
     )
     fit_results = fit_data(qubits, processed_data_dict)
-    qubit_parameters = extract_qubit_parameters(qubits, fit_results, detunings)
+    qubit_parameters = extract_qubit_parameters(qubits, fit_results)
     mid_fit_results = fit_mid_rate_data(qubits, qubit_parameters)
     with workflow.if_(options.do_plotting):
         with workflow.if_(options.do_raw_data_plotting):
@@ -190,7 +182,7 @@ def analysis_workflow(
             plot_population_heatmap_2d(qubits, processed_data_dict)
         with workflow.if_(options.do_qubit_population_plotting):
             plot_population(
-                qubits, processed_data_dict, fit_results, qubit_parameters, detunings
+                qubits, processed_data_dict, fit_results, qubit_parameters
             )
             plot_t2_star_vs_frequency(qubits, qubit_parameters)
             plot_MID_rate_vs_frequency(qubits, qubit_parameters, mid_fit_results)
@@ -204,7 +196,7 @@ def fit_data(
     processed_data_dict: dict[str, dict[str, ArrayLike]],
     options: FitDataRamseyOptions | None = None,
 ) -> dict[str, dict[str, ArrayLike]]:
-    """Perform a fit of an exponentially decaying cosine model to the data.
+    """Perform a fit of an exponential-decay model to the data.
 
     Arguments:
         qubits:
@@ -231,10 +223,17 @@ def fit_data(
         data_to_fit = processed_data_dict[q.uid][
             "population" if opts.do_rotation else "data_raw"
         ]
+        num_cal_traces = processed_data_dict[q.uid].get("num_cal_traces", 0)
+        echo_pulse_length = (
+            q.parameters.ef_drive_length
+            if "f" in opts.transition
+            else q.parameters.ge_drive_length
+        )
+        swpts_fit = np.asarray(delays) + echo_pulse_length
 
         param_hints = {
-            "amplitude": {"value": 0.5, "vary": opts.do_pca},
-            "oscillation_offset": {"value": 0, "vary": "f" in opts.transition},
+            "amplitude": {"value": 0.5},
+            "offset": {"value": 0.5, "vary": opts.do_pca or num_cal_traces == 0},
         }
         param_hints_user = opts.fit_parameters_hints
         if param_hints_user is None:
@@ -244,8 +243,8 @@ def fit_data(
         freq_fits: list[lmfit.model.ModelResult] = []
         for i, freq in enumerate(cw_freqs):
             try:
-                fit_res = cosine_oscillatory_decay_fit(
-                    delays,
+                fit_res = exponential_decay_fit(
+                    swpts_fit,
                     data_to_fit[i, :],
                     param_hints=param_hints,
                 )
@@ -272,7 +271,6 @@ def fit_data(
 def extract_qubit_parameters(
     qubits: QuantumElements,
     fit_results: dict[str, dict[str, ArrayLike]],
-    detunings: dict[str, float] | None = None,
     options: ExtractQubitParametersTransitionOptions | None = None,
 ) -> dict[str, dict[str, dict[str, int | float | unc.core.Variable | None]]]:
     """Extract the qubit parameters from the fit results.
@@ -282,12 +280,6 @@ def extract_qubit_parameters(
             The qubits on which to run the analysis. May be either a single qubit or
             a list of qubits.
         fit_results: the fit-results dictionary returned by fit_data
-        detunings:
-            The detuning in Hz introduced in order to generate oscillations of the qubit
-            state vector around the Bloch sphere. This detuning and the frequency of the
-            fitted oscillations is used to calculate the true qubit resonance frequency.
-            `detunings` is a list of float values for each qubit following the order
-            in qubits.
         options:
             The options for extracting the qubit parameters.
             See [ExtractQubitParametersTransitionOptions] for accepted options.
@@ -311,7 +303,6 @@ def extract_qubit_parameters(
                 q.uid: {
                     "frequencies": np.array([...]),
                     "t2_star": [unc.ufloat, ...],
-                    "fit_frequency": [unc.ufloat, ...],
                     "best_index": int,
                 }
             }
@@ -324,7 +315,6 @@ def extract_qubit_parameters(
     """
     opts = ExtractQubitParametersTransitionOptions() if options is None else options
     qubits = validate_and_convert_qubits_sweeps(qubits)
-    detunings = validate_and_convert_detunings(qubits, detunings)
     qubit_parameters = {
         "old_parameter_values": {q.uid: {} for q in qubits},
         "new_parameter_values": {q.uid: {} for q in qubits},
@@ -354,23 +344,32 @@ def extract_qubit_parameters(
         freq_data = fit_results[q.uid]
         cw_freqs = np.array(freq_data["frequencies"])
         fits = freq_data["fits"]
-        introduced_detuning = detunings[i]
 
         t2_list = []
-        qb_freq_list = []
         fit_success_list = []
         for fit_res in fits:
             min_t2_star = 0.1e-6  # 0.1 us in seconds
             max_rel_t2_err = 0.5
-            t2_value = fit_res.params["decay_time"].value
-            t2_stderr = fit_res.params["decay_time"].stderr
+            if fit_res is None:
+                fit_success_list.append(False)
+                t2_list.append(unc.ufloat(np.nan, np.nan))
+                continue
+            decay_rate = fit_res.params["decay_rate"].value
+            decay_rate_stderr = fit_res.params["decay_rate"].stderr
+            if decay_rate is None or not np.isfinite(decay_rate) or decay_rate <= 0:
+                fit_success_list.append(False)
+                t2_list.append(unc.ufloat(np.nan, np.nan))
+                continue
+            t2_value = 1 / decay_rate
+            t2_stderr = None
+            if decay_rate_stderr is not None and np.isfinite(decay_rate_stderr):
+                t2_stderr = decay_rate_stderr / (decay_rate**2)
             rel_t2_err = np.inf
             if t2_stderr is not None and np.isfinite(t2_stderr) and t2_value != 0:
                 rel_t2_err = abs(t2_stderr / t2_value)
             is_success = (
                 fit_res is not None
                 and getattr(fit_res, "success", True)
-                and np.isfinite(fit_res.params["frequency"].value)
                 and np.isfinite(t2_value)
                 and t2_value > min_t2_star
                 and rel_t2_err <= max_rel_t2_err
@@ -378,19 +377,9 @@ def extract_qubit_parameters(
             fit_success_list.append(bool(is_success))
             if not is_success:
                 t2_list.append(unc.ufloat(np.nan, np.nan))
-                qb_freq_list.append(unc.ufloat(np.nan, np.nan))
                 continue
-            freq_fit = unc.ufloat(
-                fit_res.params["frequency"].value,
-                fit_res.params["frequency"].stderr,
-            )
-            qb_freq = old_qb_freq + introduced_detuning - freq_fit
-            t2_star = unc.ufloat(
-                fit_res.params["decay_time"].value,
-                fit_res.params["decay_time"].stderr,
-            )
+            t2_star = unc.ufloat(t2_value, t2_stderr or 0.0)
             t2_list.append(t2_star)
-            qb_freq_list.append(qb_freq)
 
         # pick the frequency with the largest T2* (ignoring NaNs) as the update target
         t2_values = np.array([t.n for t in t2_list], dtype=float)
@@ -449,7 +438,6 @@ def extract_qubit_parameters(
         qubit_parameters["per_frequency"][q.uid] = {
             "frequencies": cw_freqs,
             "t2_star": t2_list,
-            "fit_frequency": qb_freq_list,
             "best_index": best_index,
             "mid_rate": mid_rate_list,
             "mid_baseline_index": baseline_actual_index,
@@ -461,7 +449,6 @@ def extract_qubit_parameters(
 
         if finite_mask.any():
             qubit_parameters["new_parameter_values"][q.uid] = {
-                f"resonance_frequency_{opts.transition}": qb_freq_list[best_index],
                 f"{opts.transition}_T2_star": t2_list[best_index],
                 "selected_cw_frequency": cw_freqs[best_index],
             }
@@ -570,10 +557,9 @@ def plot_population(
         dict[str, dict[str, int | float | unc.core.Variable | None]],
     ]
     | None,
-    detunings: dict[str, float] | None = None,
     options: PlotPopulationOptions | None = None,
 ) -> dict[str, mpl.figure.Figure]:
-    """Create the Ramsey plots.
+    """Create the Echo plots.
 
     Arguments:
         qubits:
@@ -584,15 +570,9 @@ def plot_population(
         fit_results: the fit-results dictionary returned by fit_data
         qubit_parameters: the qubit-parameters dictionary returned by
             extract_qubit_parameters
-        detunings:
-            The detuning in Hz introduced in order to generate oscillations of the qubit
-            state vector around the Bloch sphere. This detuning and the frequency of the
-            fitted oscillations is used to calculate the true qubit resonance frequency.
-            `detunings` is a list of float values for each qubit following the order
-            in qubits.
-        options:
-            The options class for this task as an instance of [PlotPopulationOptions].
-            See the docstring of this class for accepted options.
+    options:
+        The options class for this task as an instance of [PlotPopulationOptions].
+        See the docstring of this class for accepted options.
 
     Returns:
         dict with qubit UIDs as keys and the figures for each qubit as values.
@@ -602,7 +582,6 @@ def plot_population(
     """
     opts = PlotPopulationOptions() if options is None else options
     qubits = validate_and_convert_qubits_sweeps(qubits)
-    detunings = validate_and_convert_detunings(qubits, detunings)
     figures = {}
     for i, q in enumerate(qubits):
         sweep_points = processed_data_dict[q.uid]["sweep_points_1d"]
@@ -625,7 +604,7 @@ def plot_population(
             data = data_full[cw_index, :] if data_full.ndim > 1 else data_full
 
             fig, ax = plt.subplots()
-            ax.set_title(timestamped_title(f"Ramsey {q.uid} @ CW idx {cw_index}"))
+            ax.set_title(timestamped_title(f"Echo {q.uid} @ CW idx {cw_index}"))
             ax.set_xlabel("Pulse Separation, $\\tau$ ($\\mu$s)")
             ax.set_ylabel(
                 "Principal Component (a.u)"
@@ -676,40 +655,24 @@ def plot_population(
                     old_t2_star = qubit_parameters["old_parameter_values"][q.uid][
                         f"{opts.transition}_T2_star"
                     ]
-                    new_qb_freq = qubit_parameters["new_parameter_values"][q.uid][
-                        f"resonance_frequency_{opts.transition}"
-                    ]
                     new_t2_star = qubit_parameters["new_parameter_values"][q.uid][
                         f"{opts.transition}_T2_star"
                     ]
-                    freq_fit = fit_res_qb.best_values["frequency"]
-                    freq_fit_err = fit_res_qb.params["frequency"].stderr
-                    introduced_detuning = detunings[i]
-                    fit_t2 = unc.ufloat(
-                        fit_res_qb.params["decay_time"].value,
-                        fit_res_qb.params["decay_time"].stderr,
-                    )
-                    fit_qb_freq = old_qb_freq + introduced_detuning - unc.ufloat(
-                        freq_fit,
-                        freq_fit_err,
-                    )
-                    display_qb_freq = new_qb_freq if cw_index == best_index else fit_qb_freq
+                    decay_rate = fit_res_qb.params["decay_rate"].value
+                    decay_rate_err = fit_res_qb.params["decay_rate"].stderr
+                    if decay_rate is not None and np.isfinite(decay_rate) and decay_rate > 0:
+                        fit_t2 = unc.ufloat(
+                            1 / decay_rate,
+                            (decay_rate_err / (decay_rate**2))
+                            if decay_rate_err is not None
+                            and np.isfinite(decay_rate_err)
+                            else 0.0,
+                        )
+                    else:
+                        fit_t2 = unc.ufloat(np.nan, np.nan)
                     display_t2 = new_t2_star if cw_index == best_index else fit_t2
                     textstr = (
-                        f"New qubit frequency: {display_qb_freq.nominal_value / 1e9:.6f} GHz "
-                        f"$\\pm$ {display_qb_freq.std_dev / 1e6:.4f} MHz"
-                    )
-                    textstr += f"\nOld qubit frequency: {old_qb_freq / 1e9:.6f} GHz"
-                    textstr += (
-                        f"\nDiff new-old qubit frequency: "
-                        f"{(display_qb_freq - old_qb_freq) / 1e6:.6f} MHz"
-                    )
-                    textstr += (
-                        f"\nIntroduced detuning: {introduced_detuning / 1e6:.2f} MHz"
-                    )
-                    textstr += (
-                        f"\nFitted frequency: {freq_fit / 1e6:.6f} "
-                        f"$\\pm$ {freq_fit_err / 1e6:.4f} MHz"
+                        f"Old qubit frequency: {old_qb_freq / 1e9:.6f} GHz"
                     )
                     textstr += (
                         f"\n$T_2^*$: {display_t2.nominal_value * 1e6:.4f} $\\mu$s $\\pm$ "
@@ -731,9 +694,9 @@ def plot_population(
 
             if opts.save_figures:
                 artifact_name = (
-                    f"Ramsey_{q.uid}"
+                    f"Echo_{q.uid}"
                     if cw_index == best_index
-                    else f"Ramsey_{q.uid}_minima_{cw_index}"
+                    else f"Echo_{q.uid}_minima_{cw_index}"
                 )
                 workflow.save_artifact(artifact_name, fig)
 
