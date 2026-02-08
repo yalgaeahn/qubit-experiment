@@ -23,7 +23,7 @@ from analysis.iq_blobs import (
     plot_assignment_matrices,
     plot_iq_blobs,
 )
-from analysis.iq_traj import IQTrajAnalysisWorkflowOptions, plot_iq_trajectories
+from analysis.iq_traj import plot_iq_trajectories
 from laboneq_applications.core.validation import (
     validate_and_convert_qubits_sweeps,
     validate_result,
@@ -123,13 +123,11 @@ def analysis_workflow(
 
     with workflow.if_(options.do_plotting):
         with workflow.if_(options.do_plotting_iq_traj):
-            traj_plot_opts = IQTrajAnalysisWorkflowOptions()
-            traj_plot_opts.chunk_size = options.chunk_size
             plot_iq_trajectories(
                 qubits,
                 states,
                 trajectory_data,
-                options2=traj_plot_opts,
+                chunk_size=options.chunk_size,
             )
 
         with workflow.if_(options.do_plotting_iq_blobs):

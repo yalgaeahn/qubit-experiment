@@ -79,6 +79,10 @@ class IQTrajAnalysisWorkflowOptions:
     chunk_size: int = workflow.option_field(
         8, description="Size of chung 8 -> 4ns"
     )
+    sample_dt_ns: float = workflow.option_field(
+        0.5,
+        description="Sampling period in ns for raw traces.",
+    )
 
 @workflow.workflow
 def analysis_workflow(
@@ -116,10 +120,21 @@ def analysis_workflow(
         ```
     """
 
-    processed_data_dict = demodulate_time_traces(qubits,result,states)
+    processed_data_dict = demodulate_time_traces(
+        qubits,
+        result,
+        states,
+        sample_dt_ns=options.sample_dt_ns,
+    )
     processed_data_dict =average_chunk_time_traces(qubits, processed_data_dict, states)
     with workflow.if_(options.do_plotting):
-        plot_iq_trajectories(qubits,states,processed_data_dict) 
+        plot_iq_trajectories(
+            qubits,
+            states,
+            processed_data_dict,
+            chunk_size=options.chunk_size,
+            sample_dt_ns=options.sample_dt_ns,
+        )
     workflow.return_(None)
 
 @workflow.task
@@ -127,6 +142,7 @@ def demodulate_time_traces(
     qubits: QuantumElements,
     result: RunExperimentResults,
     states: Sequence[str],
+    sample_dt_ns: float = 0.5,
 ) -> dict[str, dict[str, ArrayLike | dict]]:
     
     
@@ -141,8 +157,9 @@ def demodulate_time_traces(
             time_trace[s] = result[dsl.handles.calibration_trace_handle(q.uid, s)].data
             _I = np.real(time_trace[s])
             _Q = np.imag(time_trace[s])
-            cos = np.cos(2*np.pi*_IF_freq*np.arange(len(_I))/2 * 1e-9)
-            sin = np.sin(2*np.pi*_IF_freq*np.arange(len(_Q))/2 * 1e-9)
+            times_s = np.arange(len(_I), dtype=float) * sample_dt_ns * 1e-9
+            cos = np.cos(2 * np.pi * _IF_freq * times_s)
+            sin = np.sin(2 * np.pi * _IF_freq * times_s)
             # demodulate the data
             I_demod = _I * cos + _Q * sin
             # Rotate the quadratures into the demodulated frame
@@ -200,6 +217,8 @@ def plot_iq_trajectories(
     states: Sequence[str],
     processed_data_dict: dict[str, dict[str, ArrayLike | dict]],
     options: BasePlottingOptions | None = None,
+    chunk_size: int = 8,
+    sample_dt_ns: float = 0.5,
     options2: IQTrajAnalysisWorkflowOptions | None = None,
 ) -> dict[str, mpl.figure.Figure]:
     """Create the IQ-blobs plots.
@@ -228,6 +247,8 @@ def plot_iq_trajectories(
     qubits = validate_and_convert_qubits_sweeps(qubits)
     figures = {}
     color_map = {0:'b', 1:'r', 2:'g'}
+    plot_chunk_size = opts2.chunk_size if options2 is not None else chunk_size
+    plot_sample_dt_ns = opts2.sample_dt_ns if options2 is not None else sample_dt_ns
     for q in qubits:
         # shots_per_state = processed_data_dict[q.uid]["shots_per_state"]
         # shots_combined = processed_data_dict[q.uid]["shots_combined"]
@@ -251,7 +272,7 @@ def plot_iq_trajectories(
             I_trace = np.real(processed_data_dict[q.uid][s])
             Q_trace = np.imag(processed_data_dict[q.uid][s])
             
-            axis = np.arange(len(I_trace))*opts2.chunk_size
+            axis = np.arange(len(I_trace)) * plot_chunk_size * plot_sample_dt_ns
             ax[0].scatter(axis,I_trace,color=color_map[i],label=s)
             ax[0].plot(axis,I_trace,'-',color=color_map[i],label=s)
 
@@ -281,4 +302,3 @@ def plot_iq_trajectories(
         figures[q.uid] = fig
 
     return figures
-

@@ -13,7 +13,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from laboneq import workflow
-from laboneq.simple import AcquisitionType, AveragingMode, Experiment, dsl
+from laboneq.simple import (
+    AcquisitionType,
+    AveragingMode,
+    Experiment,
+    SweepParameter,
+    dsl,
+)
 from laboneq.workflow.tasks import compile_experiment, run_experiment
 
 from analysis.iq_traj_blobs import analysis_workflow
@@ -45,6 +51,21 @@ class IQTrajBlobsExperimentOptions:
     averaging_mode: AveragingMode = workflow.option_field(
         AveragingMode.SINGLE_SHOT,
         description="Averaging mode used for the experiment.",
+    )
+    max_raw_results_per_rt: int = workflow.option_field(
+        1024,
+        description=(
+            "Hardware/controller limit for raw results per real-time execution. "
+            "Used to automatically split large RAW single-shot acquisitions "
+            "into near-time chunks."
+        ),
+    )
+    max_shots_per_rt: int | None = workflow.option_field(
+        None,
+        description=(
+            "Optional manual cap for shots per real-time RAW execution to avoid "
+            "instrument memory overflow for long traces."
+        ),
     )
 
 
@@ -92,16 +113,14 @@ def create_experiment(
     """Create an experiment that captures raw single-shot calibration traces."""
     opts = IQTrajBlobsExperimentOptions() if options is None else options
     qubits = validation.validate_and_convert_qubits_sweeps(qubits)
+    states = list(states)
     qop = qpu.quantum_operations
+    target_count = int(opts.count)
 
-    with dsl.acquire_loop_rt(
-        count=opts.count,
-        averaging_mode=opts.averaging_mode,
-        acquisition_type=opts.acquisition_type,
-        repetition_mode=opts.repetition_mode,
-        repetition_time=opts.repetition_time,
-        reset_oscillator_phase=opts.reset_oscillator_phase,
-    ):
+    if target_count < 1:
+        raise ValueError("'count' must be >= 1.")
+
+    def _add_calibration_traces() -> None:
         qop.calibration_traces.omit_section(
             qubits=qubits,
             states=states,
@@ -109,3 +128,78 @@ def create_experiment(
             active_reset_states=opts.active_reset_states,
             active_reset_repetitions=opts.active_reset_repetitions,
         )
+
+    rt_count = target_count
+    full_nt_steps = 0
+    remainder_count = 0
+    if opts.acquisition_type == AcquisitionType.RAW:
+        raw_results_per_shot = len(qubits) * len(states)
+        max_raw_results = int(opts.max_raw_results_per_rt)
+        if max_raw_results < 1:
+            raise ValueError("'max_raw_results_per_rt' must be >= 1.")
+
+        max_shots_per_rt = max_raw_results // raw_results_per_shot
+        if max_shots_per_rt < 1:
+            raise ValueError(
+                "Requested qubits/states exceed RAW result capacity per real-time "
+                "execution. Reduce number of qubits/states or increase "
+                "'max_raw_results_per_rt'."
+            )
+
+        rt_count = min(target_count, max_shots_per_rt)
+        if opts.max_shots_per_rt is not None:
+            manual_cap = int(opts.max_shots_per_rt)
+            if manual_cap < 1:
+                raise ValueError("'max_shots_per_rt' must be >= 1 when provided.")
+            rt_count = min(rt_count, manual_cap)
+        full_nt_steps = target_count // rt_count
+        remainder_count = target_count % rt_count
+    else:
+        full_nt_steps = 1
+
+    if full_nt_steps > 1:
+        nt_step = SweepParameter(uid="nt_chunk", values=list(range(full_nt_steps)))
+        with dsl.sweep(
+            uid="nt_chunk_sweep",
+            name="nt_chunk_sweep",
+            parameter=nt_step,
+        ):
+            with dsl.acquire_loop_rt(
+                count=rt_count,
+                averaging_mode=opts.averaging_mode,
+                acquisition_type=opts.acquisition_type,
+                repetition_mode=opts.repetition_mode,
+                repetition_time=opts.repetition_time,
+                reset_oscillator_phase=opts.reset_oscillator_phase,
+            ):
+                _add_calibration_traces()
+        if remainder_count > 0:
+            with dsl.acquire_loop_rt(
+                count=remainder_count,
+                averaging_mode=opts.averaging_mode,
+                acquisition_type=opts.acquisition_type,
+                repetition_mode=opts.repetition_mode,
+                repetition_time=opts.repetition_time,
+                reset_oscillator_phase=opts.reset_oscillator_phase,
+            ):
+                _add_calibration_traces()
+    elif full_nt_steps == 1:
+        with dsl.acquire_loop_rt(
+            count=rt_count,
+            averaging_mode=opts.averaging_mode,
+            acquisition_type=opts.acquisition_type,
+            repetition_mode=opts.repetition_mode,
+            repetition_time=opts.repetition_time,
+            reset_oscillator_phase=opts.reset_oscillator_phase,
+        ):
+            _add_calibration_traces()
+    else:
+        with dsl.acquire_loop_rt(
+            count=remainder_count,
+            averaging_mode=opts.averaging_mode,
+            acquisition_type=opts.acquisition_type,
+            repetition_mode=opts.repetition_mode,
+            repetition_time=opts.repetition_time,
+            reset_oscillator_phase=opts.reset_oscillator_phase,
+        ):
+            _add_calibration_traces()
