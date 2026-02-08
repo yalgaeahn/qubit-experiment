@@ -24,7 +24,7 @@ from laboneq.workflow.tasks import (
     run_experiment,
 )
 
-from analysis import coherence_spectroscopy as analysis_coherence
+from analysis import coherence_spectroscopy_echo as analysis_coherence
 from laboneq_applications.analysis.ramsey import (
     validate_and_convert_detunings,
 )
@@ -316,7 +316,7 @@ def create_experiment(
             
             with dsl.sweep(
                 name="ramsey_sweep",
-                parameter=[swp_delays, swp_phases],
+                parameter=swp_delays,
                 auto_chunking=True,
             ):  
                 with dsl.section(name="qubit_drive", alignment=SectionAlignment.LEFT):
@@ -325,7 +325,7 @@ def create_experiment(
                     ramsey_sec=qop.ramsey(
                     q, 
                     swp_delays, 
-                    0,#swp_phases, 
+                    0, 
                     transition=opts.transition,
                     echo_pulse=opts.refocus_qop,
                     )
