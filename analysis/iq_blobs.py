@@ -66,6 +66,13 @@ class IQBlobAnalysisWorkflowOptions:
         fit_method:
             Classifier to use for the fit. Supported: "lda" (default) and "gmm" (two
             states only).
+        do_threshold_calibration:
+            Whether to estimate g/e discrimination thresholds from integrated IQ shots.
+            Default: `True`.
+        enforce_constant_kernel:
+            Whether to enforce the default constant integration kernel when extracting
+            qubit parameters for discrimination calibration.
+            Default: `True`.
     """
 
     do_fitting: bool = workflow.option_field(
@@ -83,6 +90,17 @@ class IQBlobAnalysisWorkflowOptions:
     fit_method: Literal["lda", "gmm"] = workflow.option_field(
         "gmm",
         description='Classifier to use for the fit. Supported: "lda" and "gmm" (two states).',
+    )
+    do_threshold_calibration: bool = workflow.option_field(
+        True,
+        description="Whether to estimate g/e discrimination thresholds.",
+    )
+    enforce_constant_kernel: bool = workflow.option_field(
+        True,
+        description=(
+            "Whether to force default constant integration kernels when extracting "
+            "discrimination calibration parameters."
+        ),
     )
 
 
@@ -140,6 +158,11 @@ def analysis_workflow(
     fit_results = None
     assignment_matrices = None
     assignment_fidelities = None
+    discrimination_thresholds = {}
+    qubit_parameters = {
+        "old_parameter_values": {},
+        "new_parameter_values": {},
+    }
     with workflow.if_(options.do_fitting):
         fit_results = fit_data(qubits, processed_data_dict, options.fit_method)
         assignment_matrices = calculate_assignment_matrices(
@@ -157,7 +180,21 @@ def analysis_workflow(
                 plot_assignment_matrices(
                     qubits, states, assignment_matrices, assignment_fidelities
                 )
-    workflow.return_(assignment_fidelities)
+    with workflow.if_(options.do_threshold_calibration):
+        discrimination_thresholds = extract_discrimination_thresholds(
+            qubits, states, processed_data_dict
+        )
+        qubit_parameters = extract_qubit_parameters_for_discrimination(
+            qubits,
+            discrimination_thresholds,
+            enforce_constant_kernel=options.enforce_constant_kernel,
+        )
+    output_payload = assemble_analysis_output(
+        assignment_fidelities,
+        discrimination_thresholds,
+        qubit_parameters,
+    )
+    workflow.return_(output_payload)
 
 
 @workflow.task
@@ -415,6 +452,193 @@ def calculate_assignment_fidelities(
         assignment_fidelities[q.uid] = np.trace(assigm_mtx) / float(np.sum(assigm_mtx))
 
     return assignment_fidelities
+
+
+@workflow.task
+def extract_discrimination_thresholds(
+    qubits: QuantumElements,
+    states: Sequence[str],
+    processed_data_dict: dict[str, dict[str, ArrayLike | dict]],
+) -> dict[str, dict[str, float | str]]:
+    """Estimate binary (g/e) discrimination thresholds from integrated IQ shots.
+
+    The threshold is chosen on the real axis to maximize balanced assignment
+    accuracy between prepared |g> and |e> shots.
+    """
+    qubits = validate_and_convert_qubits_sweeps(qubits)
+    thresholds: dict[str, dict[str, float | str]] = {}
+
+    if "g" not in states or "e" not in states:
+        workflow.log(
+            logging.WARNING,
+            "Threshold extraction requires both 'g' and 'e' states. "
+            "Skipping discrimination-threshold estimation.",
+        )
+        return thresholds
+
+    for q in qubits:
+        shots_per_state = processed_data_dict[q.uid].get("shots_per_state", {})
+        if "g" not in shots_per_state or "e" not in shots_per_state:
+            workflow.log(
+                logging.WARNING,
+                "Missing g/e shots for %s. Skipping threshold extraction.",
+                q.uid,
+            )
+            continue
+
+        shots_g = np.asarray(shots_per_state["g"]).reshape(-1)
+        shots_e = np.asarray(shots_per_state["e"]).reshape(-1)
+        if shots_g.size == 0 or shots_e.size == 0:
+            workflow.log(
+                logging.WARNING,
+                "Empty g/e shots for %s. Skipping threshold extraction.",
+                q.uid,
+            )
+            continue
+
+        if (
+            np.all(np.isfinite(np.real(shots_g)))
+            and np.all(np.isfinite(np.real(shots_e)))
+            and np.allclose(np.imag(shots_g), 0.0)
+            and np.allclose(np.imag(shots_e), 0.0)
+            and np.all(np.isin(np.unique(np.real(shots_g)), [0.0, 1.0]))
+            and np.all(np.isin(np.unique(np.real(shots_e)), [0.0, 1.0]))
+        ):
+            workflow.log(
+                logging.WARNING,
+                "Data for %s appears already discriminated (0/1). "
+                "Cannot calibrate an IQ threshold from these shots.",
+                q.uid,
+            )
+            continue
+
+        real_g = np.real(shots_g).astype(float)
+        real_e = np.real(shots_e).astype(float)
+        threshold, high_state, balanced_accuracy = _best_binary_threshold_real_axis(
+            real_g, real_e
+        )
+        thresholds[q.uid] = {
+            "threshold": float(threshold),
+            "high_state": high_state,
+            "balanced_accuracy": float(balanced_accuracy),
+            "mean_g": float(np.mean(real_g)),
+            "mean_e": float(np.mean(real_e)),
+        }
+        workflow.log(
+            logging.INFO,
+            "Estimated threshold for %s: %.6g (high values -> %s, balanced accuracy %.4f).",
+            q.uid,
+            threshold,
+            high_state,
+            balanced_accuracy,
+        )
+        if high_state != "e":
+            workflow.log(
+                logging.WARNING,
+                "For %s, larger real integrated values map to |g> than |e>. "
+                "Hardware 0/1 labels may be inverted unless readout phase/sign is adjusted.",
+                q.uid,
+            )
+
+    return thresholds
+
+
+def _best_binary_threshold_real_axis(
+    real_g: np.ndarray, real_e: np.ndarray
+) -> tuple[float, str, float]:
+    """Return threshold and polarity that maximize balanced g/e assignment."""
+    values = np.unique(np.concatenate([real_g, real_e]))
+    if len(values) == 1:
+        threshold = float(values[0])
+        score_e_high = 0.5 * (
+            np.mean(real_g < threshold) + np.mean(real_e >= threshold)
+        )
+        score_g_high = 0.5 * (
+            np.mean(real_g >= threshold) + np.mean(real_e < threshold)
+        )
+        if score_e_high >= score_g_high:
+            return threshold, "e", float(score_e_high)
+        return threshold, "g", float(score_g_high)
+
+    mids = 0.5 * (values[:-1] + values[1:])
+    eps = max(1e-12, 1e-12 * float(np.max(np.abs(values))))
+    candidates = np.concatenate(([values[0] - eps], mids, [values[-1] + eps]))
+
+    g_ge = real_g[:, np.newaxis] >= candidates[np.newaxis, :]
+    e_ge = real_e[:, np.newaxis] >= candidates[np.newaxis, :]
+    score_e_high = 0.5 * (np.mean(~g_ge, axis=0) + np.mean(e_ge, axis=0))
+    score_g_high = 0.5 * (np.mean(g_ge, axis=0) + np.mean(~e_ge, axis=0))
+
+    idx_e_high = int(np.argmax(score_e_high))
+    idx_g_high = int(np.argmax(score_g_high))
+    if score_e_high[idx_e_high] >= score_g_high[idx_g_high]:
+        return (
+            float(candidates[idx_e_high]),
+            "e",
+            float(score_e_high[idx_e_high]),
+        )
+    return (
+        float(candidates[idx_g_high]),
+        "g",
+        float(score_g_high[idx_g_high]),
+    )
+
+
+@workflow.task
+def extract_qubit_parameters_for_discrimination(
+    qubits: QuantumElements,
+    discrimination_thresholds: dict[str, dict[str, float | str]],
+    enforce_constant_kernel: bool = True,
+) -> dict[str, dict[str, dict[str, float | list[float] | str | None]]]:
+    """Build qubit-parameter updates for threshold-based DISCRIMINATION readout."""
+    qubits = validate_and_convert_qubits_sweeps(qubits)
+    qubit_parameters = {
+        "old_parameter_values": {q.uid: {} for q in qubits},
+        "new_parameter_values": {q.uid: {} for q in qubits},
+    }
+
+    for q in qubits:
+        qubit_parameters["old_parameter_values"][q.uid] = {
+            "readout_integration_discrimination_thresholds": (
+                q.parameters.readout_integration_discrimination_thresholds
+            ),
+            "readout_integration_kernels_type": (
+                q.parameters.readout_integration_kernels_type
+            ),
+            "readout_integration_kernels": q.parameters.readout_integration_kernels,
+        }
+
+        threshold_info = discrimination_thresholds.get(q.uid)
+        if threshold_info is None:
+            continue
+
+        threshold = float(threshold_info["threshold"])
+        qubit_parameters["new_parameter_values"][q.uid][
+            "readout_integration_discrimination_thresholds"
+        ] = [threshold]
+        if enforce_constant_kernel:
+            qubit_parameters["new_parameter_values"][q.uid][
+                "readout_integration_kernels_type"
+            ] = "default"
+            qubit_parameters["new_parameter_values"][q.uid][
+                "readout_integration_kernels"
+            ] = None
+
+    return qubit_parameters
+
+
+@workflow.task
+def assemble_analysis_output(
+    assignment_fidelities: dict[str, float] | None,
+    discrimination_thresholds: dict[str, dict[str, float | str]],
+    qubit_parameters: dict,
+) -> dict:
+    """Assemble final analysis output with concrete values."""
+    return {
+        "assignment_fidelities": assignment_fidelities,
+        "discrimination_thresholds": discrimination_thresholds,
+        "qubit_parameters": qubit_parameters,
+    }
 
 
 @workflow.task

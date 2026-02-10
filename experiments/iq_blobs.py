@@ -23,7 +23,12 @@ from laboneq.workflow.tasks import (
     run_experiment,
 )
 
-from analysis.iq_blobs import analysis_workflow
+from analysis.iq_blobs import (
+    analysis_workflow,
+    collect_shots,
+    extract_discrimination_thresholds,
+    extract_qubit_parameters_for_discrimination,
+)
 from laboneq_applications.core import validation
 from laboneq_applications.experiments.options import (
     BaseExperimentOptions,
@@ -31,6 +36,7 @@ from laboneq_applications.experiments.options import (
 from laboneq_applications.tasks.parameter_updating import (
     temporary_qpu,
     temporary_quantum_elements_from_qpu,
+    update_qpu,
 )
 
 if TYPE_CHECKING:
@@ -69,10 +75,17 @@ class IQBlobExperimentWorkflowOptions:
         do_analysis (bool):
             Whether to run the analysis workflow.
             Default: True
+        update (bool):
+            Whether to update qubit parameters with extracted discrimination thresholds.
+            Default: False
     """
 
     do_analysis: bool = workflow.option_field(
         True, description="Whether to run the analysis workflow."
+    )
+    update: bool = workflow.option_field(
+        False,
+        description="Whether to update qubit parameters from iq_blobs threshold calibration.",
     )
 
 
@@ -136,6 +149,7 @@ def experiment_workflow(
         )
         ```
     """
+    options = IQBlobExperimentWorkflowOptions() if options is None else options
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
     qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)
     exp = create_experiment(
@@ -147,6 +161,15 @@ def experiment_workflow(
     result = run_experiment(session, compiled_exp)
     with workflow.if_(options.do_analysis):
         analysis_workflow(result, qubits, states)
+        with workflow.if_(options.update):
+            processed_data_dict = collect_shots(qubits, result, states)
+            discrimination_thresholds = extract_discrimination_thresholds(
+                qubits, states, processed_data_dict
+            )
+            qubit_parameters = extract_qubit_parameters_for_discrimination(
+                qubits, discrimination_thresholds
+            )
+            update_qpu(qpu, qubit_parameters["new_parameter_values"])
     workflow.return_(result)
 
 
