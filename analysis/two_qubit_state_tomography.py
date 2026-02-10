@@ -34,6 +34,14 @@ class TwoQStateTomographyAnalysisOptions:
         2000,
         description="Maximum iterations for MLE optimization.",
     )
+    bitflip_ctrl: bool = workflow.option_field(
+        False,
+        description="Whether to invert discrimination bits for the control qubit.",
+    )
+    bitflip_targ: bool = workflow.option_field(
+        False,
+        description="Whether to invert discrimination bits for the target qubit.",
+    )
 
 
 @workflow.workflow(name="analysis_two_qubit_state_tomography")
@@ -43,6 +51,8 @@ def analysis_workflow(
     targ,
     readout_calibration_result: RunExperimentResults | None = None,
     target_state=None,
+    bitflip_ctrl: bool = False,
+    bitflip_targ: bool = False,
     options: TwoQStateTomographyAnalysisOptions | None = None,
 ) -> None:
     """Run readout-mitigated MLE analysis for 2Q tomography data."""
@@ -54,11 +64,15 @@ def analysis_workflow(
         tomography_result=tomography_result,
         ctrl_uid=ctrl.uid,
         targ_uid=targ.uid,
+        bitflip_ctrl=bitflip_ctrl,
+        bitflip_targ=bitflip_targ,
     )
     assignment = extract_assignment_matrix(
         readout_calibration_result=readout_calibration_result,
         ctrl_uid=ctrl.uid,
         targ_uid=targ.uid,
+        bitflip_ctrl=bitflip_ctrl,
+        bitflip_targ=bitflip_targ,
     )
     mle_result = maximum_likelihood_reconstruct(
         tomography_counts=tomography_counts,
@@ -97,13 +111,106 @@ def analysis_workflow(
             "optimizer_message": mle_result["optimizer_message"],
             "negative_log_likelihood": mle_result["negative_log_likelihood"],
             "metrics": state_metrics,
+            "bitflip_ctrl": bitflip_ctrl,
+            "bitflip_targ": bitflip_targ,
         }
     )
 
 
-def _extract_discrimination_bits(result: RunExperimentResults, handle: str) -> np.ndarray:
+def _extract_discrimination_bits(
+    result: RunExperimentResults, handle: str, bitflip: bool = False
+) -> np.ndarray:
     raw = np.asarray(result[handle].data).reshape(-1)
-    return np.clip(np.rint(np.real(raw)).astype(int), 0, 1)
+    bits = np.clip(np.rint(np.real(raw)).astype(int), 0, 1)
+    return 1 - bits if bitflip else bits
+
+
+@workflow.task
+def infer_bitflip_from_readout_calibration(
+    readout_calibration_result: RunExperimentResults | None,
+    ctrl_uid: str,
+    targ_uid: str,
+) -> dict[str, bool | float]:
+    """Infer qubit-wise bitflip settings from 2Q readout calibration data."""
+    readout_calibration_result = _unwrap_result_like(readout_calibration_result)
+    if readout_calibration_result is None:
+        return {
+            "bitflip_ctrl": False,
+            "bitflip_targ": False,
+            "accuracy_ctrl_direct": 0.0,
+            "accuracy_ctrl_flip": 0.0,
+            "accuracy_targ_direct": 0.0,
+            "accuracy_targ_flip": 0.0,
+        }
+
+    validate_result(readout_calibration_result)
+    ctrl_true = []
+    ctrl_pred = []
+    targ_true = []
+    targ_pred = []
+
+    state_to_bit = {"g": 0, "e": 1}
+    for prepared_label, (ctrl_state, targ_state) in READOUT_CALIBRATION_STATES:
+        ctrl_bits = _extract_discrimination_bits(
+            readout_calibration_result,
+            readout_calibration_handle(ctrl_uid, prepared_label),
+        )
+        targ_bits = _extract_discrimination_bits(
+            readout_calibration_result,
+            readout_calibration_handle(targ_uid, prepared_label),
+        )
+        nshots = min(len(ctrl_bits), len(targ_bits))
+        if nshots == 0:
+            continue
+        ctrl_true.append(np.full(nshots, state_to_bit[ctrl_state], dtype=int))
+        targ_true.append(np.full(nshots, state_to_bit[targ_state], dtype=int))
+        ctrl_pred.append(ctrl_bits[:nshots])
+        targ_pred.append(targ_bits[:nshots])
+
+    if not ctrl_true or not targ_true:
+        return {
+            "bitflip_ctrl": False,
+            "bitflip_targ": False,
+            "accuracy_ctrl_direct": 0.0,
+            "accuracy_ctrl_flip": 0.0,
+            "accuracy_targ_direct": 0.0,
+            "accuracy_targ_flip": 0.0,
+        }
+
+    ctrl_true_arr = np.concatenate(ctrl_true)
+    ctrl_pred_arr = np.concatenate(ctrl_pred)
+    targ_true_arr = np.concatenate(targ_true)
+    targ_pred_arr = np.concatenate(targ_pred)
+
+    acc_ctrl_direct = float(np.mean(ctrl_pred_arr == ctrl_true_arr))
+    acc_ctrl_flip = float(np.mean((1 - ctrl_pred_arr) == ctrl_true_arr))
+    acc_targ_direct = float(np.mean(targ_pred_arr == targ_true_arr))
+    acc_targ_flip = float(np.mean((1 - targ_pred_arr) == targ_true_arr))
+
+    return {
+        "bitflip_ctrl": bool(acc_ctrl_flip > acc_ctrl_direct),
+        "bitflip_targ": bool(acc_targ_flip > acc_targ_direct),
+        "accuracy_ctrl_direct": acc_ctrl_direct,
+        "accuracy_ctrl_flip": acc_ctrl_flip,
+        "accuracy_targ_direct": acc_targ_direct,
+        "accuracy_targ_flip": acc_targ_flip,
+    }
+
+
+@workflow.task
+def resolve_bitflip_settings(
+    bitflip_ctrl: bool,
+    bitflip_targ: bool,
+    auto_bitflip_from_calibration: bool,
+    inferred_bitflip: dict[str, bool | float] | None = None,
+) -> dict[str, bool]:
+    """Resolve final bitflip settings using manual and optional inferred values."""
+    resolved_ctrl = bool(bitflip_ctrl)
+    resolved_targ = bool(bitflip_targ)
+    if auto_bitflip_from_calibration and isinstance(inferred_bitflip, dict):
+        resolved_ctrl = bool(inferred_bitflip.get("bitflip_ctrl", resolved_ctrl))
+        resolved_targ = bool(inferred_bitflip.get("bitflip_targ", resolved_targ))
+    return {"bitflip_ctrl": resolved_ctrl, "bitflip_targ": resolved_targ}
 
 
 def _unwrap_result_like(result_like):
@@ -131,6 +238,8 @@ def collect_tomography_counts(
     tomography_result: RunExperimentResults,
     ctrl_uid: str,
     targ_uid: str,
+    bitflip_ctrl: bool = False,
+    bitflip_targ: bool = False,
 ) -> dict[str, list]:
     """Collect raw 4-outcome counts per tomography setting."""
     tomography_result = _unwrap_result_like(tomography_result)
@@ -141,10 +250,14 @@ def collect_tomography_counts(
 
     for setting_label, _axes in TOMOGRAPHY_SETTINGS:
         ctrl_bits = _extract_discrimination_bits(
-            tomography_result, tomography_handle(ctrl_uid, setting_label)
+            tomography_result,
+            tomography_handle(ctrl_uid, setting_label),
+            bitflip=bitflip_ctrl,
         )
         targ_bits = _extract_discrimination_bits(
-            tomography_result, tomography_handle(targ_uid, setting_label)
+            tomography_result,
+            tomography_handle(targ_uid, setting_label),
+            bitflip=bitflip_targ,
         )
         outcomes = 2 * ctrl_bits + targ_bits
         setting_counts = np.bincount(outcomes, minlength=4)
@@ -165,6 +278,8 @@ def extract_assignment_matrix(
     readout_calibration_result: RunExperimentResults | None,
     ctrl_uid: str,
     targ_uid: str,
+    bitflip_ctrl: bool = False,
+    bitflip_targ: bool = False,
 ) -> dict[str, list]:
     """Extract 4x4 assignment matrix A_{ik} from readout calibration data."""
     readout_calibration_result = _unwrap_result_like(readout_calibration_result)
@@ -181,10 +296,12 @@ def extract_assignment_matrix(
         ctrl_bits = _extract_discrimination_bits(
             readout_calibration_result,
             readout_calibration_handle(ctrl_uid, prepared_label),
+            bitflip=bitflip_ctrl,
         )
         targ_bits = _extract_discrimination_bits(
             readout_calibration_result,
             readout_calibration_handle(targ_uid, prepared_label),
+            bitflip=bitflip_targ,
         )
         outcomes = 2 * ctrl_bits + targ_bits
         counts_matrix[:, k] = np.bincount(outcomes, minlength=4)

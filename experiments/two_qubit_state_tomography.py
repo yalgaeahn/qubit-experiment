@@ -10,7 +10,11 @@ from laboneq.dsl.enums import AcquisitionType, AveragingMode
 from laboneq.simple import Experiment, SectionAlignment, dsl
 from laboneq.workflow.tasks import compile_experiment, run_experiment
 
-from analysis.two_qubit_state_tomography import analysis_workflow
+from analysis.two_qubit_state_tomography import (
+    analysis_workflow,
+    infer_bitflip_from_readout_calibration,
+    resolve_bitflip_settings,
+)
 from experiments.two_qubit_readout_calibration import (
     create_experiment as create_readout_calibration_experiment,
 )
@@ -62,6 +66,21 @@ class TwoQStateTomographyWorkflowOptions:
     do_readout_calibration: bool = workflow.option_field(
         True,
         description="Whether to run readout calibration before tomography.",
+    )
+    bitflip_ctrl: bool = workflow.option_field(
+        False,
+        description="Whether to invert discrimination bits for control qubit in analysis.",
+    )
+    bitflip_targ: bool = workflow.option_field(
+        False,
+        description="Whether to invert discrimination bits for target qubit in analysis.",
+    )
+    auto_bitflip_from_calibration: bool = workflow.option_field(
+        True,
+        description=(
+            "Automatically infer bitflip settings from readout calibration results "
+            "and override manual bitflip options."
+        ),
     )
 
 
@@ -115,12 +134,25 @@ def experiment_workflow(
 
     analysis_result = None
     with workflow.if_(options.do_analysis):
+        inferred_bitflip = infer_bitflip_from_readout_calibration(
+            readout_calibration_result=calibration_result,
+            ctrl_uid=ctrl.uid,
+            targ_uid=targ.uid,
+        )
+        resolved_bitflip = resolve_bitflip_settings(
+            bitflip_ctrl=options.bitflip_ctrl,
+            bitflip_targ=options.bitflip_targ,
+            auto_bitflip_from_calibration=options.auto_bitflip_from_calibration,
+            inferred_bitflip=inferred_bitflip,
+        )
         analysis_result = analysis_workflow(
             tomography_result=tomography_result,
             ctrl=ctrl,
             targ=targ,
             readout_calibration_result=calibration_result,
             target_state=target_state,
+            bitflip_ctrl=resolved_bitflip["bitflip_ctrl"],
+            bitflip_targ=resolved_bitflip["bitflip_targ"],
         )
 
     workflow.return_(
