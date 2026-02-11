@@ -37,12 +37,12 @@ class TwoQReadoutCalibrationExperimentOptions:
         description="Number of shots per prepared basis state.",
     )
     acquisition_type: AcquisitionType = workflow.option_field(
-        AcquisitionType.DISCRIMINATION,
-        description="Acquire discrimination outcomes for assignment matrix calibration.",
+        AcquisitionType.INTEGRATION,
+        description="Acquire integrated complex IQ outcomes for assignment matrix calibration.",
     )
     averaging_mode: AveragingMode = workflow.option_field(
         AveragingMode.SINGLE_SHOT,
-        description="Use single-shot outcomes for assignment matrix calibration.",
+        description="Use single-shot integrated outcomes for assignment matrix calibration.",
     )
 
 
@@ -76,6 +76,14 @@ def create_experiment(
 ) -> Experiment:
     """Create 2Q readout calibration experiment."""
     opts = TwoQReadoutCalibrationExperimentOptions() if options is None else options
+    if AcquisitionType(opts.acquisition_type) != AcquisitionType.INTEGRATION:
+        raise ValueError(
+            "two_qubit_readout_calibration only supports AcquisitionType.INTEGRATION."
+        )
+    if AveragingMode(opts.averaging_mode) != AveragingMode.SINGLE_SHOT:
+        raise ValueError(
+            "two_qubit_readout_calibration only supports AveragingMode.SINGLE_SHOT."
+        )
     ctrl = validation.validate_and_convert_single_qubit_sweeps(ctrl)
     targ = validation.validate_and_convert_single_qubit_sweeps(targ)
 

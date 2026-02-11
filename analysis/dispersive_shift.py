@@ -47,18 +47,34 @@ def _moving_average(x: np.ndarray, window: int = 5) -> np.ndarray:
 
 
 def _phase_delay_params(
+    qubit: QuantumElement,
     frequencies: np.ndarray,
-    phase_delay: dict[str, float] | None,
-) -> tuple[float, float, float, bool]:
+    phase_delay: dict[str, float] | float | None,
+) -> tuple[float, float, bool, str]:
     tau_s = 0.0
-    phi0_rad = 0.0
     f_ref_hz = float(np.mean(frequencies))
     if phase_delay is None:
-        return tau_s, phi0_rad, f_ref_hz, False
-    tau_s = float(phase_delay.get("tau_s", 0.0))
-    phi0_rad = float(phase_delay.get("phi0_rad", 0.0))
+        stored_tau = getattr(qubit.parameters, "readout_phase_delay", None)
+        if stored_tau is not None:
+            return float(stored_tau), f_ref_hz, True, "qubit_parameter"
+        return tau_s, f_ref_hz, False, "none"
+
+    if isinstance(phase_delay, (int, float, np.floating)):
+        return float(phase_delay), f_ref_hz, True, "external_scalar"
+
+    if not isinstance(phase_delay, dict):
+        raise TypeError(
+            "phase_delay must be None, float, or a dict with key 'tau_s'/'tau'."
+        )
+
+    tau_s = float(
+        phase_delay.get(
+            "tau_s",
+            phase_delay.get("tau", phase_delay.get("readout_phase_delay", 0.0)),
+        )
+    )
     f_ref_hz = float(phase_delay.get("f_ref_hz", f_ref_hz))
-    return tau_s, phi0_rad, f_ref_hz, True
+    return tau_s, f_ref_hz, True, "external"
 
 
 def _estimate_resonance_frequency(
@@ -229,7 +245,7 @@ def analysis_workflow(
     qubit: QuantumElement,
     frequencies: ArrayLike,
     states: Sequence[str],
-    phase_delay: dict[str, float] | None = None,
+    phase_delay: dict[str, float] | float | None = None,
     options: DispersiveShiftAnalysisWorkflowOptions | None = None,
 ) -> None:
     """Run dispersive-shift analysis for |g>,|e> and return two_chi + sweep window."""
@@ -262,7 +278,7 @@ def calculate_dispersive_shift_metrics(
     result: RunExperimentResults,
     frequencies: ArrayLike,
     states: Sequence[str],
-    phase_delay: dict[str, float] | None,
+    phase_delay: dict[str, float] | float | None,
     bootstrap_samples: int,
     bootstrap_seed: int,
     confidence_level: float,
@@ -285,13 +301,33 @@ def calculate_dispersive_shift_metrics(
     phase_g = np.unwrap(np.angle(s21_g))
     phase_e = np.unwrap(np.angle(s21_e))
 
-    tau_s, phi0_rad, f_ref_hz, delay_applied = _phase_delay_params(freqs, phase_delay)
-    phase_correction = 2.0 * np.pi * (freqs - f_ref_hz) * tau_s + phi0_rad
-    phase_g_corr = phase_g - phase_correction
-    phase_e_corr = phase_e - phase_correction
+    tau_s, f_ref_hz, delay_applied, delay_source = _phase_delay_params(
+        qubit, freqs, phase_delay
+    )
+    # Raw cable delay contributes approximately -2*pi*f*tau in phase.
+    # To compensate, add +2*pi*(f-f_ref)*tau to the unwrapped phase.
+    phase_correction = 2.0 * np.pi * (freqs - f_ref_hz) * tau_s
+    phase_g_corr = phase_g + phase_correction
+    phase_e_corr = phase_e + phase_correction
 
-    f_r_g_hz, idx_g, method_g = _estimate_resonance_frequency(freqs, phase_g_corr, mag_g)
-    f_r_e_hz, idx_e, method_e = _estimate_resonance_frequency(freqs, phase_e_corr, mag_e)
+    # Robustify resonance picking: anchor phase-slope search near each magnitude dip.
+    idx_mag_g = int(np.argmin(mag_g))
+    idx_mag_e = int(np.argmin(mag_e))
+    search_half_width = max(5, freqs.size // 10)
+    f_r_g_hz, idx_g, method_g = _estimate_resonance_frequency(
+        freqs,
+        phase_g_corr,
+        mag_g,
+        center_idx=idx_mag_g,
+        search_half_width=search_half_width,
+    )
+    f_r_e_hz, idx_e, method_e = _estimate_resonance_frequency(
+        freqs,
+        phase_e_corr,
+        mag_e,
+        center_idx=idx_mag_e,
+        search_half_width=search_half_width,
+    )
 
     two_chi_hz = float(f_r_e_hz - f_r_g_hz)
     ci_low, ci_high = _bootstrap_two_chi_ci(
@@ -343,8 +379,8 @@ def calculate_dispersive_shift_metrics(
         "phase_delay": {
             "applied": delay_applied,
             "tau_s": float(tau_s),
-            "phi0_rad": float(phi0_rad),
             "f_ref_hz": float(f_ref_hz),
+            "source": delay_source,
         },
         "quality_diagnostics": {
             "freq_step_hz": float(freq_step_hz),
@@ -386,7 +422,8 @@ def plot_dispersive_shift(
     opts = BasePlottingOptions() if options is None else options
     qubit = validation.validate_and_convert_single_qubit_sweeps(qubit)
 
-    f_ghz = np.asarray(metrics["frequencies_hz"], dtype=float) / 1e9
+    freqs_hz = np.asarray(metrics["frequencies_hz"], dtype=float)
+    f_ghz = freqs_hz / 1e9
     mag = metrics["magnitude"]
     phase = metrics["phase_corrected"]
     f_res = metrics["resonance_hz"]
@@ -417,14 +454,57 @@ def plot_dispersive_shift(
         fontsize=9,
     )
 
-    ax_phase.plot(f_ghz, phase["g"], label="g (corrected)")
-    ax_phase.plot(f_ghz, phase["e"], label="e (corrected)")
+    # Display-only phase alignment for readability (does not affect any estimate).
+    # Align left off-resonance slightly below +pi, then wrap to [-pi, pi].
+    # This avoids frequent wrap crossings at exactly +/-pi in noisy regions.
+    phase_g = np.asarray(phase["g"], dtype=float)
+    phase_e = np.asarray(phase["e"], dtype=float)
+    edge_n = max(5, phase_g.size // 12)
+    phase_wrap_margin = 0.12  # rad
+    target_left_phase = np.pi - phase_wrap_margin
+    left_ref_g = float(np.median(phase_g[:edge_n]))
+    left_ref_e = float(np.median(phase_e[:edge_n]))
+    phase_g_display = np.angle(
+        np.exp(1j * (phase_g + (target_left_phase - left_ref_g)))
+    )
+    phase_e_display = np.angle(
+        np.exp(1j * (phase_e + (target_left_phase - left_ref_e)))
+    )
+
+    ax_phase.plot(
+        f_ghz,
+        phase_g_display,
+        label=r"g (corrected, left=$\pi-\epsilon$, wrapped)",
+    )
+    ax_phase.plot(
+        f_ghz,
+        phase_e_display,
+        label=r"e (corrected, left=$\pi-\epsilon$, wrapped)",
+    )
+
+    idx_g = int(np.argmin(np.abs(freqs_hz - float(f_res["g"]))))
+    idx_e = int(np.argmin(np.abs(freqs_hz - float(f_res["e"]))))
+    ax_phase.plot(
+        f_res["g"] / 1e9,
+        phase_g_display[idx_g],
+        "o",
+        markersize=4,
+    )
+    ax_phase.plot(
+        f_res["e"] / 1e9,
+        phase_e_display[idx_e],
+        "o",
+        markersize=4,
+    )
     ax_phase.axvline(f_res["g"] / 1e9, linestyle="--", linewidth=1.0)
     ax_phase.axvline(f_res["e"] / 1e9, linestyle="--", linewidth=1.0)
     ax_phase.axvspan(f_win["f_low_hz"] / 1e9, f_win["f_high_hz"] / 1e9, alpha=0.15)
     ax_phase.set_xlabel(r"Readout Frequency, $f_{\mathrm{RO}}$ (GHz)")
     ax_phase.set_ylabel("Phase (rad)")
-    ax_phase.set_title("Phase (corrected)")
+    ax_phase.set_ylim(-np.pi, np.pi)
+    ax_phase.set_yticks([-np.pi, -np.pi / 2, 0.0, np.pi / 2, np.pi])
+    ax_phase.set_yticklabels([r"$-\pi$", r"$-\pi/2$", "0", r"$\pi/2$", r"$\pi$"])
+    ax_phase.set_title(r"Phase (corrected, display aligned to left=$\pi-\epsilon$, wrapped)")
     ax_phase.legend(frameon=False)
 
     fig.tight_layout()
@@ -455,10 +535,22 @@ def plot_signal_distances(
     fig, ax = plt.subplots()
     ax.plot(f_ghz, dist, label=r"$|S_{21}^{e} - S_{21}^{g}|$")
     ax.plot(max_freq_hz / 1e9, max_val, "o", label="max distance")
+    ax.axvline(max_freq_hz / 1e9, linestyle="--", linewidth=1.0, alpha=0.8)
     ax.axvspan(f_win["f_low_hz"] / 1e9, f_win["f_high_hz"] / 1e9, alpha=0.15)
     ax.set_xlabel(r"Readout Frequency, $f_{\mathrm{RO}}$ (GHz)")
     ax.set_ylabel(r"$|\Delta S_{21}|$ (a.u.)")
     ax.set_title(timestamped_title(f"Signal Difference {qubit.uid}"))
+    ax.text(
+        0.01,
+        0.98,
+        (
+            f"max |ΔS21| @ {max_freq_hz/1e9:.6f} GHz\n"
+            f"value={max_val:.4e}"
+        ),
+        transform=ax.transAxes,
+        va="top",
+        fontsize=9,
+    )
     ax.legend(frameon=False)
 
     if opts.save_figures:

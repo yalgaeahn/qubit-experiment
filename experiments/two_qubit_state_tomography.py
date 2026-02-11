@@ -46,12 +46,12 @@ class TwoQStateTomographyExperimentOptions:
         description="Number of shots per tomography setting.",
     )
     acquisition_type: AcquisitionType = workflow.option_field(
-        AcquisitionType.DISCRIMINATION,
-        description="Acquire discrimination outcomes for state tomography.",
+        AcquisitionType.INTEGRATION,
+        description="Acquire integrated complex IQ outcomes for state tomography.",
     )
     averaging_mode: AveragingMode = workflow.option_field(
         AveragingMode.SINGLE_SHOT,
-        description="Use single-shot outcomes for state tomography counts.",
+        description="Use single-shot integrated outcomes for state tomography counts.",
     )
 
 
@@ -69,18 +69,15 @@ class TwoQStateTomographyWorkflowOptions:
     )
     bitflip_ctrl: bool = workflow.option_field(
         False,
-        description="Whether to invert discrimination bits for control qubit in analysis.",
+        description="Compatibility option. Ignored in IQ-probability analysis path.",
     )
     bitflip_targ: bool = workflow.option_field(
         False,
-        description="Whether to invert discrimination bits for target qubit in analysis.",
+        description="Compatibility option. Ignored in IQ-probability analysis path.",
     )
     auto_bitflip_from_calibration: bool = workflow.option_field(
         True,
-        description=(
-            "Automatically infer bitflip settings from readout calibration results "
-            "and override manual bitflip options."
-        ),
+        description="Compatibility option. Ignored in IQ-probability analysis path.",
     )
 
 
@@ -191,6 +188,14 @@ def create_experiment(
 ) -> Experiment:
     """Create 2Q tomography experiment with RIP state preparation."""
     opts = TwoQStateTomographyExperimentOptions() if options is None else options
+    if AcquisitionType(opts.acquisition_type) != AcquisitionType.INTEGRATION:
+        raise ValueError(
+            "two_qubit_state_tomography only supports AcquisitionType.INTEGRATION."
+        )
+    if AveragingMode(opts.averaging_mode) != AveragingMode.SINGLE_SHOT:
+        raise ValueError(
+            "two_qubit_state_tomography only supports AveragingMode.SINGLE_SHOT."
+        )
     ctrl = validation.validate_and_convert_single_qubit_sweeps(ctrl)
     targ = validation.validate_and_convert_single_qubit_sweeps(targ)
     bus = validation.validate_and_convert_single_qubit_sweeps(bus)

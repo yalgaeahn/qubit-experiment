@@ -80,7 +80,7 @@ def experiment_workflow(
     qubit: QuantumElement,
     frequencies: QubitSweepPoints,
     states: Sequence[str],
-    phase_delay: dict[str, float] | None = None,
+    phase_delay: dict[str, float] | float | None = None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,
     options: TuneUpWorkflowOptions | None = None,
@@ -111,7 +111,11 @@ def experiment_workflow(
             e.g. "gef", or a list of letters, e.g. ["g","e","f"].
         phase_delay:
             Optional phase-delay correction parameters used in analysis.
-            Supported keys are: "tau_s", "phi0_rad", "f_ref_hz".
+            This can be either:
+            - a float interpreted as tau in seconds, or
+            - a dict with keys "tau_s" (or "tau"), optional "f_ref_hz".
+            If omitted, analysis falls back to
+            `qubit.parameters.readout_phase_delay` when available.
         temporary_parameters:
             The temporary parameters with which to update the quantum elements and
             topology edges. For quantum elements, the dictionary key is the quantum

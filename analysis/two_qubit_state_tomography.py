@@ -34,14 +34,6 @@ class TwoQStateTomographyAnalysisOptions:
         2000,
         description="Maximum iterations for MLE optimization.",
     )
-    bitflip_ctrl: bool = workflow.option_field(
-        False,
-        description="Whether to invert discrimination bits for the control qubit.",
-    )
-    bitflip_targ: bool = workflow.option_field(
-        False,
-        description="Whether to invert discrimination bits for the target qubit.",
-    )
 
 
 @workflow.workflow(name="analysis_two_qubit_state_tomography")
@@ -55,24 +47,27 @@ def analysis_workflow(
     bitflip_targ: bool = False,
     options: TwoQStateTomographyAnalysisOptions | None = None,
 ) -> None:
-    """Run readout-mitigated MLE analysis for 2Q tomography data."""
+    """Run IQ-probability readout-mitigated MLE analysis for 2Q tomography data."""
     options = (
         TwoQStateTomographyAnalysisOptions() if options is None else options
     )
 
-    tomography_counts = collect_tomography_counts(
-        tomography_result=tomography_result,
+    discriminator = fit_discriminator_from_readout_calibration(
+        readout_calibration_result=readout_calibration_result,
         ctrl_uid=ctrl.uid,
         targ_uid=targ.uid,
-        bitflip_ctrl=bitflip_ctrl,
-        bitflip_targ=bitflip_targ,
     )
     assignment = extract_assignment_matrix(
         readout_calibration_result=readout_calibration_result,
         ctrl_uid=ctrl.uid,
         targ_uid=targ.uid,
-        bitflip_ctrl=bitflip_ctrl,
-        bitflip_targ=bitflip_targ,
+        discriminator=discriminator,
+    )
+    tomography_counts = collect_tomography_counts(
+        tomography_result=tomography_result,
+        ctrl_uid=ctrl.uid,
+        targ_uid=targ.uid,
+        discriminator=discriminator,
     )
     mle_result = maximum_likelihood_reconstruct(
         tomography_counts=tomography_counts,
@@ -99,8 +94,11 @@ def analysis_workflow(
     workflow.return_(
         {
             "assignment_matrix": assignment["assignment_matrix"],
-            "assignment_counts": assignment["counts_matrix"],
+            "assignment_counts": assignment["counts_matrix_soft"],
+            "assignment_counts_soft": assignment["counts_matrix_soft"],
+            "assignment_counts_hard": assignment["counts_matrix_hard"],
             "tomography_counts": tomography_counts["counts"],
+            "tomography_counts_hard": tomography_counts["counts_hard"],
             "setting_labels": tomography_counts["setting_labels"],
             "shots_per_setting": tomography_counts["shots_per_setting"],
             "rho_hat_real": mle_result["rho_hat_real"],
@@ -111,18 +109,212 @@ def analysis_workflow(
             "optimizer_message": mle_result["optimizer_message"],
             "negative_log_likelihood": mle_result["negative_log_likelihood"],
             "metrics": state_metrics,
-            "bitflip_ctrl": bitflip_ctrl,
-            "bitflip_targ": bitflip_targ,
+            "discriminator_model": discriminator["model"],
+            "classification_diagnostics": discriminator["diagnostics"],
+            "bitflip_ctrl": bool(bitflip_ctrl),
+            "bitflip_targ": bool(bitflip_targ),
         }
     )
 
 
-def _extract_discrimination_bits(
-    result: RunExperimentResults, handle: str, bitflip: bool = False
-) -> np.ndarray:
-    raw = np.asarray(result[handle].data).reshape(-1)
-    bits = np.clip(np.rint(np.real(raw)).astype(int), 0, 1)
-    return 1 - bits if bitflip else bits
+def _complex_to_features(z: np.ndarray) -> np.ndarray:
+    z = np.asarray(z).reshape(-1)
+    return np.column_stack([np.real(z), np.imag(z)])
+
+
+def _fit_binary_gaussian_discriminator(
+    samples_g: np.ndarray,
+    samples_e: np.ndarray,
+) -> dict[str, np.ndarray | float]:
+    x_g = _complex_to_features(samples_g)
+    x_e = _complex_to_features(samples_e)
+    if x_g.shape[0] < 2 or x_e.shape[0] < 2:
+        raise ValueError("Need at least 2 samples per class to fit discriminator.")
+
+    mu_g = np.mean(x_g, axis=0)
+    mu_e = np.mean(x_e, axis=0)
+    cov_g = np.cov(x_g, rowvar=False)
+    cov_e = np.cov(x_e, rowvar=False)
+    pooled = 0.5 * (cov_g + cov_e)
+    ridge = 1e-9 * max(float(np.trace(pooled) / 2.0), 1.0)
+    sigma = pooled + ridge * np.eye(2)
+    sigma_inv = np.linalg.inv(sigma)
+
+    delta = mu_e - mu_g
+    w = sigma_inv @ delta
+    b = 0.5 * float((mu_e + mu_g) @ w)
+
+    return {
+        "w": w,
+        "b": b,
+        "mu_g": mu_g,
+        "mu_e": mu_e,
+        "sigma": sigma,
+        "ridge": ridge,
+    }
+
+
+def _sigmoid(x: np.ndarray) -> np.ndarray:
+    x = np.asarray(x, dtype=float)
+    pos = x >= 0
+    out = np.empty_like(x)
+    out[pos] = 1.0 / (1.0 + np.exp(-x[pos]))
+    ex = np.exp(x[~pos])
+    out[~pos] = ex / (1.0 + ex)
+    return out
+
+
+def _predict_p_e(samples: np.ndarray, model: dict) -> np.ndarray:
+    x = _complex_to_features(samples)
+    logits = x @ np.asarray(model["w"], dtype=float) - float(model["b"])
+    return _sigmoid(logits)
+
+
+def _collect_calibration_training_sets(
+    readout_calibration_result: RunExperimentResults,
+    ctrl_uid: str,
+    targ_uid: str,
+) -> dict[str, np.ndarray]:
+    ctrl_by_state = {"g": [], "e": []}
+    targ_by_state = {"g": [], "e": []}
+    for prepared_label, (ctrl_state, targ_state) in READOUT_CALIBRATION_STATES:
+        ctrl_shots = np.asarray(
+            readout_calibration_result[
+                readout_calibration_handle(ctrl_uid, prepared_label)
+            ].data
+        ).reshape(-1)
+        targ_shots = np.asarray(
+            readout_calibration_result[
+                readout_calibration_handle(targ_uid, prepared_label)
+            ].data
+        ).reshape(-1)
+        nshots = min(len(ctrl_shots), len(targ_shots))
+        if nshots == 0:
+            continue
+        ctrl_by_state[ctrl_state].append(ctrl_shots[:nshots])
+        targ_by_state[targ_state].append(targ_shots[:nshots])
+
+    if not all(ctrl_by_state[s] for s in ("g", "e")):
+        raise ValueError("Insufficient ctrl calibration samples for g/e states.")
+    if not all(targ_by_state[s] for s in ("g", "e")):
+        raise ValueError("Insufficient targ calibration samples for g/e states.")
+
+    return {
+        "ctrl_g": np.concatenate(ctrl_by_state["g"]),
+        "ctrl_e": np.concatenate(ctrl_by_state["e"]),
+        "targ_g": np.concatenate(targ_by_state["g"]),
+        "targ_e": np.concatenate(targ_by_state["e"]),
+    }
+
+
+def _hard_counts_from_posteriors(posteriors: np.ndarray) -> np.ndarray:
+    hard_outcomes = np.argmax(posteriors, axis=1)
+    return np.bincount(hard_outcomes, minlength=4).astype(int)
+
+
+def _classification_diagnostics(
+    readout_calibration_result: RunExperimentResults,
+    ctrl_uid: str,
+    targ_uid: str,
+    ctrl_model: dict,
+    targ_model: dict,
+) -> dict[str, object]:
+    state_to_bit = {"g": 0, "e": 1}
+    ctrl_true, ctrl_pred = [], []
+    targ_true, targ_pred = [], []
+    for prepared_label, (ctrl_state, targ_state) in READOUT_CALIBRATION_STATES:
+        ctrl_shots = np.asarray(
+            readout_calibration_result[
+                readout_calibration_handle(ctrl_uid, prepared_label)
+            ].data
+        ).reshape(-1)
+        targ_shots = np.asarray(
+            readout_calibration_result[
+                readout_calibration_handle(targ_uid, prepared_label)
+            ].data
+        ).reshape(-1)
+        nshots = min(len(ctrl_shots), len(targ_shots))
+        if nshots == 0:
+            continue
+        p_ctrl_e = _predict_p_e(ctrl_shots[:nshots], ctrl_model)
+        p_targ_e = _predict_p_e(targ_shots[:nshots], targ_model)
+        ctrl_true.append(np.full(nshots, state_to_bit[ctrl_state], dtype=int))
+        targ_true.append(np.full(nshots, state_to_bit[targ_state], dtype=int))
+        ctrl_pred.append((p_ctrl_e >= 0.5).astype(int))
+        targ_pred.append((p_targ_e >= 0.5).astype(int))
+
+    ctrl_true_arr = np.concatenate(ctrl_true)
+    ctrl_pred_arr = np.concatenate(ctrl_pred)
+    targ_true_arr = np.concatenate(targ_true)
+    targ_pred_arr = np.concatenate(targ_pred)
+
+    ctrl_cm = np.zeros((2, 2), dtype=float)
+    targ_cm = np.zeros((2, 2), dtype=float)
+    for t, p in zip(ctrl_true_arr, ctrl_pred_arr):
+        ctrl_cm[t, p] += 1
+    for t, p in zip(targ_true_arr, targ_pred_arr):
+        targ_cm[t, p] += 1
+    ctrl_cm /= np.maximum(np.sum(ctrl_cm, axis=1, keepdims=True), 1.0)
+    targ_cm /= np.maximum(np.sum(targ_cm, axis=1, keepdims=True), 1.0)
+
+    return {
+        "ctrl_confusion_matrix": ctrl_cm.tolist(),
+        "targ_confusion_matrix": targ_cm.tolist(),
+        "ctrl_accuracy": float(np.mean(ctrl_true_arr == ctrl_pred_arr)),
+        "targ_accuracy": float(np.mean(targ_true_arr == targ_pred_arr)),
+    }
+
+
+@workflow.task
+def fit_discriminator_from_readout_calibration(
+    readout_calibration_result: RunExperimentResults | None,
+    ctrl_uid: str,
+    targ_uid: str,
+) -> dict[str, object]:
+    """Fit qubit-wise IQ discriminators from 2Q readout calibration shots."""
+    readout_calibration_result = _unwrap_result_like(readout_calibration_result)
+    if readout_calibration_result is None:
+        raise ValueError(
+            "readout_calibration_result is required for INTEGRATION-based tomography analysis."
+        )
+    validate_result(readout_calibration_result)
+
+    train = _collect_calibration_training_sets(
+        readout_calibration_result=readout_calibration_result,
+        ctrl_uid=ctrl_uid,
+        targ_uid=targ_uid,
+    )
+    ctrl_model = _fit_binary_gaussian_discriminator(train["ctrl_g"], train["ctrl_e"])
+    targ_model = _fit_binary_gaussian_discriminator(train["targ_g"], train["targ_e"])
+    diagnostics = _classification_diagnostics(
+        readout_calibration_result=readout_calibration_result,
+        ctrl_uid=ctrl_uid,
+        targ_uid=targ_uid,
+        ctrl_model=ctrl_model,
+        targ_model=targ_model,
+    )
+
+    model_export = {
+        "ctrl": {
+            "w": np.asarray(ctrl_model["w"], dtype=float).tolist(),
+            "b": float(ctrl_model["b"]),
+            "mu_g": np.asarray(ctrl_model["mu_g"], dtype=float).tolist(),
+            "mu_e": np.asarray(ctrl_model["mu_e"], dtype=float).tolist(),
+            "sigma": np.asarray(ctrl_model["sigma"], dtype=float).tolist(),
+        },
+        "targ": {
+            "w": np.asarray(targ_model["w"], dtype=float).tolist(),
+            "b": float(targ_model["b"]),
+            "mu_g": np.asarray(targ_model["mu_g"], dtype=float).tolist(),
+            "mu_e": np.asarray(targ_model["mu_e"], dtype=float).tolist(),
+            "sigma": np.asarray(targ_model["sigma"], dtype=float).tolist(),
+        },
+    }
+    return {
+        "model": model_export,
+        "internal": {"ctrl": ctrl_model, "targ": targ_model},
+        "diagnostics": diagnostics,
+    }
 
 
 @workflow.task
@@ -131,8 +323,7 @@ def infer_bitflip_from_readout_calibration(
     ctrl_uid: str,
     targ_uid: str,
 ) -> dict[str, bool | float]:
-    """Infer qubit-wise bitflip settings from 2Q readout calibration data."""
-    readout_calibration_result = _unwrap_result_like(readout_calibration_result)
+    """Compatibility task: keep API but bitflip inference is disabled in IQ flow."""
     if readout_calibration_result is None:
         return {
             "bitflip_ctrl": False,
@@ -142,58 +333,31 @@ def infer_bitflip_from_readout_calibration(
             "accuracy_targ_direct": 0.0,
             "accuracy_targ_flip": 0.0,
         }
-
+    readout_calibration_result = _unwrap_result_like(readout_calibration_result)
     validate_result(readout_calibration_result)
-    ctrl_true = []
-    ctrl_pred = []
-    targ_true = []
-    targ_pred = []
-
-    state_to_bit = {"g": 0, "e": 1}
-    for prepared_label, (ctrl_state, targ_state) in READOUT_CALIBRATION_STATES:
-        ctrl_bits = _extract_discrimination_bits(
-            readout_calibration_result,
-            readout_calibration_handle(ctrl_uid, prepared_label),
-        )
-        targ_bits = _extract_discrimination_bits(
-            readout_calibration_result,
-            readout_calibration_handle(targ_uid, prepared_label),
-        )
-        nshots = min(len(ctrl_bits), len(targ_bits))
-        if nshots == 0:
-            continue
-        ctrl_true.append(np.full(nshots, state_to_bit[ctrl_state], dtype=int))
-        targ_true.append(np.full(nshots, state_to_bit[targ_state], dtype=int))
-        ctrl_pred.append(ctrl_bits[:nshots])
-        targ_pred.append(targ_bits[:nshots])
-
-    if not ctrl_true or not targ_true:
-        return {
-            "bitflip_ctrl": False,
-            "bitflip_targ": False,
-            "accuracy_ctrl_direct": 0.0,
-            "accuracy_ctrl_flip": 0.0,
-            "accuracy_targ_direct": 0.0,
-            "accuracy_targ_flip": 0.0,
-        }
-
-    ctrl_true_arr = np.concatenate(ctrl_true)
-    ctrl_pred_arr = np.concatenate(ctrl_pred)
-    targ_true_arr = np.concatenate(targ_true)
-    targ_pred_arr = np.concatenate(targ_pred)
-
-    acc_ctrl_direct = float(np.mean(ctrl_pred_arr == ctrl_true_arr))
-    acc_ctrl_flip = float(np.mean((1 - ctrl_pred_arr) == ctrl_true_arr))
-    acc_targ_direct = float(np.mean(targ_pred_arr == targ_true_arr))
-    acc_targ_flip = float(np.mean((1 - targ_pred_arr) == targ_true_arr))
-
+    train = _collect_calibration_training_sets(
+        readout_calibration_result=readout_calibration_result,
+        ctrl_uid=ctrl_uid,
+        targ_uid=targ_uid,
+    )
+    ctrl_model = _fit_binary_gaussian_discriminator(train["ctrl_g"], train["ctrl_e"])
+    targ_model = _fit_binary_gaussian_discriminator(train["targ_g"], train["targ_e"])
+    diag = _classification_diagnostics(
+        readout_calibration_result=readout_calibration_result,
+        ctrl_uid=ctrl_uid,
+        targ_uid=targ_uid,
+        ctrl_model=ctrl_model,
+        targ_model=targ_model,
+    )
+    acc_ctrl = float(diag.get("ctrl_accuracy", 0.0))
+    acc_targ = float(diag.get("targ_accuracy", 0.0))
     return {
-        "bitflip_ctrl": bool(acc_ctrl_flip > acc_ctrl_direct),
-        "bitflip_targ": bool(acc_targ_flip > acc_targ_direct),
-        "accuracy_ctrl_direct": acc_ctrl_direct,
-        "accuracy_ctrl_flip": acc_ctrl_flip,
-        "accuracy_targ_direct": acc_targ_direct,
-        "accuracy_targ_flip": acc_targ_flip,
+        "bitflip_ctrl": False,
+        "bitflip_targ": False,
+        "accuracy_ctrl_direct": acc_ctrl,
+        "accuracy_ctrl_flip": 1.0 - acc_ctrl,
+        "accuracy_targ_direct": acc_targ,
+        "accuracy_targ_flip": 1.0 - acc_targ,
     }
 
 
@@ -204,13 +368,9 @@ def resolve_bitflip_settings(
     auto_bitflip_from_calibration: bool,
     inferred_bitflip: dict[str, bool | float] | None = None,
 ) -> dict[str, bool]:
-    """Resolve final bitflip settings using manual and optional inferred values."""
-    resolved_ctrl = bool(bitflip_ctrl)
-    resolved_targ = bool(bitflip_targ)
-    if auto_bitflip_from_calibration and isinstance(inferred_bitflip, dict):
-        resolved_ctrl = bool(inferred_bitflip.get("bitflip_ctrl", resolved_ctrl))
-        resolved_targ = bool(inferred_bitflip.get("bitflip_targ", resolved_targ))
-    return {"bitflip_ctrl": resolved_ctrl, "bitflip_targ": resolved_targ}
+    """Compatibility task: always returns manual bitflip values unchanged."""
+    del auto_bitflip_from_calibration, inferred_bitflip
+    return {"bitflip_ctrl": bool(bitflip_ctrl), "bitflip_targ": bool(bitflip_targ)}
 
 
 def _unwrap_result_like(result_like):
@@ -238,36 +398,55 @@ def collect_tomography_counts(
     tomography_result: RunExperimentResults,
     ctrl_uid: str,
     targ_uid: str,
-    bitflip_ctrl: bool = False,
-    bitflip_targ: bool = False,
+    discriminator: dict[str, object],
 ) -> dict[str, list]:
-    """Collect raw 4-outcome counts per tomography setting."""
+    """Collect 4-outcome soft counts per tomography setting from IQ posteriors."""
     tomography_result = _unwrap_result_like(tomography_result)
     validate_result(tomography_result)
+    internal = discriminator["internal"]
+    ctrl_model = internal["ctrl"]
+    targ_model = internal["targ"]
+
     counts = []
+    counts_hard = []
     shots_per_setting = []
     setting_labels = []
 
     for setting_label, _axes in TOMOGRAPHY_SETTINGS:
-        ctrl_bits = _extract_discrimination_bits(
-            tomography_result,
-            tomography_handle(ctrl_uid, setting_label),
-            bitflip=bitflip_ctrl,
+        ctrl_shots = np.asarray(
+            tomography_result[tomography_handle(ctrl_uid, setting_label)].data
+        ).reshape(-1)
+        targ_shots = np.asarray(
+            tomography_result[tomography_handle(targ_uid, setting_label)].data
+        ).reshape(-1)
+        nshots = min(len(ctrl_shots), len(targ_shots))
+        ctrl_shots = ctrl_shots[:nshots]
+        targ_shots = targ_shots[:nshots]
+
+        p_ctrl_e = _predict_p_e(ctrl_shots, ctrl_model)
+        p_targ_e = _predict_p_e(targ_shots, targ_model)
+        p_ctrl_g = 1.0 - p_ctrl_e
+        p_targ_g = 1.0 - p_targ_e
+
+        posteriors = np.column_stack(
+            [
+                p_ctrl_g * p_targ_g,  # 00
+                p_ctrl_g * p_targ_e,  # 01
+                p_ctrl_e * p_targ_g,  # 10
+                p_ctrl_e * p_targ_e,  # 11
+            ]
         )
-        targ_bits = _extract_discrimination_bits(
-            tomography_result,
-            tomography_handle(targ_uid, setting_label),
-            bitflip=bitflip_targ,
-        )
-        outcomes = 2 * ctrl_bits + targ_bits
-        setting_counts = np.bincount(outcomes, minlength=4)
+        setting_counts = np.sum(posteriors, axis=0)
+        setting_counts_hard = _hard_counts_from_posteriors(posteriors)
 
         counts.append(setting_counts.tolist())
-        shots_per_setting.append(int(len(outcomes)))
+        counts_hard.append(setting_counts_hard.tolist())
+        shots_per_setting.append(int(nshots))
         setting_labels.append(setting_label)
 
     return {
         "counts": counts,
+        "counts_hard": counts_hard,
         "shots_per_setting": shots_per_setting,
         "setting_labels": setting_labels,
     }
@@ -278,42 +457,61 @@ def extract_assignment_matrix(
     readout_calibration_result: RunExperimentResults | None,
     ctrl_uid: str,
     targ_uid: str,
-    bitflip_ctrl: bool = False,
-    bitflip_targ: bool = False,
+    discriminator: dict[str, object],
 ) -> dict[str, list]:
-    """Extract 4x4 assignment matrix A_{ik} from readout calibration data."""
+    """Extract 4x4 assignment matrix A_{ik} from IQ posterior probabilities."""
     readout_calibration_result = _unwrap_result_like(readout_calibration_result)
     if readout_calibration_result is None:
-        identity = np.eye(4, dtype=float)
-        return {
-            "assignment_matrix": identity.tolist(),
-            "counts_matrix": np.zeros((4, 4), dtype=int).tolist(),
-        }
+        raise ValueError(
+            "readout_calibration_result is required for INTEGRATION-based assignment extraction."
+        )
 
     validate_result(readout_calibration_result)
-    counts_matrix = np.zeros((4, 4), dtype=int)
+    internal = discriminator["internal"]
+    ctrl_model = internal["ctrl"]
+    targ_model = internal["targ"]
+
+    counts_matrix_soft = np.zeros((4, 4), dtype=float)
+    counts_matrix_hard = np.zeros((4, 4), dtype=int)
     for k, (prepared_label, _states) in enumerate(READOUT_CALIBRATION_STATES):
-        ctrl_bits = _extract_discrimination_bits(
-            readout_calibration_result,
-            readout_calibration_handle(ctrl_uid, prepared_label),
-            bitflip=bitflip_ctrl,
+        ctrl_shots = np.asarray(
+            readout_calibration_result[
+                readout_calibration_handle(ctrl_uid, prepared_label)
+            ].data
+        ).reshape(-1)
+        targ_shots = np.asarray(
+            readout_calibration_result[
+                readout_calibration_handle(targ_uid, prepared_label)
+            ].data
+        ).reshape(-1)
+        nshots = min(len(ctrl_shots), len(targ_shots))
+        ctrl_shots = ctrl_shots[:nshots]
+        targ_shots = targ_shots[:nshots]
+
+        p_ctrl_e = _predict_p_e(ctrl_shots, ctrl_model)
+        p_targ_e = _predict_p_e(targ_shots, targ_model)
+        p_ctrl_g = 1.0 - p_ctrl_e
+        p_targ_g = 1.0 - p_targ_e
+        posteriors = np.column_stack(
+            [
+                p_ctrl_g * p_targ_g,  # 00
+                p_ctrl_g * p_targ_e,  # 01
+                p_ctrl_e * p_targ_g,  # 10
+                p_ctrl_e * p_targ_e,  # 11
+            ]
         )
-        targ_bits = _extract_discrimination_bits(
-            readout_calibration_result,
-            readout_calibration_handle(targ_uid, prepared_label),
-            bitflip=bitflip_targ,
-        )
-        outcomes = 2 * ctrl_bits + targ_bits
-        counts_matrix[:, k] = np.bincount(outcomes, minlength=4)
+        counts_matrix_soft[:, k] = np.sum(posteriors, axis=0)
+        counts_matrix_hard[:, k] = _hard_counts_from_posteriors(posteriors)
 
     with np.errstate(invalid="ignore", divide="ignore"):
-        assignment_matrix = counts_matrix / np.maximum(
-            np.sum(counts_matrix, axis=0, keepdims=True), 1
+        assignment_matrix = counts_matrix_soft / np.maximum(
+            np.sum(counts_matrix_soft, axis=0, keepdims=True), 1.0
         )
 
     return {
         "assignment_matrix": assignment_matrix.tolist(),
-        "counts_matrix": counts_matrix.tolist(),
+        "counts_matrix_soft": counts_matrix_soft.tolist(),
+        "counts_matrix_hard": counts_matrix_hard.tolist(),
     }
 
 

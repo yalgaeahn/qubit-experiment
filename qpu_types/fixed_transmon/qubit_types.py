@@ -91,6 +91,10 @@ class FixedTransmonQubitParameters(QuantumParameters):
             Either "default" or a list of pulse dictionaries.
         readout_integration_discrimination_thresholds:
             Either `None` or a list of thresholds.
+        readout_phase_delay:
+            Linear phase-delay time constant (seconds) used for correcting
+            readout phase versus frequency. If `None`, no explicit delay
+            correction is applied.
 
         reset_delay_length:
             Duration of the wait time for reset.
@@ -187,6 +191,7 @@ class FixedTransmonQubitParameters(QuantumParameters):
     readout_integration_kernels_type: Literal["default", "optimal"] = "default"
     readout_integration_kernels: list[dict] | None = None
     readout_integration_discrimination_thresholds: list[float] | None = None
+    readout_phase_delay: float | None = None
 
     # reset parameters
 
