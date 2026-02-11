@@ -81,7 +81,6 @@ fidelity:
 
 qubit별 저장:
 - `delta_mu_over_sigma = |w^T(mu_e-mu_g)| / sqrt(w^T Sigma w)`
-- `mahalanobis_distance = sqrt((mu_e-mu_g)^T Sigma^{-1}(mu_e-mu_g))`
 
 ## 5. Bootstrap Error Bars
 
@@ -89,7 +88,6 @@ qubit별 저장:
 - fidelity
 - threshold (`t`)
 - `delta_mu_over_sigma`
-- `mahalanobis_distance`
 
 기본 설정:
 - `bootstrap_samples = 2000`
@@ -184,7 +182,6 @@ qubit별 저장:
   "per_qubit": {
     q_uid: {
       "delta_mu_over_sigma": float,
-      "mahalanobis_distance": float,
     },
     ...
   }
@@ -206,7 +203,6 @@ qubit별 저장:
       },
       "threshold": {...},
       "delta_mu_over_sigma": {...},
-      "mahalanobis_distance": {...},
     },
     ...
   },
@@ -269,3 +265,16 @@ res_2q = iq_cloud.experiment_workflow(
     options=opts,
 ).run()
 ```
+
+## 8. Plot SNR Display
+
+기본 plot에서 SNR(`delta_mu_over_sigma`)은 아래 위치에 표시됩니다.
+- IQ cloud scatter subplot 제목
+- LDA projection histogram subplot 제목
+- assignment matrix subplot 제목(각 qubit fidelity와 함께)
+
+bootstrap가 활성화되어 있으면 표기는 `mean [ci_low, ci_high]` 형식으로 표시됩니다.
+
+또한 bootstrap uncertainty 전용 summary plot(`iq_cloud_bootstrap_summary`)이 생성됩니다.
+- Fidelity, Threshold, SNR에 대한 qubit별 95% CI error-bar
+- 2Q의 경우 fidelity panel에 joint/average mean 보조선 표시

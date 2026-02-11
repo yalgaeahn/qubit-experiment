@@ -45,6 +45,10 @@ class IQCloudAnalysisWorkflowOptions:
         True,
         description="Whether to plot assignment matrices.",
     )
+    do_plotting_bootstrap_summary: bool = workflow.option_field(
+        True,
+        description="Whether to plot bootstrap uncertainty summary.",
+    )
     ridge_target_condition: float = workflow.option_field(
         1e6,
         description="Target upper bound for covariance condition number in ridge regularization.",
@@ -114,11 +118,19 @@ def analysis_workflow(
                 processed_data=processed_data,
                 decision_model=decision_model,
                 qubits=qubits,
+                bootstrap=bootstrap,
             )
         with workflow.if_(options.do_plotting_assignment_matrices):
             plot_assignment_matrices(
                 confusion_matrices=confusion_matrices,
                 assignment_fidelity=assignment_fidelity,
+                qubits=qubits,
+                separation_metrics=separation_metrics,
+                bootstrap=bootstrap,
+            )
+        with workflow.if_(options.do_plotting_bootstrap_summary):
+            plot_bootstrap_summary(
+                bootstrap=bootstrap,
                 qubits=qubits,
             )
 
@@ -372,18 +384,26 @@ def _separation_core(
         mu_g = np.asarray(model["mu_g"], dtype=float)
         mu_e = np.asarray(model["mu_e"], dtype=float)
         sigma = np.asarray(model["sigma"], dtype=float)
-        inv_sigma = np.asarray(model["inv_sigma"], dtype=float)
         w = np.asarray(model["w"], dtype=float)
         delta = mu_e - mu_g
         num = abs(float(w.T @ delta))
         den = np.sqrt(max(float(w.T @ sigma @ w), 0.0))
         delta_mu_over_sigma = float(num / den) if den > _EPS else 0.0
-        mahalanobis = float(np.sqrt(max(float(delta.T @ inv_sigma @ delta), 0.0)))
         separation[uid] = {
             "delta_mu_over_sigma": delta_mu_over_sigma,
-            "mahalanobis_distance": mahalanobis,
         }
     return separation
+
+
+def _snr_delta_mu_over_sigma(model: dict) -> float:
+    mu_g = np.asarray(model["mu_g"], dtype=float)
+    mu_e = np.asarray(model["mu_e"], dtype=float)
+    sigma = np.asarray(model["sigma"], dtype=float)
+    w = np.asarray(model["w"], dtype=float)
+    delta = mu_e - mu_g
+    num = abs(float(w.T @ delta))
+    den = np.sqrt(max(float(w.T @ sigma @ w), 0.0))
+    return float(num / den) if den > _EPS else 0.0
 
 
 def _ci_summary(values: list[float], confidence_level: float) -> dict[str, float]:
@@ -406,6 +426,29 @@ def _ci_summary(values: list[float], confidence_level: float) -> dict[str, float
     }
 
 
+def _format_ci(
+    point: float,
+    ci: dict | None,
+    digits: int = 3,
+) -> str:
+    if not isinstance(ci, dict):
+        return f"{point:.{digits}f}"
+    mean = float(ci.get("mean", point))
+    low = float(ci.get("ci_low", mean))
+    high = float(ci.get("ci_high", mean))
+    return f"{mean:.{digits}f} [{low:.{digits}f}, {high:.{digits}f}]"
+
+
+def _bootstrap_per_qubit_entry(
+    bootstrap: dict | None,
+    uid: str,
+    key: str,
+) -> dict | None:
+    if not isinstance(bootstrap, dict):
+        return None
+    return bootstrap.get("per_qubit", {}).get(uid, {}).get(key)
+
+
 def _ellipse_from_covariance(mu: np.ndarray, cov: np.ndarray, n_std: float = 2.0) -> Ellipse:
     eigvals, eigvecs = np.linalg.eigh(cov)
     order = np.argsort(eigvals)[::-1]
@@ -420,6 +463,21 @@ def _ellipse_from_covariance(mu: np.ndarray, cov: np.ndarray, n_std: float = 2.0
         angle=float(angle),
         fill=False,
     )
+
+
+def _save_artifact_if_available(name: str, artifact) -> None:
+    """Save workflow artifact when executed inside workflow task context.
+
+    Plot tasks in this module are also reused directly in notebooks for synthetic
+    validation. In that path, workflow recorders are not active and save_artifact
+    raises RuntimeError. We skip artifact saving in that case.
+    """
+    try:
+        workflow.save_artifact(name, artifact)
+    except RuntimeError as exc:
+        if "not supported outside of tasks" in str(exc):
+            return
+        raise
 
 
 @workflow.task
@@ -545,7 +603,6 @@ def bootstrap_metrics(
             "fidelity": [],
             "threshold": [],
             "delta_mu_over_sigma": [],
-            "mahalanobis_distance": [],
         }
         for uid in qubit_uids
     }
@@ -592,9 +649,6 @@ def bootstrap_metrics(
             per_qubit_vals[uid]["delta_mu_over_sigma"].append(
                 float(separation_bs[uid]["delta_mu_over_sigma"])
             )
-            per_qubit_vals[uid]["mahalanobis_distance"].append(
-                float(separation_bs[uid]["mahalanobis_distance"])
-            )
 
         if len(qubit_uids) == 2:
             joint_fidelity_vals.append(float(assignment_bs["assignment_fidelity"]["joint"]))
@@ -609,9 +663,6 @@ def bootstrap_metrics(
             "threshold": _ci_summary(per_qubit_vals[uid]["threshold"], cl),
             "delta_mu_over_sigma": _ci_summary(
                 per_qubit_vals[uid]["delta_mu_over_sigma"], cl
-            ),
-            "mahalanobis_distance": _ci_summary(
-                per_qubit_vals[uid]["mahalanobis_distance"], cl
             ),
         }
 
@@ -666,6 +717,7 @@ def plot_iq_clouds(
     processed_data: dict,
     decision_model: dict,
     qubits: QuantumElements,
+    bootstrap: dict | None = None,
 ) -> dict[str, mpl.figure.Figure]:
     """Plot IQ clouds with Bayes boundary and projected histograms."""
     qubits = validate_and_convert_qubits_sweeps(qubits)
@@ -686,6 +738,10 @@ def plot_iq_clouds(
         mu_e = np.asarray(model["mu_e"], dtype=float)
         sigma = np.asarray(model["sigma"], dtype=float)
         threshold = float(model["t"])
+        snr = _snr_delta_mu_over_sigma(model)
+        snr_ci = _bootstrap_per_qubit_entry(bootstrap, uid, "delta_mu_over_sigma")
+        thr_ci = _bootstrap_per_qubit_entry(bootstrap, uid, "threshold")
+        thr_center = float(thr_ci.get("mean", threshold)) if isinstance(thr_ci, dict) else threshold
 
         g_labels = [label for label in prepared_labels if _label_to_bits(label)[q_index] == 0]
         e_labels = [label for label in prepared_labels if _label_to_bits(label)[q_index] == 1]
@@ -730,7 +786,7 @@ def plot_iq_clouds(
 
         ax_iq.set_xlim(x_min, x_max)
         ax_iq.set_ylim(y_min, y_max)
-        ax_iq.set_title(f"{uid}: IQ cloud")
+        ax_iq.set_title(f"{uid}: IQ cloud (SNR={_format_ci(snr, snr_ci, digits=3)})")
         ax_iq.set_xlabel("I")
         ax_iq.set_ylabel("Q")
         ax_iq.set_aspect("equal", adjustable="box")
@@ -740,13 +796,19 @@ def plot_iq_clouds(
         proj_e = _real2(e_shots) @ axis
         ax_proj.hist(proj_g, bins=80, density=True, alpha=0.45, label="g", color="tab:blue")
         ax_proj.hist(proj_e, bins=80, density=True, alpha=0.45, label="e", color="tab:red")
-        ax_proj.axvline(threshold, linestyle="--", color="k", label=f"t={threshold:.4g}")
-        ax_proj.set_title("Projection on LDA axis")
+        ax_proj.axvline(thr_center, linestyle="--", color="k", label=f"t={thr_center:.4g}")
+        if isinstance(thr_ci, dict):
+            t_low = float(thr_ci.get("ci_low", thr_center))
+            t_high = float(thr_ci.get("ci_high", thr_center))
+            ax_proj.axvspan(t_low, t_high, color="k", alpha=0.12, label="t 95% CI")
+        ax_proj.set_title(
+            f"Projection on LDA axis (SNR={_format_ci(snr, snr_ci, digits=3)})"
+        )
         ax_proj.set_xlabel("Projected coordinate")
         ax_proj.legend(frameon=False)
 
         fig.tight_layout()
-        workflow.save_artifact(f"iq_cloud_{uid}", fig)
+        _save_artifact_if_available(f"iq_cloud_{uid}", fig)
         figures[uid] = fig
     return figures
 
@@ -756,6 +818,8 @@ def plot_assignment_matrices(
     confusion_matrices: dict,
     assignment_fidelity: dict,
     qubits: QuantumElements,
+    separation_metrics: dict | None = None,
+    bootstrap: dict | None = None,
 ) -> dict[str, mpl.figure.Figure]:
     """Plot assignment matrices for per-qubit and optional 2Q joint metrics."""
     qubits = validate_and_convert_qubits_sweeps(qubits)
@@ -771,7 +835,19 @@ def plot_assignment_matrices(
         ax = axes[i]
         im = ax.imshow(matrix, vmin=0.0, vmax=1.0, cmap="Blues")
         fid = float(assignment_fidelity["per_qubit"][uid])
-        ax.set_title(f"{uid} fidelity={fid:.3f}")
+        fid_ci = _bootstrap_per_qubit_entry(bootstrap, uid, "fidelity")
+        snr = 0.0
+        if separation_metrics is not None:
+            snr = float(
+                separation_metrics.get("per_qubit", {})
+                .get(uid, {})
+                .get("delta_mu_over_sigma", 0.0)
+            )
+        snr_ci = _bootstrap_per_qubit_entry(bootstrap, uid, "delta_mu_over_sigma")
+        ax.set_title(
+            f"{uid} fidelity={_format_ci(fid, fid_ci, digits=3)}, "
+            f"SNR={_format_ci(snr, snr_ci, digits=3)}"
+        )
         ax.set_xlabel("Predicted")
         ax.set_ylabel("Prepared")
         ax.set_xticks([0, 1], ["g", "e"])
@@ -795,7 +871,12 @@ def plot_assignment_matrices(
         im = ax.imshow(matrix, vmin=0.0, vmax=1.0, cmap="Reds")
         fid = float(assignment_fidelity["joint"])
         avg_fid = float(assignment_fidelity["average"])
-        ax.set_title(f"Joint={fid:.3f}, Avg={avg_fid:.3f}")
+        joint_ci = bootstrap.get("joint", {}).get("fidelity") if isinstance(bootstrap, dict) else None
+        avg_ci = bootstrap.get("average", {}).get("fidelity") if isinstance(bootstrap, dict) else None
+        ax.set_title(
+            f"Joint={_format_ci(fid, joint_ci, digits=3)}, "
+            f"Avg={_format_ci(avg_fid, avg_ci, digits=3)}"
+        )
         ax.set_xlabel("Predicted")
         ax.set_ylabel("Prepared")
         labels = list(JOINT_LABELS_2Q)
@@ -816,5 +897,68 @@ def plot_assignment_matrices(
         fig.colorbar(im, ax=ax, fraction=0.046)
 
     fig.tight_layout()
-    workflow.save_artifact("iq_cloud_assignment_matrices", fig)
+    _save_artifact_if_available("iq_cloud_assignment_matrices", fig)
     return {"assignment_matrices": fig}
+
+
+@workflow.task
+def plot_bootstrap_summary(
+    bootstrap: dict,
+    qubits: QuantumElements,
+) -> dict[str, mpl.figure.Figure]:
+    """Plot bootstrap uncertainty summary for fidelity/threshold/SNR."""
+    qubits = validate_and_convert_qubits_sweeps(qubits)
+    qubit_uids = [q.uid for q in qubits]
+    if not isinstance(bootstrap, dict):
+        return {}
+
+    metrics = [
+        ("fidelity", "Fidelity"),
+        ("threshold", "Threshold"),
+        ("delta_mu_over_sigma", "SNR (delta_mu_over_sigma)"),
+    ]
+    x = np.arange(len(qubit_uids))
+
+    fig, axes = plt.subplots(1, 3, figsize=(13, 3.8), squeeze=False)
+    axes = axes.ravel()
+    for ax, (key, title) in zip(axes, metrics):
+        means = []
+        low_err = []
+        high_err = []
+        for uid in qubit_uids:
+            entry = bootstrap.get("per_qubit", {}).get(uid, {}).get(key, {})
+            mean = float(entry.get("mean", 0.0))
+            lo = float(entry.get("ci_low", mean))
+            hi = float(entry.get("ci_high", mean))
+            means.append(mean)
+            low_err.append(max(mean - lo, 0.0))
+            high_err.append(max(hi - mean, 0.0))
+
+        yerr = np.vstack([low_err, high_err])
+        ax.errorbar(
+            x,
+            means,
+            yerr=yerr,
+            fmt="o",
+            capsize=4,
+            linestyle="None",
+            color="tab:blue",
+        )
+        ax.set_xticks(x, qubit_uids)
+        ax.set_title(title)
+        ax.grid(alpha=0.2)
+        if key == "fidelity":
+            ax.set_ylim(0.0, 1.02)
+            if len(qubit_uids) == 2:
+                joint = bootstrap.get("joint", {}).get("fidelity")
+                avg = bootstrap.get("average", {}).get("fidelity")
+                if isinstance(joint, dict):
+                    ax.axhline(float(joint.get("mean", 0.0)), color="tab:red", linestyle="--", label="joint mean")
+                if isinstance(avg, dict):
+                    ax.axhline(float(avg.get("mean", 0.0)), color="tab:green", linestyle=":", label="avg mean")
+                if isinstance(joint, dict) or isinstance(avg, dict):
+                    ax.legend(frameon=False, fontsize=8)
+
+    fig.tight_layout()
+    _save_artifact_if_available("iq_cloud_bootstrap_summary", fig)
+    return {"bootstrap_summary": fig}
