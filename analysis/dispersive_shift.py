@@ -330,6 +330,7 @@ def calculate_dispersive_shift_metrics(
     )
 
     two_chi_hz = float(f_r_e_hz - f_r_g_hz)
+    ge_chi_shift_hz = 0.5 * two_chi_hz
     ci_low, ci_high = _bootstrap_two_chi_ci(
         frequencies=freqs,
         phase_g=phase_g_corr,
@@ -364,6 +365,7 @@ def calculate_dispersive_shift_metrics(
 
     return {
         "two_chi_hz": two_chi_hz,
+        "ge_chi_shift_hz": float(ge_chi_shift_hz),
         "two_chi_uncertainty": {
             "ci_low": float(ci_low),
             "ci_high": float(ci_high),
@@ -402,11 +404,13 @@ def calculate_dispersive_shift_metrics(
         "old_parameter_values": {
             qubit.uid: {
                 "readout_resonator_frequency": qubit.parameters.readout_resonator_frequency,
+                "ge_chi_shift": qubit.parameters.ge_chi_shift,
             }
         },
         "new_parameter_values": {
             qubit.uid: {
                 "readout_resonator_frequency": float(f_center_hz),
+                "ge_chi_shift": float(ge_chi_shift_hz),
             }
         },
     }

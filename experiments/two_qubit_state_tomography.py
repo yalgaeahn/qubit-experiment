@@ -79,6 +79,33 @@ class TwoQStateTomographyWorkflowOptions:
         True,
         description="Compatibility option. Ignored in IQ-probability analysis path.",
     )
+    validation_mode: bool = workflow.option_field(
+        False,
+        description=(
+            "If True, skip RIP entangling pulse and run tomography directly after "
+            "initial product-state preparation."
+        ),
+    )
+    use_rip: bool = workflow.option_field(
+        True,
+        description=(
+            "Whether to apply RIP entangling pulse during state preparation. "
+            "Ignored (forced False) when validation_mode=True."
+        ),
+    )
+    initial_state: str = workflow.option_field(
+        "++",
+        description=(
+            "Initial 2-qubit product state for tomography experiment. "
+            "Supported labels: '++', '00', '01', '10', '11', 'gg', 'ge', 'eg', 'ee'."
+        ),
+    )
+    enforce_target_match: bool = workflow.option_field(
+        True,
+        description=(
+            "If validation_mode=True, enforce target_state to match initial_state."
+        ),
+    )
 
 
 @workflow.workflow(name="two_qubit_state_tomography")
@@ -116,6 +143,14 @@ def experiment_workflow(
         compiled_readout_cal = compile_experiment(session, readout_cal_exp)
         calibration_result = run_experiment(session, compiled_readout_cal)
 
+    resolved_config = resolve_validation_configuration(
+        validation_mode=options.validation_mode,
+        use_rip=options.use_rip,
+        initial_state=options.initial_state,
+        target_state=target_state,
+        enforce_target_match=options.enforce_target_match,
+    )
+
     exp = create_experiment(
         temp_qpu,
         ctrl,
@@ -125,6 +160,8 @@ def experiment_workflow(
         rip_amplitude=rip_amplitude,
         rip_length=rip_length,
         rip_phase=rip_phase,
+        use_rip=resolved_config["used_rip"],
+        initial_state=resolved_config["initial_state"],
     )
     compiled_exp = compile_experiment(session, exp)
     tomography_result = run_experiment(session, compiled_exp)
@@ -147,7 +184,7 @@ def experiment_workflow(
             ctrl=ctrl,
             targ=targ,
             readout_calibration_result=calibration_result,
-            target_state=target_state,
+            target_state=resolved_config["target_state_effective"],
             bitflip_ctrl=resolved_bitflip["bitflip_ctrl"],
             bitflip_targ=resolved_bitflip["bitflip_targ"],
         )
@@ -157,8 +194,120 @@ def experiment_workflow(
             "tomography_result": tomography_result,
             "readout_calibration_result": calibration_result,
             "analysis_result": analysis_result,
+            "validation_mode": resolved_config["validation_mode"],
+            "initial_state": resolved_config["initial_state"],
+            "used_rip": resolved_config["used_rip"],
+            "target_state_effective": resolved_config["target_state_effective"],
         }
     )
+
+
+@workflow.task
+def resolve_validation_configuration(
+    validation_mode: bool,
+    use_rip: bool,
+    initial_state: str,
+    target_state=None,
+    enforce_target_match: bool = True,
+) -> dict[str, object]:
+    """Resolve RIP usage and target-state policy for validation mode."""
+    canonical_initial_state = _canonical_initial_state_label(initial_state)
+    used_rip = bool(use_rip) and not bool(validation_mode)
+
+    effective_target_state = target_state
+    if validation_mode:
+        if target_state is None:
+            effective_target_state = canonical_initial_state
+        elif enforce_target_match:
+            if _canonical_target_state_label(target_state) != canonical_initial_state:
+                raise ValueError(
+                    "In validation_mode, target_state must match initial_state. "
+                    f"Got target_state={target_state!r}, initial_state={initial_state!r}."
+                )
+
+    return {
+        "validation_mode": bool(validation_mode),
+        "used_rip": bool(used_rip),
+        "initial_state": canonical_initial_state,
+        "target_state_effective": effective_target_state,
+    }
+
+
+def _canonical_initial_state_label(state: str) -> str:
+    """Normalize 2Q product-state label."""
+    if not isinstance(state, str):
+        raise ValueError(f"initial_state must be a string, got {type(state)!r}.")
+    s = state.strip().lower().replace(" ", "")
+    aliases = {
+        "++": "++",
+        "00": "00",
+        "01": "01",
+        "10": "10",
+        "11": "11",
+        "gg": "00",
+        "ge": "01",
+        "eg": "10",
+        "ee": "11",
+    }
+    if s in aliases:
+        return aliases[s]
+    raise ValueError(
+        "Unsupported initial_state. Use one of "
+        "'++', '00', '01', '10', '11', 'gg', 'ge', 'eg', 'ee'."
+    )
+
+
+def _canonical_target_state_label(target_state) -> str:
+    """Normalize target-state string labels used for validation matching."""
+    if not isinstance(target_state, str):
+        return str(target_state)
+    s = target_state.strip().lower().replace(" ", "")
+    aliases = {
+        "++": "++",
+        "plus_plus": "++",
+        "00": "00",
+        "01": "01",
+        "10": "10",
+        "11": "11",
+        "gg": "00",
+        "ge": "01",
+        "eg": "10",
+        "ee": "11",
+    }
+    return aliases.get(s, s)
+
+
+def _single_qubit_state_token(label: str, *, qubit_role: str) -> str:
+    """Extract and map a single-qubit token from canonical 2Q label."""
+    idx = 0 if qubit_role == "ctrl" else 1
+    token = label[idx]
+    if token == "+":
+        return "+"
+    if token == "0":
+        return "g"
+    if token == "1":
+        return "e"
+    raise ValueError(f"Unsupported token {token!r} in initial_state {label!r}.")
+
+
+def _prepare_single_qubit_state(qop, qubit, token: str) -> None:
+    """Prepare one qubit in g/e/+ state."""
+    if token == "g":
+        qop.prepare_state(qubit, state="g")
+        return
+    if token == "e":
+        qop.prepare_state(qubit, state="e")
+        return
+    if token == "+":
+        qop.prepare_state(qubit, state="g")
+        qop.y90(qubit)
+        return
+    raise ValueError(f"Unsupported single-qubit initial-state token: {token!r}.")
+
+
+def _state_token_for_section_name(token: str) -> str:
+    """Map state tokens to section-name friendly labels."""
+    return {"g": "g", "e": "e", "+": "plus"}[token]
 
 
 def _apply_measurement_prerotation(qop, qubit, axis: str):
@@ -184,6 +333,8 @@ def create_experiment(
     rip_amplitude: float,
     rip_length: float,
     rip_phase: float = np.pi / 2,
+    use_rip: bool = True,
+    initial_state: str = "++",
     options: TwoQStateTomographyExperimentOptions | None = None,
 ) -> Experiment:
     """Create 2Q tomography experiment with RIP state preparation."""
@@ -199,6 +350,11 @@ def create_experiment(
     ctrl = validation.validate_and_convert_single_qubit_sweeps(ctrl)
     targ = validation.validate_and_convert_single_qubit_sweeps(targ)
     bus = validation.validate_and_convert_single_qubit_sweeps(bus)
+    canonical_initial_state = _canonical_initial_state_label(initial_state)
+    ctrl_token = _single_qubit_state_token(canonical_initial_state, qubit_role="ctrl")
+    targ_token = _single_qubit_state_token(canonical_initial_state, qubit_role="targ")
+    ctrl_token_name = _state_token_for_section_name(ctrl_token)
+    targ_token_name = _state_token_for_section_name(targ_token)
 
     qop = qpu.quantum_operations
     max_measure_section_length = qpu.measure_section_length([ctrl, targ])
@@ -240,49 +396,37 @@ def create_experiment(
                     **prep_section_kwargs,
                 ) as prep_sec:
                     with dsl.section(
-                        name=f"prep_ctrl_g_{setting_label}",
+                        name=f"prep_ctrl_{ctrl_token_name}_{setting_label}",
                         alignment=SectionAlignment.LEFT,
                     ) as prep_ctrl_g:
-                        qop.prepare_state(ctrl, state="g")
+                        _prepare_single_qubit_state(qop, ctrl, ctrl_token)
 
                     with dsl.section(
-                        name=f"prep_targ_g_{setting_label}",
+                        name=f"prep_targ_{targ_token_name}_{setting_label}",
                         alignment=SectionAlignment.LEFT,
                         play_after=prep_ctrl_g.uid,
-                    ) as prep_targ_g:
-                        qop.prepare_state(targ, state="g")
-
-                    # User-confirmed preparation: ctrl,targ both in |+>.
-                    with dsl.section(
-                        name=f"prep_ctrl_plus_{setting_label}",
-                        alignment=SectionAlignment.LEFT,
-                        play_after=prep_targ_g.uid,
-                    ) as prep_ctrl_plus:
-                        qop.y90(ctrl)
-
-                    with dsl.section(
-                        name=f"prep_targ_plus_{setting_label}",
-                        alignment=SectionAlignment.LEFT,
-                        play_after=prep_ctrl_plus.uid,
                     ):
-                        qop.y90(targ)
+                        _prepare_single_qubit_state(qop, targ, targ_token)
 
-                with dsl.section(
-                    name=f"rip_{setting_label}",
-                    alignment=SectionAlignment.LEFT,
-                    play_after=prep_sec.uid,
-                ) as rip_sec:
-                    qop.rip(
-                        bus,
-                        amplitude=rip_amplitude,
-                        phase=rip_phase,
-                        length=rip_length,
-                    )
+                basis_play_after = prep_sec.uid
+                if use_rip:
+                    with dsl.section(
+                        name=f"rip_{setting_label}",
+                        alignment=SectionAlignment.LEFT,
+                        play_after=prep_sec.uid,
+                    ) as rip_sec:
+                        qop.rip(
+                            bus,
+                            amplitude=rip_amplitude,
+                            phase=rip_phase,
+                            length=rip_length,
+                        )
+                    basis_play_after = rip_sec.uid
 
                 with dsl.section(
                     name=f"basis_{setting_label}",
                     alignment=SectionAlignment.LEFT,
-                    play_after=rip_sec.uid,
+                    play_after=basis_play_after,
                 ) as basis_sec:
                     with dsl.section(
                         name=f"basis_ctrl_{setting_label}",

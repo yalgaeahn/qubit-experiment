@@ -639,6 +639,19 @@ def _target_to_density_matrix(target_state) -> np.ndarray | None:
 
     if isinstance(target_state, str):
         key = target_state.strip().lower()
+        basis_map = {
+            "00": np.array([1, 0, 0, 0], dtype=complex),
+            "01": np.array([0, 1, 0, 0], dtype=complex),
+            "10": np.array([0, 0, 1, 0], dtype=complex),
+            "11": np.array([0, 0, 0, 1], dtype=complex),
+            "gg": np.array([1, 0, 0, 0], dtype=complex),
+            "ge": np.array([0, 1, 0, 0], dtype=complex),
+            "eg": np.array([0, 0, 1, 0], dtype=complex),
+            "ee": np.array([0, 0, 0, 1], dtype=complex),
+        }
+        if key in basis_map:
+            psi = basis_map[key]
+            return np.outer(psi, psi.conj())
         if key in {"plus_plus", "++"}:
             psi = np.array([1, 1, 1, 1], dtype=complex) / 2
             return np.outer(psi, psi.conj())
