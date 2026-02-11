@@ -40,7 +40,7 @@ from laboneq_applications.experiments.options import (
 from laboneq_applications.tasks.parameter_updating import (
     temporary_qpu,
     temporary_quantum_elements_from_qpu,
-    update_qubits,
+    update_qpu,
 )
 
 if TYPE_CHECKING:
@@ -80,6 +80,7 @@ def experiment_workflow(
     qubit: QuantumElement,
     frequencies: QubitSweepPoints,
     states: Sequence[str],
+    phase_delay: dict[str, float] | None = None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,
     options: TuneUpWorkflowOptions | None = None,
@@ -92,7 +93,7 @@ def experiment_workflow(
     - [compile_experiment]()
     - [run_experiment]()
     - [analysis_workflow]()
-    - [update_qubits]()
+    - [update_qpu]()
 
     Arguments:
         session:
@@ -108,6 +109,9 @@ def experiment_workflow(
         states:
             The basis states the qubits should be prepared in. May be either a string,
             e.g. "gef", or a list of letters, e.g. ["g","e","f"].
+        phase_delay:
+            Optional phase-delay correction parameters used in analysis.
+            Supported keys are: "tau_s", "phi0_rad", "f_ref_hz".
         temporary_parameters:
             The temporary parameters with which to update the quantum elements and
             topology edges. For quantum elements, the dictionary key is the quantum
@@ -141,6 +145,7 @@ def experiment_workflow(
         ).run()
         ```
     """
+    options = TuneUpWorkflowOptions() if options is None else options
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
     qubit = temporary_quantum_elements_from_qpu(temp_qpu, qubit)
     exp = create_experiment(
@@ -152,10 +157,16 @@ def experiment_workflow(
     compiled_exp = compile_experiment(session, exp)
     result = run_experiment(session, compiled_exp)
     with workflow.if_(options.do_analysis):
-        analysis_results = analysis_workflow(result, qubit, frequencies, states)
+        analysis_results = analysis_workflow(
+            result=result,
+            qubit=qubit,
+            frequencies=frequencies,
+            states=states,
+            phase_delay=phase_delay,
+        )
         qubit_parameters = analysis_results.output
         with workflow.if_(options.update):
-            update_qubits(qpu, qubit_parameters["new_parameter_values"])
+            update_qpu(qpu, qubit_parameters["new_parameter_values"])
     workflow.return_(result)
 
 
@@ -218,6 +229,11 @@ def create_experiment(
     """
     # Define the custom options for the experiment
     opts = DispersiveShiftExperimentOptions() if options is None else options
+    state_list = list(states) if not isinstance(states, str) else list(states)
+    if len(state_list) != 2 or set(state_list) != {"g", "e"}:
+        raise ValueError(
+            "dispersive_shift experiment currently supports only two states: ['g', 'e']."
+        )
     qubit, frequencies = validation.validate_and_convert_single_qubit_sweeps(
         qubit, frequencies
     )
