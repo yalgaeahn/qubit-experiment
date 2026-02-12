@@ -33,7 +33,8 @@ in parallel on all the qubits.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 from laboneq import workflow
@@ -69,6 +70,182 @@ if TYPE_CHECKING:
     from laboneq_applications.typing import QuantumElements, QubitSweepPoints
 
 
+ALLXY_SEQUENCE_DEFINITIONS: tuple[tuple[str, tuple[str, str]], ...] = (
+    ("allxy_00_II", ("I", "I")),
+    ("allxy_01_XX", ("X", "X")),
+    ("allxy_02_YY", ("Y", "Y")),
+    ("allxy_03_XY", ("X", "Y")),
+    ("allxy_04_YX", ("Y", "X")),
+    ("allxy_05_xI", ("x", "I")),
+    ("allxy_06_yI", ("y", "I")),
+    ("allxy_07_xy", ("x", "y")),
+    ("allxy_08_yx", ("y", "x")),
+    ("allxy_09_xY", ("x", "Y")),
+    ("allxy_10_yX", ("y", "X")),
+    ("allxy_11_Xy", ("X", "y")),
+    ("allxy_12_Yx", ("Y", "x")),
+    ("allxy_13_xX", ("x", "X")),
+    ("allxy_14_Xx", ("X", "x")),
+    ("allxy_15_yY", ("y", "Y")),
+    ("allxy_16_Yy", ("Y", "y")),
+    ("allxy_17_XI", ("X", "I")),
+    ("allxy_18_YI", ("Y", "I")),
+    ("allxy_19_xx", ("x", "x")),
+    ("allxy_20_yy", ("y", "y")),
+)
+
+XY3_SEQUENCE_DEFINITIONS: tuple[tuple[str, str, float], ...] = (
+    ("xx", "x180", 0.0),
+    ("xy", "y180", np.pi / 2),
+    ("xmy", "y180", -np.pi / 2),
+)
+
+
+def _play_allxy_gate(qop: object, q: object, gate: str, beta: SweepParameter, transition: str) -> None:
+    if gate == "I":
+        return
+    gate_to_operation = {
+        "X": qop.x180,
+        "Y": qop.y180,
+        "x": qop.x90,
+        "y": qop.y90,
+    }
+    if gate not in gate_to_operation:
+        raise ValueError(f"Unsupported ALLXY gate token: {gate}")
+    sec = gate_to_operation[gate](q, pulse={"beta": beta}, transition=transition)
+    sec.alignment = SectionAlignment.RIGHT
+
+
+def _extract_beta_from_parameter_dict(parameter_dict: dict | None) -> float | None:
+    if not parameter_dict:
+        return None
+    for key, value in parameter_dict.items():
+        if key.endswith("_drive_pulse.beta"):
+            return value.nominal_value if hasattr(value, "nominal_value") else float(value)
+    return None
+
+
+def _normalize_single_qubit_sweeps(
+    qubits: QuantumElements,
+    q_scalings: QubitSweepPoints,
+) -> QubitSweepPoints:
+    single_qubit_input = not isinstance(qubits, Sequence) or hasattr(qubits, "uid")
+    if not single_qubit_input:
+        return q_scalings
+    if isinstance(q_scalings, np.ndarray):
+        return q_scalings
+    if isinstance(q_scalings, Sequence) and not isinstance(q_scalings, (str, bytes)):
+        if len(q_scalings) == 1:
+            first = q_scalings[0]
+            if isinstance(first, np.ndarray):
+                return first
+            if isinstance(first, Sequence) and not isinstance(first, (str, bytes)):
+                return np.asarray(first, dtype=float)
+    return q_scalings
+
+
+@workflow.task
+def normalize_q_scalings_for_qubits(
+    qubits: QuantumElements, q_scalings: QubitSweepPoints
+) -> QubitSweepPoints:
+    """Normalize sweep-point shape for single-qubit workflows."""
+    return _normalize_single_qubit_sweeps(qubits, q_scalings)
+
+
+@workflow.task
+def normalize_mode(mode: str) -> str:
+    """Normalize and validate DRAG calibration execution mode."""
+    mode_normalized = mode.lower()
+    if mode_normalized not in ("coarse", "allxy", "hybrid"):
+        raise ValueError(f"Unsupported mode: {mode}. Choose coarse, allxy, or hybrid.")
+    return mode_normalized
+
+
+@workflow.task
+def build_fine_q_scalings(
+    qubits: QuantumElements,
+    q_scalings: QubitSweepPoints,
+    coarse_qubit_parameters: dict | None = None,
+    fine_span: float = 0.02,
+    fine_points: int = 9,
+) -> QubitSweepPoints:
+    """Build fine beta sweeps centered on coarse estimates."""
+    if fine_points < 3:
+        raise ValueError("fine_points must be at least 3.")
+    qubits_input = qubits
+    qubits, q_scalings = validation.validate_and_convert_qubits_sweeps(qubits, q_scalings)
+    new_sweeps = []
+    coarse_new_params = (
+        {}
+        if coarse_qubit_parameters is None
+        else coarse_qubit_parameters.get("new_parameter_values", {})
+    )
+    for q, coarse_sweep in zip(qubits, q_scalings):
+        coarse_sweep = np.asarray(coarse_sweep, dtype=float)
+        if coarse_sweep.size == 0:
+            raise ValueError(f"Empty q_scalings for qubit {q.uid}.")
+        sweep_min = float(np.min(coarse_sweep))
+        sweep_max = float(np.max(coarse_sweep))
+        sweep_range = sweep_max - sweep_min
+        beta_center = _extract_beta_from_parameter_dict(coarse_new_params.get(q.uid, {}))
+        if beta_center is None:
+            beta_center = 0.5 * (sweep_min + sweep_max)
+        beta_center = float(np.clip(beta_center, sweep_min, sweep_max))
+        effective_span = fine_span if fine_span > 0 else 0.2 * sweep_range
+        effective_span = min(effective_span, sweep_range) if sweep_range > 0 else 0.0
+        if effective_span <= 0:
+            new_sweeps.append(np.full(fine_points, beta_center, dtype=float))
+            continue
+        beta_low = max(sweep_min, beta_center - effective_span / 2)
+        beta_high = min(sweep_max, beta_center + effective_span / 2)
+        if beta_high <= beta_low:
+            beta_low, beta_high = sweep_min, sweep_max
+        new_sweeps.append(np.linspace(beta_low, beta_high, fine_points, dtype=float))
+    single_qubit_input = not isinstance(qubits_input, Sequence) or hasattr(
+        qubits_input, "uid"
+    )
+    return new_sweeps[0] if single_qubit_input else new_sweeps
+
+
+@workflow.task
+def select_hybrid_qubit_parameters(
+    qubits: QuantumElements,
+    coarse_qubit_parameters: dict | None,
+    fine_qubit_parameters: dict | None,
+) -> dict:
+    """Select fine ALLXY result when available; otherwise keep coarse result."""
+    qubits = validation.validate_and_convert_qubits_sweeps(qubits)
+    coarse_qubit_parameters = coarse_qubit_parameters or {}
+    fine_qubit_parameters = fine_qubit_parameters or {}
+    selected = {
+        "old_parameter_values": {q.uid: {} for q in qubits},
+        "new_parameter_values": {q.uid: {} for q in qubits},
+        "diagnostics": {q.uid: {} for q in qubits},
+    }
+    coarse_old = coarse_qubit_parameters.get("old_parameter_values", {})
+    coarse_new = coarse_qubit_parameters.get("new_parameter_values", {})
+    coarse_diag = coarse_qubit_parameters.get("diagnostics", {})
+    fine_old = fine_qubit_parameters.get("old_parameter_values", {})
+    fine_new = fine_qubit_parameters.get("new_parameter_values", {})
+    fine_diag = fine_qubit_parameters.get("diagnostics", {})
+    for q in qubits:
+        qid = q.uid
+        selected["old_parameter_values"][qid] = coarse_old.get(qid, fine_old.get(qid, {}))
+        if fine_new.get(qid):
+            selected["new_parameter_values"][qid] = fine_new[qid]
+            selected["diagnostics"][qid] = {
+                "method": "allxy21",
+                **fine_diag.get(qid, {}),
+            }
+        else:
+            selected["new_parameter_values"][qid] = coarse_new.get(qid, {})
+            selected["diagnostics"][qid] = {
+                "method": "xy3",
+                **coarse_diag.get(qid, {}),
+            }
+    return selected
+
+
 @workflow.workflow(name="drag_q_scaling")
 def experiment_workflow(
     session: Session,
@@ -78,6 +255,9 @@ def experiment_workflow(
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,
     options: TuneUpWorkflowOptions | None = None,
+    mode: Literal["coarse", "allxy", "hybrid"] = "coarse",
+    fine_span: float = 0.02,
+    fine_points: int = 9,
 ) -> None:
     """The DRAG quadrature-scaling calibration workflow.
 
@@ -139,21 +319,93 @@ def experiment_workflow(
         ).run()
         ```
     """
+    mode_normalized = normalize_mode(mode)
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
     qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)
-    exp = create_experiment(
-        temp_qpu,
-        qubits,
-        q_scalings=q_scalings,
-    )
-    compiled_exp = compile_experiment(session, exp)
-    result = run_experiment(session, compiled_exp)
-    with workflow.if_(options.do_analysis):
-        analysis_results = analysis_workflow(result, qubits, q_scalings)
-        qubit_parameters = analysis_results.output
-        with workflow.if_(options.update):
-            update_qpu(qpu, qubit_parameters["new_parameter_values"])
-    workflow.return_(result)
+    q_scalings = normalize_q_scalings_for_qubits(qubits, q_scalings)
+
+    with workflow.if_(mode_normalized == "coarse"):
+        coarse_exp = create_experiment(
+            temp_qpu,
+            qubits,
+            q_scalings=q_scalings,
+            sequence_set="xy3",
+        )
+        coarse_compiled_exp = compile_experiment(session, coarse_exp)
+        coarse_result = run_experiment(session, coarse_compiled_exp)
+        with workflow.if_(options.do_analysis):
+            coarse_analysis_results = analysis_workflow(
+                coarse_result, qubits, q_scalings, sequence_set="xy3"
+            )
+            qubit_parameters = coarse_analysis_results.output
+            with workflow.if_(options.update):
+                update_qpu(qpu, qubit_parameters["new_parameter_values"])
+        workflow.return_(coarse_result)
+
+    with workflow.elif_(mode_normalized == "allxy"):
+        allxy_exp = create_experiment(
+            temp_qpu,
+            qubits,
+            q_scalings=q_scalings,
+            sequence_set="allxy21",
+        )
+        allxy_compiled_exp = compile_experiment(session, allxy_exp)
+        allxy_result = run_experiment(session, allxy_compiled_exp)
+        with workflow.if_(options.do_analysis):
+            allxy_analysis_results = analysis_workflow(
+                allxy_result, qubits, q_scalings, sequence_set="allxy21"
+            )
+            qubit_parameters = allxy_analysis_results.output
+            with workflow.if_(options.update):
+                update_qpu(qpu, qubit_parameters["new_parameter_values"])
+        workflow.return_(allxy_result)
+
+    with workflow.else_():
+        coarse_exp = create_experiment(
+            temp_qpu,
+            qubits,
+            q_scalings=q_scalings,
+            sequence_set="xy3",
+        )
+        coarse_compiled_exp = compile_experiment(session, coarse_exp)
+        coarse_result = run_experiment(session, coarse_compiled_exp)
+        coarse_qubit_parameters = None
+        with workflow.if_(options.do_analysis):
+            coarse_analysis_results = analysis_workflow(
+                coarse_result, qubits, q_scalings, sequence_set="xy3"
+            )
+            coarse_qubit_parameters = coarse_analysis_results.output
+
+        fine_q_scalings = build_fine_q_scalings(
+            qubits,
+            q_scalings,
+            coarse_qubit_parameters=coarse_qubit_parameters,
+            fine_span=fine_span,
+            fine_points=fine_points,
+        )
+        fine_exp = create_experiment(
+            temp_qpu,
+            qubits,
+            q_scalings=fine_q_scalings,
+            sequence_set="allxy21",
+        )
+        fine_compiled_exp = compile_experiment(session, fine_exp)
+        fine_result = run_experiment(session, fine_compiled_exp)
+        with workflow.if_(options.do_analysis):
+            fine_analysis_results = analysis_workflow(
+                fine_result,
+                qubits,
+                fine_q_scalings,
+                sequence_set="allxy21",
+            )
+            qubit_parameters = select_hybrid_qubit_parameters(
+                qubits,
+                coarse_qubit_parameters,
+                fine_analysis_results.output,
+            )
+            with workflow.if_(options.update):
+                update_qpu(qpu, qubit_parameters["new_parameter_values"])
+        workflow.return_(fine_result)
 
 
 @workflow.task
@@ -163,6 +415,7 @@ def create_experiment(
     qubits: QuantumElements,
     q_scalings: QubitSweepPoints,
     options: TuneupExperimentOptions | None = None,
+    sequence_set: Literal["xy3", "allxy21"] = "xy3",
 ) -> Experiment:
     """Creates a DRAG quadrature-scaling calibration Experiment.
 
@@ -225,6 +478,7 @@ def create_experiment(
     """
     # Define the custom options for the experiment
     opts = TuneupExperimentOptions() if options is None else options
+    q_scalings = _normalize_single_qubit_sweeps(qubits, q_scalings)
     qubits, q_scalings = validation.validate_and_convert_qubits_sweeps(
         qubits, q_scalings
     )
@@ -238,11 +492,12 @@ def create_experiment(
             "outside the sweep."
         )
 
-    pulse_ids = ["xx", "xy", "xmy"]
-    ops_ids = ["x180", "y180", "y180"]
-    phase_overrides = [0.0, np.pi / 2, -np.pi / 2]
+    if sequence_set not in ("xy3", "allxy21"):
+        raise ValueError(
+            f"Unsupported sequence_set: {sequence_set}. Choose xy3 or allxy21."
+        )
     qscaling_sweep_pars = [
-        SweepParameter(f"amplitude_{q.uid}", q_qscales, axis_name=f"{q.uid}")
+        SweepParameter(f"beta_{q.uid}", q_qscales, axis_name=f"{q.uid}")
         for q, q_qscales in zip(qubits, q_scalings)
     ]
 
@@ -263,7 +518,11 @@ def create_experiment(
             name="drag_q_scaling_sweep",
             parameter=qscaling_sweep_pars,
         ):
-            for i, op_id in enumerate(ops_ids):
+            if sequence_set == "xy3":
+                sequence_definitions = XY3_SEQUENCE_DEFINITIONS
+            else:
+                sequence_definitions = ALLXY_SEQUENCE_DEFINITIONS
+            for sequence_definition in sequence_definitions:
                 if opts.active_reset:
                     qop.active_reset(
                         qubits,
@@ -276,20 +535,38 @@ def create_experiment(
                         name="main_drive", alignment=SectionAlignment.RIGHT
                     ):
                         for q, beta in zip(qubits, qscaling_sweep_pars):
-                            pulse_id = pulse_ids[i]
-                            phase = phase_overrides[i]
+                            pulse_id = sequence_definition[0]
                             qop.prepare_state.omit_section(q, opts.transition[0])
-                            sec = qop.x90(
-                                q, pulse={"beta": beta}, transition=opts.transition
-                            )
-                            sec.alignment = SectionAlignment.RIGHT
-                            sec = qop[op_id](
-                                q,
-                                pulse={"beta": beta},
-                                phase=phase,
-                                transition=opts.transition,
-                            )
-                            sec.alignment = SectionAlignment.RIGHT
+                            if sequence_set == "xy3":
+                                op_id = sequence_definition[1]
+                                phase = sequence_definition[2]
+                                sec = qop.x90(
+                                    q, pulse={"beta": beta}, transition=opts.transition
+                                )
+                                sec.alignment = SectionAlignment.RIGHT
+                                sec = qop[op_id](
+                                    q,
+                                    pulse={"beta": beta},
+                                    phase=phase,
+                                    transition=opts.transition,
+                                )
+                                sec.alignment = SectionAlignment.RIGHT
+                            else:
+                                gates = sequence_definition[1]
+                                _play_allxy_gate(
+                                    qop,
+                                    q,
+                                    gates[0],
+                                    beta,
+                                    opts.transition,
+                                )
+                                _play_allxy_gate(
+                                    qop,
+                                    q,
+                                    gates[1],
+                                    beta,
+                                    opts.transition,
+                                )
                     with dsl.section(
                         name="main_measure", alignment=SectionAlignment.LEFT
                     ):
