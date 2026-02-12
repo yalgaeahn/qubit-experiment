@@ -277,8 +277,8 @@ def create_experiment(
     # We will fix the length of the measure section to the longest section among
     # the qubits to allow the qubits to have different readout and/or
     # integration lengths.
-    max_measure_section_length = qpu.measure_section_length(targ)
     qop = qpu.quantum_operations
+    max_measure_section_length = qop.measure_section_length(targ)
     with dsl.acquire_loop_rt(
         count=opts.count,
         averaging_mode=opts.averaging_mode,
@@ -301,7 +301,7 @@ def create_experiment(
                     measure_section_length=max_measure_section_length,
                 )
 
-            with dsl.section(name="ctrl_prep", alignment=SectionAlignment.LEFT)
+            with dsl.section(name="ctrl_prep", alignment=SectionAlignment.LEFT) as prep:
                 qop.prepare_state(ctrl, c_prep)
             with dsl.section(name="main_drive", alignment=SectionAlignment.LEFT, play_after=prep.uid):
                 ###############ECHO SEQUENCE##################################    
@@ -313,9 +313,9 @@ def create_experiment(
                 with dsl.section(name="flip",alignment=SectionAlignment.LEFT, play_after=rip1.uid) as flip:
                     qop.x180(ctrl)
                     qop.x180(targ)
-                with dsl.section(name="rip_drive2",alignment=SectionAlignment.LEFT, play_after=flip.uid) as rip2
-                    qop.x180(q_b, amplitude=bus_amplitude, length=wait_time)
-                    qop.x180(q_b2, amplitude=bus2_amplitude, length=wait_time)
+                with dsl.section(name="rip_drive2",alignment=SectionAlignment.LEFT, play_after=flip.uid) as rip2:
+                    qop.x180(bus, amplitude=bus_amplitude, length=wait_time)
+                    qop.x180(bus2, amplitude=bus2_amplitude, length=wait_time)
                         
                 qop.ramsey(
                     targ, wait_time, phase, transition=opts.transition

@@ -357,7 +357,7 @@ def create_experiment(
     targ_token_name = _state_token_for_section_name(targ_token)
 
     qop = qpu.quantum_operations
-    max_measure_section_length = qpu.measure_section_length([ctrl, targ])
+    max_measure_section_length = qop.measure_section_length([ctrl, targ])
 
     with dsl.acquire_loop_rt(
         count=opts.count,

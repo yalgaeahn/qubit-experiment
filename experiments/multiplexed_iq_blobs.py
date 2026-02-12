@@ -107,7 +107,7 @@ def create_experiment(
     targ = validation.validate_and_convert_single_qubit_sweeps(targ)
 
     qop = qpu.quantum_operations
-    max_measure_section_length = qpu.measure_section_length([ctrl, targ])
+    max_measure_section_length = qop.measure_section_length([ctrl, targ])
 
     with dsl.acquire_loop_rt(
         count=opts.count,

@@ -215,8 +215,8 @@ def create_experiment(
     # the qubits to allow the qubits to have different readout and/or
     # integration lengths.
     # measure_section_length expects an iterable of qubits
-    max_measure_section_length = qpu.measure_section_length([targ])
-    qop = qpu.quantum_operations #combined operation
+    qop = qpu.quantum_operations
+    max_measure_section_length = qop.measure_section_length([targ]) #combined operation
     with dsl.acquire_loop_rt(
         count=opts.count,
         averaging_mode=opts.averaging_mode,

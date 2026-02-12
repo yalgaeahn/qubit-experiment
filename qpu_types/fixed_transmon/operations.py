@@ -35,6 +35,22 @@ class FixedTransmonOperations(dsl.QuantumOperations):
     _PI = np.pi
     _PI_BY_2 = np.pi / 2
 
+    @staticmethod
+    def _single_qubit_measure_section_length(q: FixedTransmonQubit) -> float:
+        """Return the minimum fixed section length required for one qubit measurement."""
+        _, ro_params = q.readout_parameters()
+        _, ro_int_params = q.readout_integration_parameters()
+        ro_int_delay = q.parameters.readout_integration_delay or 0.0
+        return max(ro_params["length"], ro_int_delay + ro_int_params["length"])
+
+    def measure_section_length(self, qubits: QuantumElements) -> float:
+        """Calculate a safe fixed length for multiplexed measure sections."""
+        if isinstance(qubits, FixedTransmonQubit):
+            qubits = [qubits]
+        if len(qubits) == 0:
+            raise ValueError("At least one qubit is required to compute section length.")
+        return max(self._single_qubit_measure_section_length(q) for q in qubits)
+
     @dsl.quantum_operation
     def barrier(self, q: FixedTransmonQubit) -> None:
         """Add a barrier on all the qubit signals.
@@ -245,7 +261,8 @@ class FixedTransmonOperations(dsl.QuantumOperations):
                     readout_pulse=None if readout_pulses is None else readout_pulses[i],
                     kernel_pulses=None if kernel_pulses is None else kernel_pulses[i]
                     )
-                sec.length = measure_section_length
+                if measure_section_length is not None:
+                    sec.length = measure_section_length
                 self.passive_reset(q)
 
     @dsl.quantum_operation
@@ -1072,7 +1089,8 @@ class FixedTransmonOperations(dsl.QuantumOperations):
             with dsl.section(name=f"active_reset_rep_{nr}"):
                 for qidx, q in enumerate(qubits):
                     sec = self.measure(q, handle=handles[qidx])
-                    sec.length = measure_section_length
+                    if measure_section_length is not None:
+                        sec.length = measure_section_length
                     self.delay(q, feedback_processing_delay)
                     with dsl.match(name=f"match_{q.uid}", handle=handles[qidx]):
                         with dsl.case(name=f"case_{q.uid}_g", state=0):
@@ -1158,7 +1176,8 @@ class FixedTransmonOperations(dsl.QuantumOperations):
                             q, dsl.handles.calibration_trace_handle(q.uid, state)
                         )
                         # Fix the length of the measure section
-                        sec.length = measure_section_length
+                        if measure_section_length is not None:
+                            sec.length = measure_section_length
                         self.passive_reset(q)
 
 

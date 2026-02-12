@@ -127,7 +127,7 @@ def create_experiment(
     prepared_labels = prepared_labels_for_num_qubits(len(qubits))
 
     qop = qpu.quantum_operations
-    max_measure_section_length = qpu.measure_section_length(qubits)
+    max_measure_section_length = qop.measure_section_length(qubits)
 
     with dsl.acquire_loop_rt(
         count=opts.count,
