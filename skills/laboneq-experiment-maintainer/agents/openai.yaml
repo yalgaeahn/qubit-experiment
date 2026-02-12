@@ -1,0 +1,4 @@
+interface:
+  display_name: "LabOne Q Experiment Maintainer"
+  short_description: "Maintain LabOne Q repo workflows safely"
+  default_prompt: "Build and debug LabOne Q experiment and analysis workflows in this repository, preserving acquisition-mode contracts, workflow option behavior, parameter updates, and notebook validation."
