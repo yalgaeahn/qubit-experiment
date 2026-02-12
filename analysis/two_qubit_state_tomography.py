@@ -43,8 +43,6 @@ def analysis_workflow(
     targ,
     readout_calibration_result: RunExperimentResults | None = None,
     target_state=None,
-    bitflip_ctrl: bool = False,
-    bitflip_targ: bool = False,
     options: TwoQStateTomographyAnalysisOptions | None = None,
 ) -> None:
     """Run IQ-probability readout-mitigated MLE analysis for 2Q tomography data."""
@@ -111,8 +109,6 @@ def analysis_workflow(
             "metrics": state_metrics,
             "discriminator_model": discriminator["model"],
             "classification_diagnostics": discriminator["diagnostics"],
-            "bitflip_ctrl": bool(bitflip_ctrl),
-            "bitflip_targ": bool(bitflip_targ),
         }
     )
 
@@ -315,62 +311,6 @@ def fit_discriminator_from_readout_calibration(
         "internal": {"ctrl": ctrl_model, "targ": targ_model},
         "diagnostics": diagnostics,
     }
-
-
-@workflow.task
-def infer_bitflip_from_readout_calibration(
-    readout_calibration_result: RunExperimentResults | None,
-    ctrl_uid: str,
-    targ_uid: str,
-) -> dict[str, bool | float]:
-    """Compatibility task: keep API but bitflip inference is disabled in IQ flow."""
-    if readout_calibration_result is None:
-        return {
-            "bitflip_ctrl": False,
-            "bitflip_targ": False,
-            "accuracy_ctrl_direct": 0.0,
-            "accuracy_ctrl_flip": 0.0,
-            "accuracy_targ_direct": 0.0,
-            "accuracy_targ_flip": 0.0,
-        }
-    readout_calibration_result = _unwrap_result_like(readout_calibration_result)
-    validate_result(readout_calibration_result)
-    train = _collect_calibration_training_sets(
-        readout_calibration_result=readout_calibration_result,
-        ctrl_uid=ctrl_uid,
-        targ_uid=targ_uid,
-    )
-    ctrl_model = _fit_binary_gaussian_discriminator(train["ctrl_g"], train["ctrl_e"])
-    targ_model = _fit_binary_gaussian_discriminator(train["targ_g"], train["targ_e"])
-    diag = _classification_diagnostics(
-        readout_calibration_result=readout_calibration_result,
-        ctrl_uid=ctrl_uid,
-        targ_uid=targ_uid,
-        ctrl_model=ctrl_model,
-        targ_model=targ_model,
-    )
-    acc_ctrl = float(diag.get("ctrl_accuracy", 0.0))
-    acc_targ = float(diag.get("targ_accuracy", 0.0))
-    return {
-        "bitflip_ctrl": False,
-        "bitflip_targ": False,
-        "accuracy_ctrl_direct": acc_ctrl,
-        "accuracy_ctrl_flip": 1.0 - acc_ctrl,
-        "accuracy_targ_direct": acc_targ,
-        "accuracy_targ_flip": 1.0 - acc_targ,
-    }
-
-
-@workflow.task
-def resolve_bitflip_settings(
-    bitflip_ctrl: bool,
-    bitflip_targ: bool,
-    auto_bitflip_from_calibration: bool,
-    inferred_bitflip: dict[str, bool | float] | None = None,
-) -> dict[str, bool]:
-    """Compatibility task: always returns manual bitflip values unchanged."""
-    del auto_bitflip_from_calibration, inferred_bitflip
-    return {"bitflip_ctrl": bool(bitflip_ctrl), "bitflip_targ": bool(bitflip_targ)}
 
 
 def _unwrap_result_like(result_like):
