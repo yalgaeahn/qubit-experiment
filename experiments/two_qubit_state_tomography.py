@@ -11,7 +11,9 @@ from laboneq.simple import Experiment, SectionAlignment, dsl
 from laboneq.workflow.tasks import compile_experiment, run_experiment
 
 from analysis.two_qubit_state_tomography import (
+    TwoQStateTomographyAnalysisOptions,
     analysis_workflow,
+    summarize_statistical_convergence,
 )
 from experiments.two_qubit_readout_calibration import (
     create_experiment as create_readout_calibration_experiment,
@@ -64,6 +66,25 @@ class TwoQStateTomographyWorkflowOptions:
     do_readout_calibration: bool = workflow.option_field(
         True,
         description="Whether to run readout calibration before tomography.",
+    )
+    do_convergence_validation: bool = workflow.option_field(
+        False,
+        description="Whether to run repeated state-suite convergence validation runs.",
+    )
+    convergence_repeats_per_state: int = workflow.option_field(
+        3,
+        description="Number of repeated runs per state in convergence validation.",
+    )
+    convergence_suite_states: tuple[str, ...] = workflow.option_field(
+        ("00", "01", "10", "11", "++"),
+        description=(
+            "State labels used for statistical convergence suite. "
+            "Default minimal product suite: ('00','01','10','11','++')."
+        ),
+    )
+    convergence_do_plotting: bool = workflow.option_field(
+        False,
+        description="Whether to keep plotting enabled for internal convergence runs.",
     )
     validation_mode: bool = workflow.option_field(
         False,
@@ -168,11 +189,71 @@ def experiment_workflow(
             target_state=resolved_config["target_state_effective"],
         )
 
+    convergence_report = None
+    with workflow.if_(options.do_analysis and options.do_convergence_validation):
+        suite_states = resolve_convergence_suite_states(
+            suite_states=options.convergence_suite_states,
+            repeats_per_state=options.convergence_repeats_per_state,
+        )
+        conv_analysis_options = TwoQStateTomographyAnalysisOptions()
+        conv_analysis_options.do_plotting = bool(options.convergence_do_plotting)
+        raw_run_records = []
+
+        for state_label in suite_states:
+            for repeat_index in range(int(options.convergence_repeats_per_state)):
+                suite_resolved_config = resolve_validation_configuration(
+                    validation_mode=True,
+                    use_rip=False,
+                    initial_state=state_label,
+                    target_state=state_label,
+                    enforce_target_match=True,
+                )
+                suite_exp = create_experiment(
+                    temp_qpu,
+                    ctrl,
+                    targ,
+                    bus,
+                    bus_frequency=bus_frequency,
+                    rip_amplitude=rip_amplitude,
+                    rip_length=rip_length,
+                    rip_phase=rip_phase,
+                    use_rip=suite_resolved_config["used_rip"],
+                    initial_state=suite_resolved_config["initial_state"],
+                )
+                compiled_suite_exp = compile_experiment(session, suite_exp)
+                suite_tomography_result = run_experiment(session, compiled_suite_exp)
+                suite_analysis_result = analysis_workflow(
+                    tomography_result=suite_tomography_result,
+                    ctrl=ctrl,
+                    targ=targ,
+                    readout_calibration_result=calibration_result,
+                    target_state=suite_resolved_config["target_state_effective"],
+                    options=conv_analysis_options,
+                )
+                raw_run_records.append(
+                    collect_convergence_run_record(
+                        state_label=state_label,
+                        repeat_index=repeat_index,
+                        analysis_result=suite_analysis_result,
+                    )
+                )
+
+        statistical_convergence = summarize_statistical_convergence(raw_run_records)
+        main_run_convergence = extract_main_run_optimization_convergence(analysis_result)
+        convergence_report = {
+            "suite_states": suite_states,
+            "repeats_per_state": int(options.convergence_repeats_per_state),
+            "main_run_optimization_convergence": main_run_convergence,
+            "statistical_convergence": statistical_convergence,
+            "raw_run_records": raw_run_records,
+        }
+
     workflow.return_(
         {
             "tomography_result": tomography_result,
             "readout_calibration_result": calibration_result,
             "analysis_result": analysis_result,
+            "convergence_report": convergence_report,
             "validation_mode": resolved_config["validation_mode"],
             "initial_state": resolved_config["initial_state"],
             "used_rip": resolved_config["used_rip"],
@@ -224,6 +305,98 @@ def validate_analysis_prerequisites(
             "Analysis requires readout calibration. Provide "
             "`readout_calibration_result` or set `do_readout_calibration=True`."
         )
+
+
+@workflow.task
+def resolve_convergence_suite_states(
+    suite_states: tuple[str, ...] | list[str],
+    repeats_per_state: int,
+) -> tuple[str, ...]:
+    """Validate and normalize state-suite labels for convergence checks."""
+    if int(repeats_per_state) < 1:
+        raise ValueError("convergence_repeats_per_state must be >= 1.")
+    if suite_states is None:
+        raise ValueError("convergence_suite_states cannot be None.")
+    normalized = []
+    seen = set()
+    for label in suite_states:
+        canonical = _canonical_initial_state_label(str(label))
+        if canonical not in seen:
+            seen.add(canonical)
+            normalized.append(canonical)
+    if not normalized:
+        raise ValueError("convergence_suite_states must contain at least one valid state.")
+    return tuple(normalized)
+
+
+def _unwrap_workflow_output_like(result_like):
+    """Unwrap workflow/task wrappers to a concrete output payload."""
+    current = result_like
+    for _ in range(8):
+        if current is None:
+            return None
+        if hasattr(current, "output"):
+            current = current.output
+            continue
+        return current
+    return current
+
+
+def _safe_float(value):
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+@workflow.task
+def collect_convergence_run_record(
+    state_label: str,
+    repeat_index: int,
+    analysis_result,
+) -> dict[str, object]:
+    """Extract compact per-run convergence record from analysis output."""
+    out = _unwrap_workflow_output_like(analysis_result)
+    if not isinstance(out, dict):
+        return {
+            "state_label": str(state_label),
+            "repeat_index": int(repeat_index),
+            "fidelity_to_target": None,
+            "optimizer_success": False,
+            "negative_log_likelihood": None,
+            "rho_min_eigenvalue": None,
+        }
+    metrics = out.get("metrics", {}) if isinstance(out.get("metrics"), dict) else {}
+    opt = (
+        out.get("optimization_convergence", {})
+        if isinstance(out.get("optimization_convergence"), dict)
+        else {}
+    )
+    return {
+        "state_label": str(state_label),
+        "repeat_index": int(repeat_index),
+        "fidelity_to_target": _safe_float(metrics.get("fidelity_to_target")),
+        "optimizer_success": bool(out.get("optimizer_success", False)),
+        "negative_log_likelihood": _safe_float(out.get("negative_log_likelihood")),
+        "rho_min_eigenvalue": _safe_float(metrics.get("min_eigenvalue")),
+        "nll_finite": bool(opt.get("nll_finite", False)),
+        "nll_per_shot": _safe_float(opt.get("nll_per_shot")),
+        "mae_counts": _safe_float(opt.get("mae_counts")),
+        "max_abs_counts_error": _safe_float(opt.get("max_abs_counts_error")),
+        "normalized_mae_counts": _safe_float(opt.get("normalized_mae_counts")),
+    }
+
+
+@workflow.task
+def extract_main_run_optimization_convergence(analysis_result) -> dict[str, object] | None:
+    """Extract optimization convergence payload from main analysis run."""
+    out = _unwrap_workflow_output_like(analysis_result)
+    if not isinstance(out, dict):
+        return None
+    convergence = out.get("optimization_convergence")
+    return convergence if isinstance(convergence, dict) else None
 
 
 def _canonical_initial_state_label(state: str) -> str:

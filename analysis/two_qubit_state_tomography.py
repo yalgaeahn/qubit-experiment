@@ -77,6 +77,15 @@ def analysis_workflow(
         rho_hat_imag=mle_result["rho_hat_imag"],
         target_state=target_state,
     )
+    optimization_convergence = evaluate_optimization_convergence(
+        tomography_counts=tomography_counts,
+        predicted_counts=mle_result["predicted_counts"],
+        optimizer_success=mle_result["optimizer_success"],
+        optimizer_message=mle_result["optimizer_message"],
+        negative_log_likelihood=mle_result["negative_log_likelihood"],
+        rho_hat_real=mle_result["rho_hat_real"],
+        rho_hat_imag=mle_result["rho_hat_imag"],
+    )
 
     with workflow.if_(options.do_plotting):
         plot_density_matrix(
@@ -109,6 +118,7 @@ def analysis_workflow(
             "metrics": state_metrics,
             "discriminator_model": discriminator["model"],
             "classification_diagnostics": discriminator["diagnostics"],
+            "optimization_convergence": optimization_convergence,
         }
     )
 
@@ -669,6 +679,163 @@ def calculate_state_metrics(
         "min_eigenvalue": min_eigenvalue,
         "fidelity_to_target": fidelity,
         "pauli_correlators": correlators,
+    }
+
+
+def _finite_stats(values: list[float]) -> dict[str, float | int | None]:
+    arr = np.asarray([v for v in values if np.isfinite(v)], dtype=float)
+    n = int(arr.size)
+    if n == 0:
+        return {
+            "count": 0,
+            "mean": None,
+            "std": None,
+            "sem": None,
+            "ci95": None,
+        }
+    mean = float(np.mean(arr))
+    std = float(np.std(arr, ddof=1)) if n > 1 else 0.0
+    sem = float(std / np.sqrt(n)) if n > 1 else 0.0
+    ci95 = float(1.96 * sem) if n > 1 else 0.0
+    return {
+        "count": n,
+        "mean": mean,
+        "std": std,
+        "sem": sem,
+        "ci95": ci95,
+    }
+
+
+@workflow.task
+def evaluate_optimization_convergence(
+    tomography_counts: dict[str, list],
+    predicted_counts: list[list[float]],
+    optimizer_success: bool,
+    optimizer_message: str,
+    negative_log_likelihood: float,
+    rho_hat_real: list[list[float]],
+    rho_hat_imag: list[list[float]],
+) -> dict[str, object]:
+    """Compute optimizer convergence diagnostics for one tomography run."""
+    observed = np.asarray(tomography_counts.get("counts", []), dtype=float)
+    predicted = np.asarray(predicted_counts, dtype=float)
+    shots = np.asarray(tomography_counts.get("shots_per_setting", []), dtype=float)
+    total_shots = float(np.sum(shots)) if shots.size else float(np.sum(observed))
+    nll = float(negative_log_likelihood)
+    nll_finite = bool(np.isfinite(nll))
+    nll_per_shot = float(nll / total_shots) if nll_finite and total_shots > 0 else None
+
+    if observed.size and predicted.size and observed.shape == predicted.shape:
+        abs_err = np.abs(observed - predicted)
+        mae_counts = float(np.mean(abs_err))
+        max_abs_counts_error = float(np.max(abs_err))
+    else:
+        mae_counts = None
+        max_abs_counts_error = None
+
+    avg_shots = float(np.mean(shots)) if shots.size else None
+    if mae_counts is not None and avg_shots is not None and avg_shots > 0:
+        normalized_mae = float(mae_counts / avg_shots)
+    else:
+        normalized_mae = None
+
+    rho = np.asarray(rho_hat_real, dtype=float) + 1j * np.asarray(rho_hat_imag, dtype=float)
+    rho = (rho + rho.conj().T) / 2.0
+    tr = np.trace(rho)
+    if np.abs(tr) > 0:
+        rho = rho / tr
+    trace_real = float(np.real(np.trace(rho)))
+    min_eigenvalue = float(np.min(np.linalg.eigvalsh(rho)).real)
+    purity = float(np.real(np.trace(rho @ rho)))
+
+    return {
+        "optimizer_success": bool(optimizer_success),
+        "optimizer_message": str(optimizer_message),
+        "nll_finite": nll_finite,
+        "negative_log_likelihood": nll,
+        "nll_per_shot": nll_per_shot,
+        "total_shots": total_shots,
+        "mae_counts": mae_counts,
+        "max_abs_counts_error": max_abs_counts_error,
+        "normalized_mae_counts": normalized_mae,
+        "trace": trace_real,
+        "min_eigenvalue": min_eigenvalue,
+        "purity": purity,
+    }
+
+
+@workflow.task
+def summarize_statistical_convergence(
+    run_records: list[dict[str, object]],
+) -> dict[str, object]:
+    """Aggregate repeated-run convergence statistics across a state suite."""
+    records = run_records or []
+    grouped: dict[str, list[dict[str, object]]] = {}
+    for rec in records:
+        if not isinstance(rec, dict):
+            continue
+        state_label = str(rec.get("state_label", "unknown"))
+        grouped.setdefault(state_label, []).append(rec)
+
+    per_state: dict[str, dict[str, object]] = {}
+    all_fidelities: list[float] = []
+    success_flags: list[float] = []
+    min_eigs: list[float] = []
+
+    for state, items in grouped.items():
+        fidelities: list[float] = []
+        nlls: list[float] = []
+        state_min_eigs: list[float] = []
+        state_success: list[float] = []
+
+        for item in items:
+            f = item.get("fidelity_to_target")
+            if f is not None and np.isfinite(float(f)):
+                fidelities.append(float(f))
+                all_fidelities.append(float(f))
+
+            nll = item.get("negative_log_likelihood")
+            if nll is not None and np.isfinite(float(nll)):
+                nlls.append(float(nll))
+
+            eig = item.get("rho_min_eigenvalue")
+            if eig is not None and np.isfinite(float(eig)):
+                state_min_eigs.append(float(eig))
+                min_eigs.append(float(eig))
+
+            state_success.append(1.0 if bool(item.get("optimizer_success", False)) else 0.0)
+            success_flags.append(1.0 if bool(item.get("optimizer_success", False)) else 0.0)
+
+        fstats = _finite_stats(fidelities)
+        nstats = _finite_stats(nlls)
+        estats = _finite_stats(state_min_eigs)
+        per_state[state] = {
+            "num_runs": len(items),
+            "num_valid_fidelity_runs": int(fstats["count"]),
+            "optimizer_success_rate": float(np.mean(state_success)) if state_success else 0.0,
+            "fidelity_mean": fstats["mean"],
+            "fidelity_std": fstats["std"],
+            "fidelity_sem": fstats["sem"],
+            "fidelity_ci95": fstats["ci95"],
+            "nll_mean": nstats["mean"],
+            "nll_std": nstats["std"],
+            "rho_min_eigenvalue_mean": estats["mean"],
+            "rho_min_eigenvalue_min": float(np.min(state_min_eigs)) if state_min_eigs else None,
+        }
+
+    all_f_stats = _finite_stats(all_fidelities)
+    aggregate = {
+        "num_total_runs": len(records),
+        "overall_optimizer_success_rate": float(np.mean(success_flags)) if success_flags else 0.0,
+        "pooled_fidelity_mean": all_f_stats["mean"],
+        "pooled_fidelity_std": all_f_stats["std"],
+        "pooled_fidelity_sem": all_f_stats["sem"],
+        "pooled_fidelity_ci95": all_f_stats["ci95"],
+        "worst_rho_min_eigenvalue": float(np.min(min_eigs)) if min_eigs else None,
+    }
+    return {
+        "per_state": per_state,
+        "aggregate": aggregate,
     }
 
 

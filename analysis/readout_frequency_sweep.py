@@ -81,6 +81,17 @@ class ReadoutFrequencySweepAnalysisOptions:
             "If false, choose center-most candidate."
         ),
     )
+    mid_weight: float = workflow.option_field(
+        0.0,
+        description=(
+            "Weight for MID score in composite selection. "
+            "0 disables MID penalty, 1 prioritizes MID only."
+        ),
+    )
+    mid_penalty_scale: float = workflow.option_field(
+        1.0,
+        description="Scale factor used in MID-score normalization.",
+    )
 
 
 @workflow.workflow(name="analysis_readout_frequency_sweep")
@@ -89,6 +100,7 @@ def analysis_workflow(
     qubits: Sequence[QuantumElement],
     frequencies: ArrayLike,
     reference_qubit: QuantumElement,
+    mid_penalty: ArrayLike | None = None,
     options: ReadoutFrequencySweepAnalysisOptions | None = None,
 ) -> None:
     """Analyze repeated IQ-cloud acquisitions across readout-frequency candidates."""
@@ -104,6 +116,9 @@ def analysis_workflow(
         bootstrap_confidence_level=options.bootstrap_confidence_level,
         bootstrap_seed=options.bootstrap_seed,
         prefer_lower_frequency_within_tolerance=options.prefer_lower_frequency_within_tolerance,
+        mid_penalty=mid_penalty,
+        mid_weight=options.mid_weight,
+        mid_penalty_scale=options.mid_penalty_scale,
     )
     with workflow.if_(options.do_plotting):
         with workflow.if_(options.do_plotting_metrics):
@@ -190,6 +205,9 @@ def calculate_metrics(
     bootstrap_confidence_level: float = 0.95,
     bootstrap_seed: int | None = None,
     prefer_lower_frequency_within_tolerance: bool = False,
+    mid_penalty: ArrayLike | None = None,
+    mid_weight: float = 0.0,
+    mid_penalty_scale: float = 1.0,
 ) -> dict:
     """Compute metric curves over frequency candidates and choose optimum."""
     frequency_points = np.asarray(frequencies, dtype=float).reshape(-1)
@@ -241,6 +259,22 @@ def calculate_metrics(
         snr_ci_low[i] = float(ci["snr_ci_low"])
         snr_ci_high[i] = float(ci["snr_ci_high"])
 
+    fidelity_threshold = float(fidelity_tolerance)
+    mid_penalty_values = (
+        np.asarray(mid_penalty, dtype=float).reshape(-1)
+        if mid_penalty is not None
+        else None
+    )
+    use_mid = (
+        mid_penalty_values is not None
+        and mid_penalty_values.size == frequency_points.size
+        and float(mid_weight) > 0.0
+    )
+    if use_mid:
+        mid_penalty_values = np.where(
+            np.isfinite(mid_penalty_values), mid_penalty_values, np.inf
+        )
+
     best = select_best_index(
         assignment_fidelity=fidelity,
         delta_mu_over_sigma=snr,
@@ -248,6 +282,61 @@ def calculate_metrics(
         prefer_smallest=bool(prefer_lower_frequency_within_tolerance),
     )
     best_idx = int(best["index"])
+    if use_mid and np.isfinite(mid_penalty_values).any():
+        candidate_mask = np.isfinite(fidelity) & np.isfinite(mid_penalty_values)
+        candidates = np.where(candidate_mask)[0]
+        if candidates.size == 0:
+            candidates = np.array([best_idx], dtype=int)
+
+        # start from fidelity-first shortlist, then apply MID-aware scoring
+        # allow ties by fidelity tolerance (same behavior as base selection)
+        max_fid = float(np.max(fidelity))
+        candidate_mask = fidelity >= max_fid - fidelity_threshold
+        fidelity_set = np.where(candidate_mask & np.isfinite(mid_penalty_values))[0]
+        if fidelity_set.size > 0:
+            candidates = fidelity_set
+
+        mid_finite = mid_penalty_values[candidates]
+        snr_sub = snr[candidates]
+        valid_mid = np.isfinite(mid_finite)
+        if np.count_nonzero(valid_mid) > 0:
+            finite_mid = mid_finite[valid_mid]
+            finite_snr = snr_sub[valid_mid]
+            if finite_mid.size > 1:
+                mid_min = float(np.min(finite_mid))
+                mid_max = float(np.max(finite_mid))
+                if float(mid_max - mid_min) > 0.0:
+                    mid_norm = (finite_mid - mid_min) / (mid_max - mid_min)
+                else:
+                    mid_norm = np.zeros_like(finite_mid, dtype=float)
+            else:
+                mid_norm = np.zeros_like(finite_mid, dtype=float)
+            # larger mid score is better (lower MID)
+            mid_score = 1.0 - mid_norm
+            mid_score = np.maximum(0.0, np.minimum(1.0, mid_score / float(mid_penalty_scale)))
+
+            if finite_snr.size > 1:
+                snr_min = float(np.min(finite_snr))
+                snr_max = float(np.max(finite_snr))
+                if float(snr_max - snr_min) > 0.0:
+                    snr_norm = (finite_snr - snr_min) / (snr_max - snr_min)
+                else:
+                    snr_norm = np.zeros_like(finite_snr, dtype=float)
+            else:
+                snr_norm = np.zeros_like(finite_snr, dtype=float)
+            composite = (1.0 - float(mid_weight)) * snr_norm + float(mid_weight) * mid_score
+            best_local = int(np.argmax(composite))
+            best_mid_idx = int(candidates[valid_mid][best_local])
+            best_idx = int(best_mid_idx)
+
+            if 0 <= best_mid_idx < len(fidelity):
+                best = {
+                    "index": best_idx,
+                    "max_assignment_fidelity": float(np.max(fidelity)),
+                    "quality_flag": "composite_mid",
+                    "num_candidates": int(candidates.size),
+                }
+
     best_frequency = float(frequency_points[best_idx])
 
     return {
@@ -292,6 +381,7 @@ def calculate_metrics(
                 "readout_resonator_frequency": best_frequency,
             }
         },
+        "mid_penalty": None if mid_penalty is None else np.asarray(mid_penalty, dtype=float).tolist(),
     }
 
 

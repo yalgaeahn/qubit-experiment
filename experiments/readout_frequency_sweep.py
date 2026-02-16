@@ -125,6 +125,7 @@ def experiment_workflow(
     qpu: QPU,
     qubit: QuantumElement,
     frequencies: ArrayLike,
+    mid_penalty: ArrayLike | None = None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,
     options: ReadoutFrequencySweepWorkflowOptions | None = None,
@@ -165,6 +166,7 @@ def experiment_workflow(
             qubits=collected_qubits,
             frequencies=frequency_points,
             reference_qubit=base_qubit,
+            mid_penalty=mid_penalty,
         )
         with workflow.if_(options.update):
             update_qpu(qpu, analysis_result.output["new_parameter_values"])

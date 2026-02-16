@@ -153,6 +153,7 @@ class FixedTransmonQubitParameters(QuantumParameters):
             "function": "drag",
             "beta": 0,
             "sigma": 0.3,
+            "zero_boudaries" : True
         },
     )
 
@@ -166,6 +167,7 @@ class FixedTransmonQubitParameters(QuantumParameters):
             "function": "drag",
             "beta": 0,
             "sigma": 0.3,
+            "zero_boundaries" : True
         },
     )
 
@@ -184,7 +186,7 @@ class FixedTransmonQubitParameters(QuantumParameters):
             "sigma":0.2,
             "risefall_sigma_ratio":3.0, 
             "can_compress": True,
-            "zero_
+            "zero_boundaries" : True
         },
     )
     readout_integration_length: float = 2e-6

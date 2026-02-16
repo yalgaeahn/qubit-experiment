@@ -40,8 +40,9 @@ class FixedTransmonOperations(dsl.QuantumOperations):
         """Return the minimum fixed section length required for one qubit measurement."""
         _, ro_params = q.readout_parameters()
         _, ro_int_params = q.readout_integration_parameters()
-        ro_int_delay = q.parameters.readout_integration_delay or 0.0
-        return max(ro_params["length"], ro_int_delay + ro_int_params["length"])
+        # readout_integration_delay is applied as acquire port_delay in calibration.
+        # It is not an explicit section-time budget here.
+        return max(ro_params["length"], ro_int_params["length"])
 
     def measure_section_length(self, qubits: QuantumElements) -> float:
         """Calculate a safe fixed length for multiplexed measure sections."""

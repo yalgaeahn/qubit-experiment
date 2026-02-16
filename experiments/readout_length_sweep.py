@@ -61,6 +61,13 @@ class ReadoutLengthSweepWorkflowOptions:
     update: bool = workflow.option_field(
         False, description="Whether to apply optimized parameters to the input qpu."
     )
+    max_readout_length: float | None = workflow.option_field(
+        None,
+        description=(
+            "Optional hard upper bound for readout_length sweep points in seconds. "
+            "Use this to enforce hardware waveform limits before run submission."
+        ),
+    )
 
 
 def _states_to_tuple(states: str | Sequence[str]) -> tuple[str, ...]:
@@ -89,11 +96,45 @@ def _merged_temp_parameters(
 
 
 @workflow.task(save=False)
-def _resolve_readout_lengths(readout_lengths: ArrayLike) -> list[float]:
+def _resolve_readout_lengths(
+    readout_lengths: ArrayLike,
+    max_readout_length: float | None = None,
+) -> list[float]:
     points = np.asarray(readout_lengths, dtype=float).reshape(-1)
     if points.size < 1:
         raise ValueError("readout_lengths must contain at least one value.")
+    if not np.isfinite(points).all():
+        raise ValueError("readout_lengths must contain only finite values.")
+    if max_readout_length is not None:
+        max_len = float(max_readout_length)
+        if max_len <= 0:
+            raise ValueError("max_readout_length must be positive when specified.")
+        if np.any(points > max_len):
+            too_long = float(np.max(points))
+            raise ValueError(
+                "readout_lengths contains values exceeding max_readout_length: "
+                f"max={too_long:.3e}s > limit={max_len:.3e}s."
+            )
     return [float(x) for x in points]
+
+
+@workflow.task(save=False)
+def _validate_measure_section_limit(
+    qubit: QuantumElement,
+    max_readout_length: float | None = None,
+) -> None:
+    if max_readout_length is None:
+        return
+    max_len = float(max_readout_length)
+    ro_int_delay = float(qubit.parameters.readout_integration_delay or 0.0)
+    ro_int_length = float(qubit.parameters.readout_integration_length)
+    min_section_len = ro_int_delay + ro_int_length
+    if min_section_len > max_len:
+        raise ValueError(
+            "Integration window exceeds max_readout_length: "
+            f"readout_integration_delay + readout_integration_length = "
+            f"{min_section_len:.3e}s > limit={max_len:.3e}s."
+        )
 
 
 @workflow.task(save=False)
@@ -131,10 +172,17 @@ def experiment_workflow(
 ) -> None:
     """Run repeated IQ-cloud acquisitions across readout-length candidates."""
     options = ReadoutLengthSweepWorkflowOptions() if options is None else options
-    length_points = _resolve_readout_lengths(readout_lengths)
+    length_points = _resolve_readout_lengths(
+        readout_lengths,
+        max_readout_length=options.max_readout_length,
+    )
 
     base_temp_qpu = temporary_qpu(qpu, temporary_parameters)
     base_qubit = temporary_quantum_elements_from_qpu(base_temp_qpu, qubit)
+    _validate_measure_section_limit(
+        qubit=base_qubit,
+        max_readout_length=options.max_readout_length,
+    )
 
     results = []
     temp_qubits = []
