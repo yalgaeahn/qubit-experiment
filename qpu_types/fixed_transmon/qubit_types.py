@@ -152,7 +152,7 @@ class FixedTransmonQubitParameters(QuantumParameters):
         factory=lambda: {
             "function": "drag",
             "beta": 0,
-            "sigma": 0.25,
+            "sigma": 0.3,
         },
     )
 
@@ -165,7 +165,7 @@ class FixedTransmonQubitParameters(QuantumParameters):
         factory=lambda: {
             "function": "drag",
             "beta": 0,
-            "sigma": 0.25,
+            "sigma": 0.3,
         },
     )
 
@@ -183,7 +183,8 @@ class FixedTransmonQubitParameters(QuantumParameters):
             "function": "GaussianSquare",
             "sigma":0.2,
             "risefall_sigma_ratio":3.0, 
-            "can_compress": True
+            "can_compress": True,
+            "zero_
         },
     )
     readout_integration_length: float = 2e-6
