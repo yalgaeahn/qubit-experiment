@@ -44,6 +44,26 @@ class ReadoutMidSweepAnalysisOptions:
         True,
         description="Whether to plot per-candidate diagnostic traces.",
     )
+    do_mapping_validation: bool = workflow.option_field(
+        False,
+        description="Enable classifier mapping validation for calibration_traces -> p_e(delay).",
+    )
+    do_plotting_mapping_validation: bool = workflow.option_field(
+        True,
+        description="Whether to plot mapping-validation summary when enabled.",
+    )
+    mapping_validation_split_mode: Literal["even_odd"] = workflow.option_field(
+        "even_odd",
+        description="Train/test split strategy for calibration-shot holdout validation.",
+    )
+    mapping_validation_min_fidelity: float = workflow.option_field(
+        0.95,
+        description="Minimum holdout assignment fidelity for mapping pass.",
+    )
+    mapping_validation_min_dynamic_range: float = workflow.option_field(
+        0.05,
+        description="Minimum dynamic range of p_e(delay) for mapping pass.",
+    )
     max_mid_tolerance: float = workflow.option_field(
         1e-4,
         description="Tolerance for near-optimal selection on MID rate.",
@@ -241,6 +261,227 @@ def _extract_population_trace(
     return np.mean(score_main > threshold, axis=1).astype(float)
 
 
+def _fit_projection_classifier(
+    shots_g: np.ndarray,
+    shots_e: np.ndarray,
+) -> dict[str, float | complex]:
+    shots_g = as_1d_complex(shots_g)
+    shots_e = as_1d_complex(shots_e)
+    if shots_g.size < 2 or shots_e.size < 2:
+        raise ValueError("Need at least 2 shots per state for classifier fitting.")
+
+    mu_g = np.mean(shots_g)
+    mu_e = np.mean(shots_e)
+    v = mu_e - mu_g
+    v_norm = abs(v)
+    if v_norm <= 1e-15:
+        raise ValueError("Calibration clusters are degenerate (|mu_e-mu_g| ~ 0).")
+
+    score_g = np.real((shots_g - mu_g) * np.conj(v)) / v_norm
+    score_e = np.real((shots_e - mu_g) * np.conj(v)) / v_norm
+    threshold = 0.5 * (float(np.mean(score_g)) + float(np.mean(score_e)))
+    return {
+        "mu_g": complex(mu_g),
+        "mu_e": complex(mu_e),
+        "v": complex(v),
+        "v_norm": float(v_norm),
+        "threshold": float(threshold),
+    }
+
+
+def _predict_projection_bits(
+    shots: np.ndarray,
+    classifier: dict[str, float | complex],
+) -> np.ndarray:
+    arr = as_1d_complex(shots)
+    mu_g = complex(classifier["mu_g"])
+    v = complex(classifier["v"])
+    v_norm = float(classifier["v_norm"])
+    threshold = float(classifier["threshold"])
+    score = np.real((arr - mu_g) * np.conj(v)) / v_norm
+    return (score > threshold).astype(int)
+
+
+def _extract_population_trace_with_classifier(
+    result,
+    qubit_uid: str,
+    n_points: int,
+    classifier: dict[str, float | complex],
+) -> np.ndarray:
+    raw_main = result[dsl.handles.result_handle(qubit_uid)].data
+    main_shots = extract_sweep_shots(raw_main, n_points=n_points)
+    bits = _predict_projection_bits(main_shots, classifier)
+    return np.mean(bits, axis=1).astype(float)
+
+
+def _even_odd_train_test(shots: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    arr = as_1d_complex(shots)
+    if arr.size < 4:
+        raise ValueError("Need at least 4 shots for even/odd train-test split.")
+    train = arr[::2]
+    test = arr[1::2]
+    if train.size < 2 or test.size < 2:
+        raise ValueError("Insufficient train/test shots after even/odd split.")
+    return train, test
+
+
+@workflow.task(save=False)
+def _mapping_validation_disabled() -> dict:
+    return {"enabled": False}
+
+
+@workflow.task(save=False)
+def _attach_mapping_validation(metrics: dict, mapping_validation: dict) -> dict:
+    merged = dict(metrics)
+    merged["mapping_validation"] = mapping_validation
+    return merged
+
+
+@workflow.task(save=False)
+def validate_mapping_pipeline(
+    results: list[RunExperimentResults],
+    qubits: list[QuantumElement],
+    delays: ArrayLike,
+    frequency_points: ArrayLike | None = None,
+    amplitude_points: ArrayLike | None = None,
+    sweep_axis: Literal["frequency", "amplitude", "both"] = "both",
+    split_mode: Literal["even_odd"] = "even_odd",
+    min_fidelity: float = 0.95,
+    min_dynamic_range: float = 0.05,
+) -> dict:
+    if split_mode != "even_odd":
+        raise ValueError("Unsupported split_mode. Expected 'even_odd'.")
+
+    frequency_points, amplitude_points = _coerce_mid_sweep_points(
+        frequency_points=frequency_points,
+        amplitude_points=amplitude_points,
+        sweep_axis=sweep_axis,
+    )
+    delay_points = np.asarray(delays, dtype=float).reshape(-1)
+    if delay_points.size < 1:
+        raise ValueError("delays must contain at least one value.")
+
+    if sweep_axis == "frequency":
+        n_freq, n_amp = frequency_points.size, 1
+    elif sweep_axis == "amplitude":
+        n_freq, n_amp = 1, amplitude_points.size
+    else:
+        n_freq, n_amp = frequency_points.size, amplitude_points.size
+    if n_freq * n_amp != len(results):
+        raise ValueError(
+            "Result count does not match sweep-grid size for mapping validation: "
+            f"{len(results)} != {n_freq} x {n_amp}."
+        )
+
+    per_candidate: list[dict] = []
+    pass_count = 0
+    fail_count = 0
+    fail_reasons: dict[str, int] = {}
+
+    for idx, (result_like, qubit) in enumerate(zip(results, qubits)):
+        li, ai = divmod(idx, n_amp)
+        result = unwrap_result_like(result_like)
+        validate_result(result)
+
+        report: dict[str, object] = {
+            "candidate_key": f"{li}_{ai}",
+            "index_frequency": int(li),
+            "index_amplitude": int(ai),
+            "readout_resonator_frequency": (
+                float(frequency_points[li]) if sweep_axis != "amplitude" else float("nan")
+            ),
+            "readout_amplitude": (
+                float(amplitude_points[ai]) if sweep_axis != "frequency" else float("nan")
+            ),
+            "mapping_pass": False,
+        }
+
+        try:
+            raw_main = result[dsl.handles.result_handle(qubit.uid)].data
+            main_shots = extract_sweep_shots(raw_main, n_points=delay_points.size)
+            cal = calibration_shots_by_state(result, qubit.uid, states=("g", "e"))
+            shots_g = as_1d_complex(cal["g"])
+            shots_e = as_1d_complex(cal["e"])
+            train_g, test_g = _even_odd_train_test(shots_g)
+            train_e, test_e = _even_odd_train_test(shots_e)
+
+            holdout_classifier = _fit_projection_classifier(train_g, train_e)
+            pred_g = _predict_projection_bits(test_g, holdout_classifier)
+            pred_e = _predict_projection_bits(test_e, holdout_classifier)
+            p00 = float(np.mean(pred_g == 0))
+            p11 = float(np.mean(pred_e == 1))
+            p01 = 1.0 - p00
+            p10 = 1.0 - p11
+            fidelity = 0.5 * (p00 + p11)
+
+            full_classifier = _fit_projection_classifier(shots_g, shots_e)
+            pop = _extract_population_trace_with_classifier(
+                result=result,
+                qubit_uid=qubit.uid,
+                n_points=delay_points.size,
+                classifier=full_classifier,
+            )
+            n_shots_per_delay = int(main_shots.shape[1])
+            stderr = np.sqrt(np.clip(pop * (1.0 - pop), 0.0, None) / max(n_shots_per_delay, 1))
+            dynamic_range = float(np.max(pop) - np.min(pop))
+
+            pass_fidelity = bool(fidelity >= float(min_fidelity))
+            pass_dynamic = bool(dynamic_range >= float(min_dynamic_range))
+            mapping_pass = pass_fidelity and pass_dynamic
+
+            if mapping_pass:
+                pass_count += 1
+            else:
+                fail_count += 1
+                reason = "classifier_bad" if not pass_fidelity else "mapping_flat"
+                fail_reasons[reason] = fail_reasons.get(reason, 0) + 1
+
+            report.update(
+                {
+                    "assignment_fidelity_test": float(fidelity),
+                    "p_g_as_e": float(p01),
+                    "p_e_as_g": float(p10),
+                    "calibration_separation_abs": float(abs(complex(full_classifier["v"]))),
+                    "pe_delay_mean": [float(x) for x in pop],
+                    "pe_delay_stderr": [float(x) for x in stderr],
+                    "pe_dynamic_range": float(dynamic_range),
+                    "n_shots_per_delay": int(n_shots_per_delay),
+                    "mapping_pass": bool(mapping_pass),
+                    "status_flag": "ok"
+                    if mapping_pass
+                    else ("classifier_bad" if not pass_fidelity else "mapping_flat"),
+                    "split_mode": split_mode,
+                }
+            )
+        except Exception as exc:
+            fail_count += 1
+            fail_reasons["error"] = fail_reasons.get("error", 0) + 1
+            report.update(
+                {
+                    "status_flag": "error",
+                    "error": str(exc),
+                }
+            )
+
+        per_candidate.append(report)
+
+    total = len(per_candidate)
+    return {
+        "enabled": True,
+        "summary": {
+            "total_candidates": int(total),
+            "pass_candidates": int(pass_count),
+            "fail_candidates": int(fail_count),
+            "fail_reasons": fail_reasons,
+            "pass_fraction": float(pass_count / total) if total > 0 else 0.0,
+            "split_mode": split_mode,
+            "min_fidelity": float(min_fidelity),
+            "min_dynamic_range": float(min_dynamic_range),
+        },
+        "per_candidate": per_candidate,
+    }
+
+
 @workflow.workflow(name="analysis_readout_mid_sweep")
 def analysis_workflow(
     results: list[RunExperimentResults],
@@ -283,6 +524,23 @@ def analysis_workflow(
         do_rotation=options.do_rotation,
         do_pca=options.do_pca,
     )
+    mapping_validation = _mapping_validation_disabled()
+    with workflow.if_(options.do_mapping_validation):
+        mapping_validation = validate_mapping_pipeline(
+            results=results,
+            qubits=qubits,
+            delays=delays,
+            frequency_points=resolved_frequency_points,
+            amplitude_points=resolved_amplitude_points,
+            sweep_axis=sweep_axis,
+            split_mode=options.mapping_validation_split_mode,
+            min_fidelity=options.mapping_validation_min_fidelity,
+            min_dynamic_range=options.mapping_validation_min_dynamic_range,
+        )
+    metrics = _attach_mapping_validation(
+        metrics=metrics,
+        mapping_validation=mapping_validation,
+    )
 
     with workflow.if_(options.do_plotting):
         with workflow.if_(options.do_plotting_mid_curves):
@@ -298,6 +556,12 @@ def analysis_workflow(
                 plot_mid_heatmap(metrics=metrics)
         with workflow.if_(options.do_plotting_diagnostics):
             plot_mid_diagnostics(metrics=metrics, delays=delays)
+        with workflow.if_(options.do_mapping_validation):
+            with workflow.if_(options.do_plotting_mapping_validation):
+                plot_mapping_validation_summary(
+                    metrics=metrics,
+                    delays=delays,
+                )
 
     workflow.return_(metrics)
 
@@ -629,6 +893,84 @@ def plot_mid_heatmap(metrics: dict) -> mpl.figure.Figure:
         fontsize=12,
     )
     workflow.save_artifact("readout_mid_sweep_heatmap", fig)
+    return fig
+
+
+@workflow.task(save=False)
+def plot_mapping_validation_summary(
+    metrics: dict,
+    delays: ArrayLike,
+) -> mpl.figure.Figure:
+    """Plot mapping-validation summary and best-candidate p_e(delay)."""
+    report = metrics.get("mapping_validation", {})
+    if not isinstance(report, dict) or not bool(report.get("enabled", False)):
+        raise ValueError("mapping_validation report is not enabled.")
+
+    candidates = report.get("per_candidate", [])
+    if not isinstance(candidates, list) or len(candidates) < 1:
+        raise ValueError("No mapping-validation candidates available.")
+
+    labels: list[str] = []
+    fidelity: list[float] = []
+    dyn_range: list[float] = []
+    status: list[str] = []
+    for item in candidates:
+        if not isinstance(item, dict):
+            continue
+        labels.append(str(item.get("candidate_key", f"idx{len(labels)}")))
+        fidelity.append(float(item.get("assignment_fidelity_test", float("nan"))))
+        dyn_range.append(float(item.get("pe_dynamic_range", float("nan"))))
+        status.append(str(item.get("status_flag", "unknown")))
+
+    fig, axes = plt.subplots(3, 1, figsize=(8, 9), sharex=False)
+    x = np.arange(len(labels), dtype=float)
+
+    colors = ["tab:green" if s == "ok" else "tab:red" for s in status]
+    axes[0].bar(x, fidelity, color=colors, alpha=0.85)
+    axes[0].set_ylabel("Holdout fidelity")
+    axes[0].set_xticks(x, labels, rotation=45, ha="right")
+    axes[0].grid(alpha=0.25)
+
+    axes[1].bar(x, dyn_range, color=colors, alpha=0.85)
+    axes[1].set_ylabel("p_e dynamic range")
+    axes[1].set_xticks(x, labels, rotation=45, ha="right")
+    axes[1].grid(alpha=0.25)
+
+    best = metrics.get("best_point", {})
+    best_key = f"{int(best.get('index_frequency', 0))}_{int(best.get('index_amplitude', 0))}"
+    best_item = None
+    for item in candidates:
+        if isinstance(item, dict) and str(item.get("candidate_key", "")) == best_key:
+            best_item = item
+            break
+
+    x_delay = np.asarray(delays, dtype=float).reshape(-1) * 1e6
+    if isinstance(best_item, dict):
+        pe = np.asarray(best_item.get("pe_delay_mean", []), dtype=float).reshape(-1)
+        err = np.asarray(best_item.get("pe_delay_stderr", []), dtype=float).reshape(-1)
+        if pe.size > 0 and x_delay.size == pe.size:
+            axes[2].errorbar(x_delay, pe, yerr=err, fmt="o-", capsize=2)
+            axes[2].set_title(
+                f"Best candidate {best_key} ({best_item.get('status_flag', 'unknown')})"
+            )
+        else:
+            axes[2].text(0.03, 0.5, "Best-candidate p_e(delay) unavailable", transform=axes[2].transAxes)
+    else:
+        axes[2].text(0.03, 0.5, "Best candidate not found in mapping report", transform=axes[2].transAxes)
+    axes[2].set_xlabel("Delay (us)")
+    axes[2].set_ylabel("p_e")
+    axes[2].grid(alpha=0.25)
+
+    summary = report.get("summary", {})
+    fig.suptitle(
+        (
+            "Readout MID mapping validation "
+            f"(pass={summary.get('pass_candidates', 0)}/{summary.get('total_candidates', 0)})"
+        ),
+        fontsize=12,
+    )
+    fig.tight_layout()
+    workflow.save_artifact("readout_mid_sweep_mapping_validation", fig)
     return fig
 
 
