@@ -183,7 +183,7 @@ class FixedTransmonQubitParameters(QuantumParameters):
     readout_pulse: dict = attrs.field(
         factory=lambda: {
             "function": "GaussianSquare",
-            "sigma":0.2,
+            "sigma":0.03,
             "risefall_sigma_ratio":3.0, 
             "can_compress": True,
             "zero_boundaries" : True

@@ -639,37 +639,54 @@ def calculate_metrics(
         except Exception as raw_exc:
             raw_diag = {"raw_extract_error": str(raw_exc)}
 
+        swpts = np.asarray(delay_points, dtype=float).reshape(-1)
+        pop = np.array([], dtype=float)
+        pop_error = None
         try:
-            swpts = np.asarray(delay_points, dtype=float).reshape(-1)
             pop = _extract_population_trace(
                 result=result,
                 qubit_uid=qubit.uid,
                 n_points=swpts.size,
             )
-            fit_res = exponential_decay_fit(swpts, pop)
-            gamma = float(fit_res.params["decay_rate"].value)
-            gamma_err = fit_res.params["decay_rate"].stderr
-            if gamma_err is None or not np.isfinite(gamma_err):
-                gamma_err = float("nan")
-            if not np.isfinite(gamma) or gamma <= 0:
-                raise ValueError("Invalid fitted decay rate.")
-            decay_rate[li, ai] = gamma
-            decay_rate_stderr[li, ai] = float(gamma_err)
-            fit_success[li, ai] = True
+        except Exception as exc:
+            pop_error = str(exc)
+
+        if pop_error is None:
+            try:
+                fit_res = exponential_decay_fit(swpts, pop)
+                gamma = float(fit_res.params["decay_rate"].value)
+                gamma_err = fit_res.params["decay_rate"].stderr
+                if gamma_err is None or not np.isfinite(gamma_err):
+                    gamma_err = float("nan")
+                if not np.isfinite(gamma) or gamma <= 0:
+                    raise ValueError("Invalid fitted decay rate.")
+                decay_rate[li, ai] = gamma
+                decay_rate_stderr[li, ai] = float(gamma_err)
+                fit_success[li, ai] = True
+                fit_payload[key] = {
+                    "sweep_points": swpts.tolist(),
+                    "population": pop.tolist(),
+                    "fit_success": True,
+                    "decay_rate": gamma,
+                    "decay_rate_stderr": float(gamma_err),
+                    **raw_diag,
+                }
+            except Exception as exc:
+                fit_payload[key] = {
+                    "sweep_points": swpts.tolist(),
+                    "population": pop.tolist(),
+                    "fit_success": False,
+                    "error": str(exc),
+                    "decay_rate": float("nan"),
+                    "decay_rate_stderr": float("nan"),
+                    **raw_diag,
+                }
+        else:
             fit_payload[key] = {
                 "sweep_points": swpts.tolist(),
-                "population": pop.tolist(),
-                "fit_success": True,
-                "decay_rate": gamma,
-                "decay_rate_stderr": float(gamma_err),
-                **raw_diag,
-            }
-        except Exception as exc:
-            fit_payload[key] = {
-                "sweep_points": delay_points.tolist(),
                 "population": [],
                 "fit_success": False,
-                "error": str(exc),
+                "error": pop_error,
                 "decay_rate": float("nan"),
                 "decay_rate_stderr": float("nan"),
                 **raw_diag,
@@ -979,7 +996,7 @@ def plot_mid_diagnostics(
     metrics: dict,
     delays: ArrayLike,
 ) -> mpl.figure.Figure:
-    """Plot per-candidate traces for failure diagnosis."""
+    """Plot per-candidate population-vs-delay traces for failure diagnosis."""
     sweep = metrics["sweep_points"]
     n_freq = len(np.asarray(sweep["readout_resonator_frequency"], dtype=float).reshape(-1))
     n_amp = len(np.asarray(sweep["readout_amplitude"], dtype=float).reshape(-1))
@@ -1002,18 +1019,20 @@ def plot_mid_diagnostics(
             x = swpts * 1e6 if swpts.size > 0 else default_delays
 
             pop = np.asarray(item.get("population", []), dtype=float).reshape(-1)
-            raw_abs = np.asarray(item.get("raw_abs", []), dtype=float).reshape(-1)
 
             if pop.size > 0 and x.size == pop.size:
                 ax.plot(x, pop, "o-", label="population")
-            if raw_abs.size > 0:
-                xr = default_delays
-                if xr.size != raw_abs.size:
-                    xr = np.linspace(default_delays.min(), default_delays.max(), raw_abs.size)
-                ax.plot(xr, raw_abs, "-", alpha=0.8, label="|IQ| mean")
-
-            if pop.size == 0 and raw_abs.size == 0:
-                ax.text(0.03, 0.5, "No trace data", transform=ax.transAxes, fontsize=8)
+            if pop.size > 0 and x.size != pop.size:
+                xp = np.linspace(default_delays.min(), default_delays.max(), pop.size)
+                ax.plot(xp, pop, "o-", label="population")
+            if pop.size == 0:
+                ax.text(
+                    0.03,
+                    0.5,
+                    "No population trace (extraction failed)",
+                    transform=ax.transAxes,
+                    fontsize=8,
+                )
 
             fit_ok = bool(item.get("fit_success", False))
             err = str(item.get("error", ""))
@@ -1025,7 +1044,8 @@ def plot_mid_diagnostics(
             ax.set_title(title, fontsize=9)
             ax.grid(alpha=0.25)
             ax.set_xlabel("Delay (us)")
-            ax.legend(loc="best", fontsize=8)
+            if pop.size > 0:
+                ax.legend(loc="best", fontsize=8)
 
     fig.suptitle("Readout MID candidate diagnostics", fontsize=12)
     fig.tight_layout()

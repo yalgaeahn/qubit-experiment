@@ -62,6 +62,13 @@ class ReadoutMidSweepExperimentOptions:
         "ge",
         description="Calibration states for trace-based rotation/projection.",
     )
+    use_ro1_kick: bool = workflow.option_field(
+        True,
+        description=(
+            "Whether to apply the first readout pulse (RO1 kick) before the final "
+            "acquired readout. Useful for with/without-RO1 control checks."
+        ),
+    )
 
 
 @workflow.workflow_options
@@ -160,6 +167,121 @@ def _materialize_list(items: list) -> list:
     return list(items)
 
 
+@workflow.task(save=False)
+def _materialize_analysis_output(analysis_result):
+    """Return the concrete analysis payload as a plain dict.
+
+    The workflow output can be wrapped in task/result reference objects, and in
+    some execution paths as a plain task output graph. This helper performs a
+    bounded graph walk and returns the first dict containing ``best_point``.
+    """
+
+    if analysis_result is None:
+        return None
+
+    seen = set()
+    queue: list = [analysis_result]
+
+    unwrap_attrs = (
+        "output",
+        "analysis_result",
+        "analysis_workflow_result",
+        "analysis_workflow",
+        "result",
+        "value",
+        "_value",
+        "analysis",
+    )
+
+    def _visit_as_dict(value):
+        if not isinstance(value, dict):
+            return None
+        if "analysis_result" in value and isinstance(value["analysis_result"], dict):
+            return value["analysis_result"]
+        return value
+
+    def _maybe_queue(value):
+        if value is None:
+            return
+        queue.append(value)
+
+    while queue:
+        current = queue.pop(0)
+        if current is None:
+            continue
+
+        try:
+            cid = id(current)
+            if cid in seen:
+                continue
+            seen.add(cid)
+        except Exception:
+            pass
+
+        if len(seen) > 200:
+            return None
+
+        mapped = _visit_as_dict(current)
+        if mapped is not None and "best_point" in mapped:
+            return mapped
+
+        if isinstance(current, dict):
+            for key, value in current.items():
+                if key == "best_point":
+                    continue
+                _maybe_queue(value)
+            continue
+
+        # Unwrap common reference-like attributes.
+        for attr in unwrap_attrs:
+            if hasattr(current, attr):
+                try:
+                    _maybe_queue(getattr(current, attr))
+                except Exception:
+                    pass
+
+        # Recurse into generic object payload containers.
+        if hasattr(current, "__dict__"):
+            dct = getattr(current, "__dict__", None)
+            if isinstance(dct, dict):
+                for value in dct.values():
+                    _maybe_queue(value)
+
+        # Recurse inside iterables (but skip strings / bytes / mapping objects).
+        if isinstance(current, (list, tuple)):
+            queue.extend(current)
+        elif isinstance(current, set):
+            queue.extend(current)
+
+    return None
+
+
+@workflow.task(save=False)
+def _coalesce_payload(payload: dict | None, analysis_result) -> dict | None:
+    """Return a serializable payload merged with a few compatibility keys.
+
+    Some older notebooks expect output keys directly at top-level. Keep those
+    available while still exposing the workflow object for advanced debugging.
+    """
+    materialized = payload if isinstance(payload, dict) else None
+    if materialized is None and analysis_result is not None:
+        fallback = _materialize_analysis_output(analysis_result)
+        if isinstance(fallback, dict):
+            materialized = fallback
+        elif isinstance(analysis_result, dict):
+            materialized = analysis_result
+
+    if materialized is None:
+        materialized = {}
+
+    # Keep full payload for consumers while avoiding non-serializable references.
+    flattened = dict(materialized)
+    # Backward-compatible top-level alias used by earlier notebooks / debug flows.
+    if materialized:
+        flattened["analysis_result"] = dict(materialized)
+    return flattened
+
+
 @workflow.workflow(name="readout_mid_sweep")
 def experiment_workflow(
     session: Session,
@@ -219,6 +341,7 @@ def experiment_workflow(
     collected_qubits = _materialize_list(temp_qubits)
 
     analysis_result = None
+    analysis_payload = None
     with workflow.if_(options.do_analysis):
         analysis_result = analysis_workflow(
             results=collected_results,
@@ -229,10 +352,17 @@ def experiment_workflow(
             sweep_axis=sweep_axis,
             reference_qubit=base_qubit,
         )
+        analysis_payload = _materialize_analysis_output(analysis_result)
         with workflow.if_(options.update):
-            update_qpu(qpu, analysis_result.output["new_parameter_values"])
+            if isinstance(analysis_payload, dict) and "new_parameter_values" in analysis_payload:
+                update_qpu(qpu, analysis_payload["new_parameter_values"])
+            else:
+                fallback = getattr(analysis_result, "output", None)
+                if isinstance(fallback, dict) and "new_parameter_values" in fallback:
+                    update_qpu(qpu, fallback["new_parameter_values"])
 
-    workflow.return_({"analysis_result": analysis_result})
+    final_output = _coalesce_payload(analysis_payload, analysis_result)
+    workflow.return_(final_output)
 
 
 @workflow.task
@@ -243,7 +373,7 @@ def create_experiment(
     delays: ArrayLike,
     options: ReadoutMidSweepExperimentOptions | None = None,
 ) -> Experiment:
-    """Create a readout-line MID experiment with 2x readout pulses per point."""
+    """Create a readout-line MID experiment with optional RO1 kick."""
     opts = ReadoutMidSweepExperimentOptions() if options is None else options
     if opts.transition != "ge":
         raise ValueError("readout_mid_sweep currently supports transition='ge' only.")
@@ -301,20 +431,23 @@ def create_experiment(
                 play_after=sec_x90_1.uid,
             ) as sec_delay_1:
                 qop.delay.omit_section(qubit, time=half_delay_sweep)
-            with dsl.section(
-                name=f"mid_readout_kick_{qubit.uid}",
-                alignment=SectionAlignment.LEFT,
-                play_after=sec_delay_1.uid,
-            ) as sec_kick:
-                qop.measure.omit_section(
-                    qubit,
-                    handle=dsl.handles.result_handle(qubit.uid, suffix="kick"),
-                )
-                sec_kick.length = measure_section_length
+            play_after_delay_2 = sec_delay_1.uid
+            if opts.use_ro1_kick:
+                with dsl.section(
+                    name=f"mid_readout_kick_{qubit.uid}",
+                    alignment=SectionAlignment.LEFT,
+                    play_after=sec_delay_1.uid,
+                ) as sec_kick:
+                    qop.measure.omit_section(
+                        qubit,
+                        handle=dsl.handles.result_handle(qubit.uid, suffix="kick"),
+                    )
+                    sec_kick.length = measure_section_length
+                play_after_delay_2 = sec_kick.uid
             with dsl.section(
                 name=f"mid_delay_2_{qubit.uid}",
                 alignment=SectionAlignment.LEFT,
-                play_after=sec_kick.uid,
+                play_after=play_after_delay_2,
             ) as sec_delay_2:
                 qop.delay.omit_section(qubit, time=half_delay_sweep)
             with dsl.section(

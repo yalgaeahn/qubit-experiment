@@ -119,21 +119,27 @@ def analysis_workflow(
             The builder for the analysis workflow.
         ```
     """
+    opts = IQTrajAnalysisWorkflowOptions() if options is None else options
 
     processed_data_dict = demodulate_time_traces(
         qubits,
         result,
         states,
-        sample_dt_ns=options.sample_dt_ns,
+        sample_dt_ns=opts.sample_dt_ns,
     )
-    processed_data_dict =average_chunk_time_traces(qubits, processed_data_dict, states)
-    with workflow.if_(options.do_plotting):
+    processed_data_dict = average_chunk_time_traces(
+        qubits,
+        processed_data_dict,
+        states,
+        options=opts,
+    )
+    with workflow.if_(opts.do_plotting):
         plot_iq_trajectories(
             qubits,
             states,
             processed_data_dict,
-            chunk_size=options.chunk_size,
-            sample_dt_ns=options.sample_dt_ns,
+            chunk_size=opts.chunk_size,
+            sample_dt_ns=opts.sample_dt_ns,
         )
     workflow.return_(None)
 
@@ -198,14 +204,24 @@ def average_chunk_time_traces(
     """
     qubits = validate_and_convert_qubits_sweeps(qubits)
     opts = IQTrajAnalysisWorkflowOptions() if options is None else options
+    if opts.chunk_size <= 0:
+        raise ValueError(f"chunk_size must be > 0, got {opts.chunk_size}.")
 
-    for q in qubits: # type: ignore
-        #averaged_time_traces = {}
+    for q in qubits:  # type: ignore
         for s in states:
-            time_trace = processed_data_dict[q.uid][s]
-            _N= len(time_trace)
-            processed_data_dict[q.uid][s]=time_trace[:_N].reshape(-1,opts.chunk_size).mean(axis=1)
-    
+            time_trace = np.asarray(processed_data_dict[q.uid][s])
+            n_samples = len(time_trace)
+            n_aligned = (n_samples // opts.chunk_size) * opts.chunk_size
+            if n_samples == 0:
+                averaged_trace = time_trace
+            elif n_aligned == 0:
+                averaged_trace = np.asarray([time_trace.mean()])
+            else:
+                averaged_trace = time_trace[:n_aligned].reshape(
+                    -1, opts.chunk_size
+                ).mean(axis=1)
+            processed_data_dict[q.uid][s] = averaged_trace
+
     return processed_data_dict
 
 
