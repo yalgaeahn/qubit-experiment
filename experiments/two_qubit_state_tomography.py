@@ -115,6 +115,32 @@ class TwoQStateTomographyWorkflowOptions:
     )
 
 
+@workflow.task(save=False)
+def _append_item(items: list, item) -> None:
+    items.append(item)
+
+
+@workflow.task(save=False)
+def _materialize_list(items: list) -> list:
+    return list(items)
+
+
+@workflow.task(save=False)
+def resolve_convergence_repeat_indices(repeats_per_state: int) -> tuple[int, ...]:
+    repeats = int(repeats_per_state)
+    if repeats < 1:
+        raise ValueError("convergence_repeats_per_state must be >= 1.")
+    return tuple(range(repeats))
+
+
+@workflow.task(save=False)
+def resolve_convergence_repeats_per_state(repeats_per_state: int) -> int:
+    repeats = int(repeats_per_state)
+    if repeats < 1:
+        raise ValueError("convergence_repeats_per_state must be >= 1.")
+    return repeats
+
+
 @workflow.workflow(name="two_qubit_state_tomography")
 def experiment_workflow(
     session: Session,
@@ -195,12 +221,18 @@ def experiment_workflow(
             suite_states=options.convergence_suite_states,
             repeats_per_state=options.convergence_repeats_per_state,
         )
+        repeat_indices = resolve_convergence_repeat_indices(
+            repeats_per_state=options.convergence_repeats_per_state
+        )
+        repeats_per_state = resolve_convergence_repeats_per_state(
+            repeats_per_state=options.convergence_repeats_per_state
+        )
         conv_analysis_options = TwoQStateTomographyAnalysisOptions()
         conv_analysis_options.do_plotting = bool(options.convergence_do_plotting)
         raw_run_records = []
 
-        for state_label in suite_states:
-            for repeat_index in range(int(options.convergence_repeats_per_state)):
+        with workflow.for_(suite_states, lambda state: state) as state_label:
+            with workflow.for_(repeat_indices, lambda idx: idx) as repeat_index:
                 suite_resolved_config = resolve_validation_configuration(
                     validation_mode=True,
                     use_rip=False,
@@ -230,19 +262,22 @@ def experiment_workflow(
                     target_state=suite_resolved_config["target_state_effective"],
                     options=conv_analysis_options,
                 )
-                raw_run_records.append(
-                    collect_convergence_run_record(
-                        state_label=state_label,
-                        repeat_index=repeat_index,
-                        analysis_result=suite_analysis_result,
-                    )
+                record = collect_convergence_run_record(
+                    state_label=state_label,
+                    repeat_index=repeat_index,
+                    analysis_result=suite_analysis_result,
                 )
+                _append_item(raw_run_records, record)
+
+        raw_run_records = _materialize_list(raw_run_records)
 
         statistical_convergence = summarize_statistical_convergence(raw_run_records)
-        main_run_convergence = extract_main_run_optimization_convergence(analysis_result)
+        main_run_convergence = extract_main_run_optimization_convergence(
+            analysis_result=analysis_result
+        )
         convergence_report = {
             "suite_states": suite_states,
-            "repeats_per_state": int(options.convergence_repeats_per_state),
+            "repeats_per_state": repeats_per_state,
             "main_run_optimization_convergence": main_run_convergence,
             "statistical_convergence": statistical_convergence,
             "raw_run_records": raw_run_records,
@@ -342,6 +377,113 @@ def _unwrap_workflow_output_like(result_like):
     return current
 
 
+def _is_reference_like(obj) -> bool:
+    return obj is not None and obj.__class__.__name__ == "Reference"
+
+
+def _contains_reference(obj, depth=0, max_depth=12) -> bool:
+    if depth > max_depth:
+        return False
+    cur = _unwrap_workflow_output_like(obj)
+    if _is_reference_like(cur):
+        return True
+    if isinstance(cur, dict):
+        return any(_contains_reference(v, depth + 1, max_depth) for v in cur.values())
+    if isinstance(cur, (list, tuple)):
+        return any(_contains_reference(v, depth + 1, max_depth) for v in cur)
+    return False
+
+
+def _iter_tasks(node):
+    tasks = getattr(node, "tasks", None)
+    if tasks is None:
+        return []
+    try:
+        return list(tasks)
+    except Exception:
+        return []
+
+
+def _task_output(tasks, key):
+    try:
+        out = _unwrap_workflow_output_like(tasks[key].output)
+    except Exception:
+        return None
+    if _is_reference_like(out):
+        return None
+    return out
+
+
+def _assemble_analysis_output_from_tasks(analysis_node):
+    tasks = getattr(analysis_node, "tasks", None)
+    if tasks is None:
+        return None
+
+    mle = _task_output(tasks, "maximum_likelihood_reconstruct")
+    state_metrics = _task_output(tasks, "calculate_state_metrics")
+    optimization = _task_output(tasks, "evaluate_optimization_convergence")
+
+    if not isinstance(mle, dict):
+        return None
+    if not isinstance(state_metrics, dict):
+        state_metrics = {}
+    if not isinstance(optimization, dict):
+        optimization = {}
+
+    return {
+        "optimizer_success": mle.get("optimizer_success"),
+        "negative_log_likelihood": mle.get("negative_log_likelihood"),
+        "metrics": state_metrics,
+        "optimization_convergence": optimization,
+    }
+
+
+def _find_analysis_node(root, depth=0, max_depth=12):
+    if root is None or depth > max_depth:
+        return None
+    tasks = _iter_tasks(root)
+    if tasks:
+        names = {getattr(t, "name", "") for t in tasks}
+        if "maximum_likelihood_reconstruct" in names and "extract_assignment_matrix" in names:
+            return root
+        for t in tasks:
+            found = _find_analysis_node(t, depth + 1, max_depth)
+            if found is not None:
+                return found
+            found = _find_analysis_node(getattr(t, "output", None), depth + 1, max_depth)
+            if found is not None:
+                return found
+    out = getattr(root, "output", None)
+    if out is not None and out is not root:
+        return _find_analysis_node(out, depth + 1, max_depth)
+    return None
+
+
+def _materialize_analysis_output(result_like):
+    out = _unwrap_workflow_output_like(result_like)
+    if isinstance(out, dict):
+        if isinstance(out.get("analysis_result"), dict):
+            nested = out["analysis_result"]
+            if not _contains_reference(nested):
+                return nested
+        if not _contains_reference(out):
+            return out
+
+    analysis_node = _find_analysis_node(result_like)
+    if analysis_node is None:
+        return out if isinstance(out, dict) else None
+
+    node_out = _unwrap_workflow_output_like(getattr(analysis_node, "output", None))
+    if isinstance(node_out, dict) and not _contains_reference(node_out):
+        return node_out
+
+    assembled = _assemble_analysis_output_from_tasks(analysis_node)
+    if isinstance(assembled, dict):
+        return assembled
+
+    return out if isinstance(out, dict) else None
+
+
 def _safe_float(value):
     if value is None:
         return None
@@ -351,6 +493,14 @@ def _safe_float(value):
         return None
 
 
+def _safe_bool(value) -> bool:
+    if isinstance(value, (bool, np.bool_)):
+        return bool(value)
+    if isinstance(value, (int, np.integer)):
+        return bool(value)
+    return False
+
+
 @workflow.task
 def collect_convergence_run_record(
     state_label: str,
@@ -358,7 +508,7 @@ def collect_convergence_run_record(
     analysis_result,
 ) -> dict[str, object]:
     """Extract compact per-run convergence record from analysis output."""
-    out = _unwrap_workflow_output_like(analysis_result)
+    out = _materialize_analysis_output(analysis_result)
     if not isinstance(out, dict):
         return {
             "state_label": str(state_label),
@@ -367,6 +517,11 @@ def collect_convergence_run_record(
             "optimizer_success": False,
             "negative_log_likelihood": None,
             "rho_min_eigenvalue": None,
+            "nll_finite": False,
+            "nll_per_shot": None,
+            "mae_counts": None,
+            "max_abs_counts_error": None,
+            "normalized_mae_counts": None,
         }
     metrics = out.get("metrics", {}) if isinstance(out.get("metrics"), dict) else {}
     opt = (
@@ -374,14 +529,20 @@ def collect_convergence_run_record(
         if isinstance(out.get("optimization_convergence"), dict)
         else {}
     )
+    negative_log_likelihood = out.get(
+        "negative_log_likelihood",
+        opt.get("negative_log_likelihood"),
+    )
+    rho_min_eigenvalue = metrics.get("min_eigenvalue", opt.get("min_eigenvalue"))
+    optimizer_success = out.get("optimizer_success", opt.get("optimizer_success", False))
     return {
         "state_label": str(state_label),
         "repeat_index": int(repeat_index),
         "fidelity_to_target": _safe_float(metrics.get("fidelity_to_target")),
-        "optimizer_success": bool(out.get("optimizer_success", False)),
-        "negative_log_likelihood": _safe_float(out.get("negative_log_likelihood")),
-        "rho_min_eigenvalue": _safe_float(metrics.get("min_eigenvalue")),
-        "nll_finite": bool(opt.get("nll_finite", False)),
+        "optimizer_success": _safe_bool(optimizer_success),
+        "negative_log_likelihood": _safe_float(negative_log_likelihood),
+        "rho_min_eigenvalue": _safe_float(rho_min_eigenvalue),
+        "nll_finite": _safe_bool(opt.get("nll_finite", False)),
         "nll_per_shot": _safe_float(opt.get("nll_per_shot")),
         "mae_counts": _safe_float(opt.get("mae_counts")),
         "max_abs_counts_error": _safe_float(opt.get("max_abs_counts_error")),
@@ -390,9 +551,11 @@ def collect_convergence_run_record(
 
 
 @workflow.task
-def extract_main_run_optimization_convergence(analysis_result) -> dict[str, object] | None:
+def extract_main_run_optimization_convergence(
+    analysis_result,
+) -> dict[str, object] | None:
     """Extract optimization convergence payload from main analysis run."""
-    out = _unwrap_workflow_output_like(analysis_result)
+    out = _materialize_analysis_output(analysis_result)
     if not isinstance(out, dict):
         return None
     convergence = out.get("optimization_convergence")

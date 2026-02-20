@@ -15,6 +15,7 @@ authors = [
 keywords = ["laboneq", "quantum", "experiments", "analysis", "zhinst"]
 dependencies = [
   "numpy>=1.23",
+  "scipy>=1.11",
   "matplotlib>=3.7",
   "uncertainties>=3.1",
   "lmfit>=1.2",
