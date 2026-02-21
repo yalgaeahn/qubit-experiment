@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import TYPE_CHECKING
 
 import numpy as np
 from laboneq import workflow
 from laboneq.dsl.enums import AcquisitionType, AveragingMode
 from laboneq.simple import Experiment, dsl
-from laboneq.workflow.tasks import compile_experiment, run_experiment
 
 from analysis.readout_length_sweep import analysis_workflow
 from laboneq_applications.core import validation
@@ -77,24 +77,6 @@ def _states_to_tuple(states: str | Sequence[str]) -> tuple[str, ...]:
     return state_tuple
 
 
-def _merged_temp_parameters(
-    base: dict[str | tuple[str, str, str], dict | QuantumParameters] | None,
-    qubit_uid: str,
-    readout_length: float,
-) -> dict[str | tuple[str, str, str], dict | QuantumParameters]:
-    merged: dict[str | tuple[str, str, str], dict | QuantumParameters] = {}
-    if base is not None:
-        for k, v in base.items():
-            merged[k] = dict(v) if isinstance(v, dict) else v
-    per_qubit = merged.get(qubit_uid, {})
-    if not isinstance(per_qubit, dict):
-        per_qubit = {}
-    per_qubit = dict(per_qubit)
-    per_qubit["readout_length"] = float(readout_length)
-    merged[qubit_uid] = per_qubit
-    return merged
-
-
 @workflow.task(save=False)
 def _resolve_readout_lengths(
     readout_lengths: ArrayLike,
@@ -105,6 +87,8 @@ def _resolve_readout_lengths(
         raise ValueError("readout_lengths must contain at least one value.")
     if not np.isfinite(points).all():
         raise ValueError("readout_lengths must contain only finite values.")
+    if np.any(points <= 0.0):
+        raise ValueError("readout_lengths must contain only positive values.")
     if max_readout_length is not None:
         max_len = float(max_readout_length)
         if max_len <= 0:
@@ -119,35 +103,38 @@ def _resolve_readout_lengths(
 
 
 @workflow.task(save=False)
-def _validate_measure_section_limit(
-    qubit: QuantumElement,
-    max_readout_length: float | None = None,
-) -> None:
-    if max_readout_length is None:
-        return
-    max_len = float(max_readout_length)
-    ro_int_delay = float(qubit.parameters.readout_integration_delay or 0.0)
-    ro_int_length = float(qubit.parameters.readout_integration_length)
-    min_section_len = ro_int_delay + ro_int_length
-    if min_section_len > max_len:
-        raise ValueError(
-            "Integration window exceeds max_readout_length: "
-            f"readout_integration_delay + readout_integration_length = "
-            f"{min_section_len:.3e}s > limit={max_len:.3e}s."
-        )
+def _resolve_fixed_integration_delay(qubit: QuantumElement) -> float:
+    return float(qubit.parameters.readout_integration_delay or 0.0)
 
 
 @workflow.task(save=False)
-def _build_temp_params_for_readout_length(
+def _build_temp_params_for_length(
     base: dict[str | tuple[str, str, str], dict | QuantumParameters] | None,
-    qubit_uid: str,
+    qubit: QuantumElement,
     readout_length: float,
+    fixed_integration_delay: float,
 ) -> dict[str | tuple[str, str, str], dict | QuantumParameters]:
-    return _merged_temp_parameters(
-        base=base,
-        qubit_uid=qubit_uid,
-        readout_length=float(readout_length),
-    )
+    merged: dict[str | tuple[str, str, str], dict | QuantumParameters] = {}
+    if base is not None:
+        for k, v in base.items():
+            merged[k] = dict(v) if isinstance(v, dict) else deepcopy(v)
+
+    temp = deepcopy(qubit.parameters)
+    temp.readout_length = float(readout_length)
+    temp.readout_integration_length = float(readout_length)
+    temp.readout_integration_delay = float(fixed_integration_delay)
+    merged[qubit.uid] = temp
+    return merged
+
+
+@workflow.task(save=False)
+def _compile_experiment_no_log(session: Session, experiment: Experiment):
+    return session.compile(experiment=experiment)
+
+
+@workflow.task(save=False)
+def _run_experiment_no_log(session: Session, compiled_experiment):
+    return session.run(compiled_experiment)
 
 
 @workflow.task(save=False)
@@ -179,18 +166,16 @@ def experiment_workflow(
 
     base_temp_qpu = temporary_qpu(qpu, temporary_parameters)
     base_qubit = temporary_quantum_elements_from_qpu(base_temp_qpu, qubit)
-    _validate_measure_section_limit(
-        qubit=base_qubit,
-        max_readout_length=options.max_readout_length,
-    )
+    fixed_integration_delay = _resolve_fixed_integration_delay(base_qubit)
 
     results = []
     temp_qubits = []
     with workflow.for_(length_points, lambda x: x) as readout_length:
-        per_run_temp_parameters = _build_temp_params_for_readout_length(
+        per_run_temp_parameters = _build_temp_params_for_length(
             base=temporary_parameters,
-            qubit_uid=qubit.uid,
+            qubit=base_qubit,
             readout_length=readout_length,
+            fixed_integration_delay=fixed_integration_delay,
         )
         per_run_qpu = temporary_qpu(qpu, per_run_temp_parameters)
         per_run_qubit = temporary_quantum_elements_from_qpu(per_run_qpu, qubit)
@@ -198,8 +183,8 @@ def experiment_workflow(
             qpu=per_run_qpu,
             qubit=per_run_qubit,
         )
-        compiled = compile_experiment(session, exp)
-        run = run_experiment(session, compiled)
+        compiled = _compile_experiment_no_log(session, exp)
+        run = _run_experiment_no_log(session, compiled)
         _append_item(results, run)
         _append_item(temp_qubits, per_run_qubit)
 
@@ -217,10 +202,10 @@ def experiment_workflow(
         with workflow.if_(options.update):
             update_qpu(qpu, analysis_result.output["new_parameter_values"])
 
-    workflow.return_({"analysis_result": analysis_result})
+    workflow.return_({"status": "completed"})
 
 
-@workflow.task
+@workflow.task(save=False)
 @dsl.qubit_experiment
 def create_experiment(
     qpu: QPU,
@@ -239,6 +224,7 @@ def create_experiment(
 
     qop = qpu.quantum_operations
     measure_section_length = qop.measure_section_length(qubit)
+
     with dsl.acquire_loop_rt(
         count=opts.count,
         averaging_mode=opts.averaging_mode,

@@ -136,7 +136,7 @@ def _bootstrap_ci(
     }
 
 
-@workflow.task
+@workflow.task(save=False)
 def calculate_metrics(
     result: RunExperimentResults,
     qubit: QuantumElement,
@@ -245,7 +245,7 @@ def calculate_metrics(
     }
 
 
-@workflow.task
+@workflow.task(save=False)
 def plot_metrics(
     metrics: dict,
     include_error_bars: bool = True,

@@ -72,7 +72,7 @@ def analysis_workflow(
     reference_qubit: QuantumElement,
     options: ReadoutLengthSweepAnalysisOptions | None = None,
 ) -> None:
-    """Analyze repeated IQ-cloud runs across readout-length candidates."""
+    """Analyze repeated IQ-cloud acquisitions across readout-length candidates."""
     options = ReadoutLengthSweepAnalysisOptions() if options is None else options
     metrics = calculate_metrics(
         results=results,
@@ -142,7 +142,7 @@ def _bootstrap_ci(
     }
 
 
-@workflow.task
+@workflow.task(save=False)
 def calculate_metrics(
     results: Sequence[RunExperimentResults],
     qubits: Sequence[QuantumElement],
@@ -177,6 +177,7 @@ def calculate_metrics(
     snr_ci_low = np.zeros(len(length_points), dtype=float)
     snr_ci_high = np.zeros(len(length_points), dtype=float)
     rng = np.random.default_rng(bootstrap_seed)
+
     for i, (result_like, qubit) in enumerate(zip(results, qubits)):
         result = unwrap_result_like(result_like)
         validate_result(result)
@@ -253,17 +254,21 @@ def calculate_metrics(
         "old_parameter_values": {
             reference_qubit.uid: {
                 "readout_length": reference_qubit.parameters.readout_length,
+                "readout_integration_length": (
+                    reference_qubit.parameters.readout_integration_length
+                ),
             }
         },
         "new_parameter_values": {
             reference_qubit.uid: {
                 "readout_length": best_length,
+                "readout_integration_length": best_length,
             }
         },
     }
 
 
-@workflow.task
+@workflow.task(save=False)
 def plot_metrics(
     metrics: dict,
     include_error_bars: bool = True,

@@ -8,7 +8,6 @@ import numpy as np
 from laboneq import workflow
 from laboneq.dsl.enums import AcquisitionType, AveragingMode
 from laboneq.simple import Experiment, dsl
-from laboneq.workflow.tasks import compile_experiment, run_experiment
 
 from analysis.readout_frequency_sweep import analysis_workflow
 from laboneq_applications.core import validation
@@ -119,6 +118,16 @@ def _materialize_list(items: list) -> list:
     return list(items)
 
 
+@workflow.task(save=False)
+def _compile_experiment_no_log(session: Session, experiment: Experiment):
+    return session.compile(experiment=experiment)
+
+
+@workflow.task(save=False)
+def _run_experiment_no_log(session: Session, compiled_experiment):
+    return session.run(compiled_experiment)
+
+
 @workflow.workflow(name="readout_frequency_sweep")
 def experiment_workflow(
     session: Session,
@@ -151,8 +160,8 @@ def experiment_workflow(
             qpu=per_run_qpu,
             qubit=per_run_qubit,
         )
-        compiled = compile_experiment(session, exp)
-        run = run_experiment(session, compiled)
+        compiled = _compile_experiment_no_log(session, exp)
+        run = _run_experiment_no_log(session, compiled)
         _append_item(results, run)
         _append_item(temp_qubits, per_run_qubit)
 
@@ -171,10 +180,10 @@ def experiment_workflow(
         with workflow.if_(options.update):
             update_qpu(qpu, analysis_result.output["new_parameter_values"])
 
-    workflow.return_({"analysis_result": analysis_result})
+    workflow.return_({"status": "completed"})
 
 
-@workflow.task
+@workflow.task(save=False)
 @dsl.qubit_experiment
 def create_experiment(
     qpu: QPU,

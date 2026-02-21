@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 from laboneq import workflow
 from laboneq.dsl.enums import AcquisitionType, AveragingMode
 from laboneq.simple import Experiment, SweepParameter, dsl
-from laboneq.workflow.tasks import compile_experiment, run_experiment
 
 from analysis.readout_amplitude_sweep import analysis_workflow
 from laboneq_applications.core import validation
@@ -69,6 +68,16 @@ def _states_to_tuple(states: str | Sequence[str]) -> tuple[str, ...]:
     return state_tuple
 
 
+@workflow.task(save=False)
+def _compile_experiment_no_log(session: Session, experiment: Experiment):
+    return session.compile(experiment=experiment)
+
+
+@workflow.task(save=False)
+def _run_experiment_no_log(session: Session, compiled_experiment):
+    return session.run(compiled_experiment)
+
+
 @workflow.workflow(name="readout_amplitude_sweep")
 def experiment_workflow(
     session: Session,
@@ -89,8 +98,8 @@ def experiment_workflow(
         qubit=qubit,
         amplitudes=amplitudes,
     )
-    compiled = compile_experiment(session, exp)
-    result = run_experiment(session, compiled)
+    compiled = _compile_experiment_no_log(session, exp)
+    result = _run_experiment_no_log(session, compiled)
 
     analysis_result = None
     with workflow.if_(options.do_analysis):
@@ -102,10 +111,10 @@ def experiment_workflow(
         with workflow.if_(options.update):
             update_qpu(qpu, analysis_result.output["new_parameter_values"])
 
-    workflow.return_({"result": result, "analysis_result": analysis_result})
+    workflow.return_({"status": "completed"})
 
 
-@workflow.task
+@workflow.task(save=False)
 @dsl.qubit_experiment
 def create_experiment(
     qpu: QPU,
