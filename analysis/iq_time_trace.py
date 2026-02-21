@@ -1059,7 +1059,9 @@ def plot_iq_dsp(
         raw_freq_offset_hz = float(lo_frequency_hz) if lo_frequency_hz is not None else 0.0
         analysis_freq_offset_hz = 0.0 if demod_axis_enabled else raw_freq_offset_hz
         raw_frequency_axis_label = (
-            "RF Frequency (MHz)" if lo_frequency_hz is not None else "Frequency (MHz)"
+            "RF-Frame Frequency (GHz)"
+            if lo_frequency_hz is not None
+            else "Frequency (GHz)"
         )
         analysis_frequency_axis_label = (
             "IF-Frame Frequency (MHz)" if demod_axis_enabled else raw_frequency_axis_label
@@ -1076,9 +1078,9 @@ def plot_iq_dsp(
         fig.suptitle(timestamped_title(f"IQ RAW DSP {q.uid}"), fontsize=14)
 
         ax_psd_raw.set_title("Welch PSD (RAW Trace)")
+        ax_psd_raw.set_xlabel(raw_frequency_axis_label)
         ax_psd_raw.set_ylabel("PSD (dB)")
         ax_psd_raw.grid(True, linestyle=":", alpha=0.3)
-        ax_psd_raw.tick_params(axis="x", labelbottom=False)
 
         ax_psd.set_title("Welch PSD (Demodulated Trace)")
         ax_psd.set_xlabel(analysis_frequency_axis_label)
@@ -1102,6 +1104,8 @@ def plot_iq_dsp(
         raw_stft_count = 0
         raw_psd_has_data = False
         demod_pre_lpf_psd_has_data = False
+        demod_peak_summary: list[str] = []
+        raw_peak_summary: list[str] = []
 
         for i, state in enumerate(states):
             color = color_map.get(i, f"C{i}")
@@ -1135,6 +1139,29 @@ def plot_iq_dsp(
                             else state
                         ),
                     )
+                    if np.any(np.isfinite(psd)):
+                        peak_idx = int(np.nanargmax(psd))
+                        peak_freq_mhz = float(
+                            (freq_hz[peak_idx] + analysis_freq_offset_hz) / 1e6
+                        )
+                        peak_psd_db = float(psd_db[peak_idx])
+                        ax_psd.scatter(
+                            peak_freq_mhz,
+                            peak_psd_db,
+                            color=color,
+                            marker="x",
+                            s=30,
+                            linewidths=1.3,
+                            zorder=5,
+                        )
+                        ax_psd.axvline(
+                            peak_freq_mhz,
+                            color=color,
+                            linestyle=":",
+                            linewidth=0.8,
+                            alpha=0.35,
+                        )
+                        demod_peak_summary.append(f"{state} post: {peak_freq_mhz:.2f} MHz")
 
                 if compare_demod_lpf_enabled:
                     demod_pre_lpf_trace = np.asarray(
@@ -1168,6 +1195,32 @@ def plot_iq_dsp(
                                 alpha=0.95,
                                 label=f"{state} (pre-LPF)",
                             )
+                            if np.any(np.isfinite(pre_psd)):
+                                pre_peak_idx = int(np.nanargmax(pre_psd))
+                                pre_peak_freq_mhz = float(
+                                    (pre_freq_hz[pre_peak_idx] + analysis_freq_offset_hz)
+                                    / 1e6
+                                )
+                                pre_peak_psd_db = float(pre_psd_db[pre_peak_idx])
+                                ax_psd.scatter(
+                                    pre_peak_freq_mhz,
+                                    pre_peak_psd_db,
+                                    color=color,
+                                    marker="+",
+                                    s=44,
+                                    linewidths=1.1,
+                                    zorder=5,
+                                )
+                                ax_psd.axvline(
+                                    pre_peak_freq_mhz,
+                                    color=color,
+                                    linestyle="--",
+                                    linewidth=0.7,
+                                    alpha=0.25,
+                                )
+                                demod_peak_summary.append(
+                                    f"{state} pre: {pre_peak_freq_mhz:.2f} MHz"
+                                )
                             demod_pre_lpf_psd_has_data = True
 
                 sn = _sanitize_nperseg(stft_nperseg, n_samples)
@@ -1225,13 +1278,36 @@ def plot_iq_dsp(
                             np.maximum(raw_psd, np.finfo(float).tiny)
                         )
                         ax_psd_raw.plot(
-                            (raw_freq_hz + raw_freq_offset_hz) / 1e6,
+                            (raw_freq_hz + raw_freq_offset_hz) / 1e9,
                             raw_psd_db,
                             color=color,
                             linewidth=1.3,
                             linestyle="-",
                             label=state,
                         )
+                        if np.any(np.isfinite(raw_psd)):
+                            raw_peak_idx = int(np.nanargmax(raw_psd))
+                            raw_peak_freq_ghz = float(
+                                (raw_freq_hz[raw_peak_idx] + raw_freq_offset_hz) / 1e9
+                            )
+                            raw_peak_psd_db = float(raw_psd_db[raw_peak_idx])
+                            ax_psd_raw.scatter(
+                                raw_peak_freq_ghz,
+                                raw_peak_psd_db,
+                                color=color,
+                                marker="x",
+                                s=30,
+                                linewidths=1.3,
+                                zorder=5,
+                            )
+                            ax_psd_raw.axvline(
+                                raw_peak_freq_ghz,
+                                color=color,
+                                linestyle=":",
+                                linewidth=0.8,
+                                alpha=0.35,
+                            )
+                            raw_peak_summary.append(f"{state}: {raw_peak_freq_ghz:.4f} GHz")
                         raw_psd_has_data = True
 
                     raw_sn = _sanitize_nperseg(stft_nperseg, raw_n_samples)
@@ -1356,6 +1432,29 @@ def plot_iq_dsp(
                 alpha=0.8,
             )
 
+        if demod_peak_summary:
+            ax_psd.text(
+                0.01,
+                0.98,
+                "Welch peak\n" + "\n".join(demod_peak_summary),
+                transform=ax_psd.transAxes,
+                va="top",
+                ha="left",
+                fontsize=8,
+                bbox={"boxstyle": "round,pad=0.25", "fc": "white", "ec": "none", "alpha": 0.65},
+            )
+        if raw_peak_summary:
+            ax_psd_raw.text(
+                0.01,
+                0.98,
+                "Welch peak\n" + "\n".join(raw_peak_summary),
+                transform=ax_psd_raw.transAxes,
+                va="top",
+                ha="left",
+                fontsize=8,
+                bbox={"boxstyle": "round,pad=0.25", "fc": "white", "ec": "none", "alpha": 0.65},
+            )
+
         if freq_limit_mhz is not None:
             analysis_center_mhz = analysis_freq_offset_hz / 1e6
             raw_center_mhz = raw_freq_offset_hz / 1e6
@@ -1368,14 +1467,22 @@ def plot_iq_dsp(
                 analysis_center_mhz + freq_limit_mhz,
             )
             if compare_enabled:
-                ax_psd_raw.set_xlim(
-                    raw_center_mhz - freq_limit_mhz,
-                    raw_center_mhz + freq_limit_mhz,
-                )
                 ax_stft_raw.set_ylim(
                     raw_center_mhz - freq_limit_mhz,
                     raw_center_mhz + freq_limit_mhz,
                 )
+                ax_psd_raw.set_xlim(
+                    (raw_center_mhz - freq_limit_mhz) / 1e3,
+                    (raw_center_mhz + freq_limit_mhz) / 1e3,
+                )
+
+        # Keep demodulated PSD y-range identical to RAW PSD y-range for direct visual comparison.
+        if compare_enabled and raw_psd_has_data:
+            raw_psd_ylim = ax_psd_raw.get_ylim()
+        else:
+            raw_psd_ylim = ax_psd.get_ylim()
+            ax_psd_raw.set_ylim(raw_psd_ylim)
+        ax_psd.set_ylim(raw_psd_ylim)
 
         handles, labels = ax_psd.get_legend_handles_labels()
         if handles:
