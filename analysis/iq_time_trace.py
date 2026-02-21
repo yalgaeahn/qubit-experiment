@@ -131,6 +131,14 @@ def analysis_workflow(
         apply_software_demodulation=False,
         apply_lpf_after_demodulation=False,
     )
+    demod_pre_lpf_traces = collect_time_traces(
+        qubits=qubits,
+        result=result,
+        states=states,
+        sample_dt_ns=opts.sample_dt_ns,
+        apply_software_demodulation=opts.apply_software_demodulation,
+        apply_lpf_after_demodulation=False,
+    )
     analysis_traces = collect_time_traces(
         qubits=qubits,
         result=result,
@@ -142,10 +150,17 @@ def analysis_workflow(
         lpf_order=opts.lpf_order,
     )
     compare_pre_demod = opts.apply_software_demodulation
+    compare_demod_lpf = opts.apply_lpf_after_demodulation
     with workflow.if_(opts.truncate_to_granularity):
         pre_demod_traces = truncate_time_traces_to_granularity(
             qubits=qubits,
             processed_data_dict=pre_demod_traces,
+            states=states,
+            granularity=opts.granularity,
+        )
+        demod_pre_lpf_traces = truncate_time_traces_to_granularity(
+            qubits=qubits,
+            processed_data_dict=demod_pre_lpf_traces,
             states=states,
             granularity=opts.granularity,
         )
@@ -193,6 +208,8 @@ def analysis_workflow(
                     raw_data_dict=analysis_traces,
                     pre_demod_data_dict=pre_demod_traces,
                     compare_pre_demod=compare_pre_demod,
+                    demod_pre_lpf_data_dict=demod_pre_lpf_traces,
+                    compare_demod_lpf=compare_demod_lpf,
                     sample_dt_ns=opts.sample_dt_ns,
                     phase_mask_relative_threshold=opts.phase_mask_relative_threshold,
                     welch_nperseg=opts.welch_nperseg,
@@ -229,6 +246,7 @@ def analysis_workflow(
                 "dsp_backend": "scipy",
                 "dsp_compare_pre_demod_enabled": compare_pre_demod,
                 "dsp_reference_pre_demod_stage": "raw_before_demod",
+                "dsp_compare_demod_lpf_enabled": compare_demod_lpf,
             },
         }
     )
@@ -800,13 +818,14 @@ def plot_iq_time_traces(
     figures = {}
     color_map = {0: "b", 1: "r", 2: "g"}
     for q in qubits:
-        fig = plt.figure(figsize=(24, 12), constrained_layout=True)
+        fig = plt.figure(figsize=(21, 11), constrained_layout=True)
         grid = fig.add_gridspec(2, 3, hspace=0.22, wspace=0.22)
         ax_i = fig.add_subplot(grid[0, 0])
         ax_q = fig.add_subplot(grid[0, 1], sharex=ax_i)
         ax_phase = fig.add_subplot(grid[0, 2], sharex=ax_i)
-        ax_iq = fig.add_subplot(grid[1, 0:2])
-        ax_amp = fig.add_subplot(grid[1, 2], sharex=ax_i)
+        ax_amp = fig.add_subplot(grid[1, 0], sharex=ax_i)
+        ax_iq = fig.add_subplot(grid[1, 1])
+        ax_iq_time = fig.add_subplot(grid[1, 2])
 
         fig.suptitle(timestamped_title(f"IQ Time Trace {q.uid}"), fontsize=14)
 
@@ -833,6 +852,10 @@ def plot_iq_time_traces(
         ax_iq.set_title("IQ Plane")
         ax_iq.set_xlabel("Real Signal Component, $V_{\\mathrm{I}}$ (a.u.)")
         ax_iq.set_ylabel("Imaginary Signal Component, $V_{\\mathrm{Q}}$ (a.u.)")
+
+        ax_iq_time.set_title("IQ Plane (Time-Colored)")
+        ax_iq_time.set_xlabel("Real Signal Component, $V_{\\mathrm{I}}$ (a.u.)")
+        ax_iq_time.set_ylabel("Imaginary Signal Component, $V_{\\mathrm{Q}}$ (a.u.)")
 
         ax_amp.set_title("|IQ|(t)")
         ax_amp.set_xlabel("Time (ns)")
@@ -871,6 +894,7 @@ def plot_iq_time_traces(
                 alpha=0.8,
             )
 
+        time_color_mappable = None
         for i, state in enumerate(states):
             color = color_map.get(i, f"C{i}")
             trace = np.asarray(processed_data_dict[q.uid][state], dtype=complex)
@@ -885,71 +909,88 @@ def plot_iq_time_traces(
             phase_masked[amplitude < mask_abs] = np.nan
 
             axis = np.arange(len(i_trace), dtype=float) * sample_dt_ns
-            marker_every = max(len(axis) // 120, 1)
-            ax_i.plot(axis, i_trace, "-", color=color, linewidth=1.3, label=state)
+            ax_i.plot(axis, i_trace, "-", color=color, linewidth=1.0, alpha=0.9, label=state)
             ax_i.plot(
                 axis,
                 i_trace,
-                "o",
+                linestyle="None",
+                marker="o",
                 color=color,
-                markersize=2.0,
-                alpha=0.55,
-                markevery=marker_every,
+                markersize=1.2,
+                markeredgewidth=0.0,
+                alpha=0.45,
             )
 
-            ax_q.plot(axis, q_trace, "-", color=color, linewidth=1.3, label=state)
+            ax_q.plot(axis, q_trace, "-", color=color, linewidth=1.0, alpha=0.9, label=state)
             ax_q.plot(
                 axis,
                 q_trace,
-                "o",
+                linestyle="None",
+                marker="o",
                 color=color,
-                markersize=2.0,
-                alpha=0.55,
-                markevery=marker_every,
+                markersize=1.2,
+                markeredgewidth=0.0,
+                alpha=0.45,
             )
 
-            ax_iq.plot(i_trace, q_trace, "-", color=color, linewidth=1.1, label=state)
-            ax_iq.scatter(
-                i_trace[::marker_every],
-                q_trace[::marker_every],
-                c=color,
-                s=10,
-                alpha=0.6,
-            )
+            ax_iq.plot(i_trace, q_trace, "-", color=color, linewidth=1.0, alpha=0.85, label=state)
+            ax_iq.scatter(i_trace, q_trace, c=color, s=6, alpha=0.4, edgecolors="none")
 
+            ax_iq_time.plot(i_trace, q_trace, "-", color="k", linewidth=0.5, alpha=0.2)
+            state_scatter = ax_iq_time.scatter(
+                i_trace,
+                q_trace,
+                c=axis,
+                cmap="inferno",
+                s=8,
+                marker="o",
+                linewidths=0.0,
+                alpha=0.78,
+                label=state,
+            )
+            if time_color_mappable is None:
+                time_color_mappable = state_scatter
+
+            ax_phase.plot(
+                axis, phase_masked, "-", color=color, linewidth=1.0, alpha=0.9, label=state
+            )
             valid_phase = np.isfinite(phase_masked)
-            ax_phase.scatter(
+            ax_phase.plot(
                 axis[valid_phase],
                 phase_masked[valid_phase],
+                linestyle="None",
+                marker="o",
                 color=color,
-                s=10,
-                alpha=0.7,
+                markersize=1.2,
+                markeredgewidth=0.0,
+                alpha=0.45,
             )
-            ax_phase.plot(axis, phase_masked, "-", color=color, linewidth=1.3, label=state)
 
-            ax_amp.plot(axis, amplitude, "-", color=color, linewidth=1.3, label=state)
-
-            if len(i_trace) >= 2:
-                d_i = np.gradient(i_trace)
-                d_q = np.gradient(q_trace)
-                step = max(len(i_trace) // 90, 2)
-                ax_iq.quiver(
-                    i_trace[::step],
-                    q_trace[::step],
-                    d_i[::step],
-                    d_q[::step],
-                    angles="xy",
-                    scale_units="xy",
-                    scale=1,
-                    color=color,
-                    alpha=0.6,
-                    width=0.002,
-                )
+            ax_amp.plot(
+                axis, amplitude, "-", color=color, linewidth=1.0, alpha=0.9, label=state
+            )
+            ax_amp.plot(
+                axis,
+                amplitude,
+                linestyle="None",
+                marker="o",
+                color=color,
+                markersize=1.2,
+                markeredgewidth=0.0,
+                alpha=0.45,
+            )
 
         ax_iq.set_aspect("equal", adjustable="box")
+        ax_iq.set_box_aspect(1)
+        ax_iq_time.set_aspect("equal", adjustable="box")
+        ax_iq_time.set_box_aspect(1)
         for axis_obj in (ax_i, ax_q, ax_phase, ax_amp):
             axis_obj.grid(True, linestyle=":", alpha=0.35)
         ax_iq.grid(True, linestyle=":", alpha=0.25)
+        ax_iq_time.grid(True, linestyle=":", alpha=0.25)
+
+        if time_color_mappable is not None:
+            fig.colorbar(time_color_mappable, ax=ax_iq_time, label="Time (ns)")
 
         handles, labels = ax_i.get_legend_handles_labels()
         if handles:
@@ -973,6 +1014,8 @@ def plot_iq_dsp(
     raw_data_dict: dict[str, dict[str, ArrayLike]],
     pre_demod_data_dict: dict[str, dict[str, ArrayLike]] | None = None,
     compare_pre_demod: bool = False,
+    demod_pre_lpf_data_dict: dict[str, dict[str, ArrayLike]] | None = None,
+    compare_demod_lpf: bool = False,
     options: BasePlottingOptions | None = None,
     sample_dt_ns: float = 0.5,
     phase_mask_relative_threshold: float = 0.08,
@@ -992,10 +1035,7 @@ def plot_iq_dsp(
     signal = _get_scipy_signal()
     opts = BasePlottingOptions() if options is None else options
     qubits = validate_and_convert_qubits_sweeps(qubits)
-    phase_mask_relative_threshold = max(float(phase_mask_relative_threshold), 0.0)
-    dt_s = float(sample_dt_ns) * 1e-9
-    fs_hz = 1.0 / dt_s
-    dphi_smooth_window = _sanitize_smooth_window(dphi_smooth_window)
+    fs_hz = 1.0 / (float(sample_dt_ns) * 1e-9)
     color_map = {0: "b", 1: "r", 2: "g"}
     freq_limit_mhz = (
         None
@@ -1003,29 +1043,36 @@ def plot_iq_dsp(
         else float(dsp_freq_limit_mhz)
     )
     compare_enabled = bool(compare_pre_demod and pre_demod_data_dict is not None)
+    compare_demod_lpf_enabled = bool(
+        compare_demod_lpf and demod_pre_lpf_data_dict is not None
+    )
+    demod_axis_enabled = bool(compare_pre_demod)
+    if compare_demod_lpf_enabled and not demod_axis_enabled:
+        raise ValueError(
+            "compare_demod_lpf=True requires demodulation axis mode "
+            "(compare_pre_demod=True)."
+        )
 
     figures: dict[str, mpl.figure.Figure] = {}
     for q in qubits:
         lo_frequency_hz = getattr(q.parameters, "readout_lo_frequency", None)
         raw_freq_offset_hz = float(lo_frequency_hz) if lo_frequency_hz is not None else 0.0
-        analysis_freq_offset_hz = 0.0 if compare_enabled else raw_freq_offset_hz
+        analysis_freq_offset_hz = 0.0 if demod_axis_enabled else raw_freq_offset_hz
         raw_frequency_axis_label = (
             "RF Frequency (MHz)" if lo_frequency_hz is not None else "Frequency (MHz)"
         )
         analysis_frequency_axis_label = (
-            "IF-Frame Frequency (MHz)" if compare_enabled else raw_frequency_axis_label
+            "IF-Frame Frequency (MHz)" if demod_axis_enabled else raw_frequency_axis_label
         )
 
-        fig = plt.figure(figsize=(22, 12), constrained_layout=True)
-        grid = fig.add_gridspec(2, 2, hspace=0.24, wspace=0.24)
+        fig = plt.figure(figsize=(22, 9), constrained_layout=True)
+        grid = fig.add_gridspec(1, 2, hspace=0.24, wspace=0.24)
         psd_grid = grid[0, 0].subgridspec(2, 1, hspace=0.12)
         ax_psd_raw = fig.add_subplot(psd_grid[0, 0])
         ax_psd = fig.add_subplot(psd_grid[1, 0])
         stft_grid = grid[0, 1].subgridspec(2, 1, hspace=0.12)
         ax_stft_raw = fig.add_subplot(stft_grid[0, 0])
         ax_stft = fig.add_subplot(stft_grid[1, 0], sharex=ax_stft_raw)
-        ax_if = fig.add_subplot(grid[1, 0])
-        ax_amp = fig.add_subplot(grid[1, 1], sharex=ax_if)
         fig.suptitle(timestamped_title(f"IQ RAW DSP {q.uid}"), fontsize=14)
 
         ax_psd_raw.set_title("Welch PSD (RAW Trace)")
@@ -1045,33 +1092,6 @@ def plot_iq_dsp(
         ax_stft.set_xlabel("Time (ns)")
         ax_stft.set_ylabel(analysis_frequency_axis_label)
 
-        ax_if.set_title("Instantaneous Frequency")
-        ax_if.set_xlabel("Time (ns)")
-        ax_if.set_ylabel("Frequency (Hz)")
-        ax_if.grid(True, linestyle=":", alpha=0.3)
-
-        ax_amp.set_title("|IQ|(t) + Max-Jump Marker")
-        ax_amp.set_xlabel("Time (ns)")
-        ax_amp.set_ylabel("Magnitude, |IQ| (a.u.)")
-        ax_amp.grid(True, linestyle=":", alpha=0.3)
-
-        boundaries = _integration_aligned_boundaries_ns(q)
-        if plot_phase_boundaries:
-            for _, style, key in (
-                ("int_start", ":", "int_start"),
-                ("int_end", "-.", "int_end"),
-                ("ro_end", "--", "ro_end"),
-            ):
-                boundary_ns = boundaries.get(key)
-                if boundary_ns is None:
-                    continue
-                ax_if.axvline(
-                    boundary_ns, color="k", linestyle=style, linewidth=1.0, alpha=0.3
-                )
-                ax_amp.axvline(
-                    boundary_ns, color="k", linestyle=style, linewidth=1.0, alpha=0.3
-                )
-
         stft_freq_mhz_ref = None
         stft_time_ns_ref = None
         stft_mag_db_accum = None
@@ -1081,15 +1101,12 @@ def plot_iq_dsp(
         raw_stft_mag_db_accum = None
         raw_stft_count = 0
         raw_psd_has_data = False
+        demod_pre_lpf_psd_has_data = False
 
         for i, state in enumerate(states):
             color = color_map.get(i, f"C{i}")
             trace = np.asarray(raw_data_dict[q.uid][state], dtype=complex)
             n_samples = int(trace.size)
-            axis_ns = np.arange(n_samples, dtype=float) * float(sample_dt_ns)
-            amp = np.abs(trace)
-            amp_peak = float(np.max(amp)) if n_samples > 0 else 0.0
-            mask_abs = phase_mask_relative_threshold * amp_peak
 
             if n_samples > 1:
                 trace_dc = trace - np.mean(trace)
@@ -1112,28 +1129,46 @@ def plot_iq_dsp(
                         psd_db,
                         color=color,
                         linewidth=1.3,
-                        label=state,
+                        label=(
+                            f"{state} (post-LPF)"
+                            if compare_demod_lpf_enabled
+                            else state
+                        ),
                     )
 
-                phase = np.unwrap(np.angle(trace))
-                phase_masked = np.array(phase, copy=True)
-                phase_masked[amp < mask_abs] = np.nan
-                dphi_dt = np.gradient(phase_masked, dt_s)
-                dphi_dt = _nan_moving_average(dphi_dt, dphi_smooth_window)
-                inst_freq_hz = dphi_dt / (2 * np.pi)
-                ax_if.plot(axis_ns, inst_freq_hz, color=color, linewidth=1.2, label=state)
-                ax_amp.plot(axis_ns, amp, color=color, linewidth=1.2, label=state)
-
-                if np.any(np.isfinite(inst_freq_hz)):
-                    jump_idx = int(np.nanargmax(np.abs(inst_freq_hz)))
-                    ax_amp.scatter(
-                        axis_ns[jump_idx],
-                        amp[jump_idx],
-                        color=color,
-                        marker="x",
-                        s=50,
-                        linewidths=1.5,
+                if compare_demod_lpf_enabled:
+                    demod_pre_lpf_trace = np.asarray(
+                        demod_pre_lpf_data_dict[q.uid][state], dtype=complex  # type: ignore[index]
                     )
+                    demod_pre_lpf_n_samples = int(demod_pre_lpf_trace.size)
+                    if demod_pre_lpf_n_samples > 1:
+                        demod_pre_lpf_dc = demod_pre_lpf_trace - np.mean(demod_pre_lpf_trace)
+                        pre_wn = _sanitize_nperseg(welch_nperseg, demod_pre_lpf_n_samples)
+                        pre_wo = _sanitize_noverlap(welch_noverlap, pre_wn)
+                        if pre_wn > 1:
+                            pre_freq_hz, pre_psd = signal.welch(
+                                demod_pre_lpf_dc,
+                                fs=fs_hz,
+                                nperseg=pre_wn,
+                                noverlap=pre_wo,
+                                return_onesided=False,
+                                scaling="density",
+                            )
+                            pre_freq_hz = np.fft.fftshift(pre_freq_hz)
+                            pre_psd = np.fft.fftshift(np.real(pre_psd))
+                            pre_psd_db = 10 * np.log10(
+                                np.maximum(pre_psd, np.finfo(float).tiny)
+                            )
+                            ax_psd.plot(
+                                (pre_freq_hz + analysis_freq_offset_hz) / 1e6,
+                                pre_psd_db,
+                                color=color,
+                                linewidth=1.2,
+                                linestyle="--",
+                                alpha=0.95,
+                                label=f"{state} (pre-LPF)",
+                            )
+                            demod_pre_lpf_psd_has_data = True
 
                 sn = _sanitize_nperseg(stft_nperseg, n_samples)
                 so = _sanitize_noverlap(stft_noverlap, sn)
@@ -1167,9 +1202,6 @@ def plot_iq_dsp(
                     ):
                         stft_mag_db_accum += stft_mag_db
                         stft_count += 1
-
-            elif n_samples == 1:
-                ax_amp.plot(axis_ns, amp, color=color, linewidth=1.2, label=state)
 
             if compare_enabled:
                 raw_trace = np.asarray(pre_demod_data_dict[q.uid][state], dtype=complex)  # type: ignore[index]
@@ -1311,6 +1343,18 @@ def plot_iq_dsp(
             )
             ax_stft_raw.set_xticks([])
             ax_stft_raw.set_yticks([])
+
+        if compare_demod_lpf_enabled and not demod_pre_lpf_psd_has_data:
+            ax_psd.text(
+                0.5,
+                0.08,
+                "Pre-LPF demod PSD unavailable (insufficient samples)",
+                ha="center",
+                va="bottom",
+                transform=ax_psd.transAxes,
+                fontsize=9,
+                alpha=0.8,
+            )
 
         if freq_limit_mhz is not None:
             analysis_center_mhz = analysis_freq_offset_hz / 1e6
