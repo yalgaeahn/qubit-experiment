@@ -77,8 +77,33 @@ class IQTimeTraceAnalysisWorkflowOptions:
     plot_phase_boundaries: bool = workflow.option_field(
         True,
         description=(
-            "Plot readout/integration timing boundaries on time-domain and phase panels."
+            "When find_flat_window=True, plot detected flat_start/flat_end boundaries."
         ),
+    )
+    find_flat_window: bool = workflow.option_field(
+        False,
+        description=(
+            "Detect flat_start/flat_end from data using soft length-constrained "
+            "two-edge search."
+        ),
+    )
+    flat_window_smoothing_window_samples: int = workflow.option_field(
+        9,
+        description="Smoothing window for edge-feature extraction in flat-window search.",
+    )
+    flat_window_soft_tolerance_ratio: float = workflow.option_field(
+        0.10,
+        description=(
+            "Soft tolerance ratio for flat-length prior in pair-search objective."
+        ),
+    )
+    flat_window_phase_weight: float = workflow.option_field(
+        0.6,
+        description="Relative weight of phase-derivative feature in edge score.",
+    )
+    flat_window_min_peak_z: float = workflow.option_field(
+        2.0,
+        description="Minimum robust z-score threshold required for each detected edge.",
     )
     do_dsp_analysis: bool = workflow.option_field(
         True,
@@ -119,9 +144,13 @@ def analysis_workflow(
     qubits: QuantumElements,
     states: Sequence[str],
     options: IQTimeTraceAnalysisWorkflowOptions | None = None,
+    find_flat_window: bool | None = None,
 ) -> None:
     """Analyze IQ time traces using calibration trace handles."""
     opts = IQTimeTraceAnalysisWorkflowOptions() if options is None else options
+    find_flat_window_enabled = (
+        opts.find_flat_window if find_flat_window is None else find_flat_window
+    )
 
     pre_demod_traces = collect_time_traces(
         qubits=qubits,
@@ -178,8 +207,30 @@ def analysis_workflow(
         sample_dt_ns=opts.sample_dt_ns,
         phase_mask_relative_threshold=opts.phase_mask_relative_threshold,
     )
+    flat_window_detection = {}
+    flat_window_updates = {
+        "old_parameter_values": {},
+        "new_parameter_values": {},
+    }
+    with workflow.if_(find_flat_window_enabled):
+        flat_window_detection = detect_flat_window(
+            qubits=qubits,
+            states=states,
+            processed_data_dict=analysis_traces,
+            sample_dt_ns=opts.sample_dt_ns,
+            phase_mask_relative_threshold=opts.phase_mask_relative_threshold,
+            smoothing_window_samples=opts.flat_window_smoothing_window_samples,
+            soft_tolerance_ratio=opts.flat_window_soft_tolerance_ratio,
+            phase_weight=opts.flat_window_phase_weight,
+            min_peak_z=opts.flat_window_min_peak_z,
+        )
+        flat_window_updates = build_flat_window_parameter_updates(
+            qubits=qubits,
+            flat_window_detection=flat_window_detection,
+        )
 
     figures = {}
+    flat_window_figures = {}
     dsp_diagnostics = {}
     dsp_figures = {}
 
@@ -223,6 +274,17 @@ def analysis_workflow(
                 )
 
     with workflow.if_(opts.do_plotting):
+        with workflow.if_(find_flat_window_enabled):
+            flat_window_figures = plot_flat_window_debug(
+                qubits=qubits,
+                states=states,
+                processed_data_dict=analysis_traces,
+                flat_window_detection=flat_window_detection,
+                sample_dt_ns=opts.sample_dt_ns,
+                phase_mask_relative_threshold=opts.phase_mask_relative_threshold,
+                smoothing_window_samples=opts.flat_window_smoothing_window_samples,
+                phase_weight=opts.flat_window_phase_weight,
+            )
         with workflow.if_(opts.do_plotting_iq_time_trace):
             figures = plot_iq_time_traces(
                 qubits=qubits,
@@ -231,25 +293,68 @@ def analysis_workflow(
                 sample_dt_ns=opts.sample_dt_ns,
                 phase_mask_relative_threshold=opts.phase_mask_relative_threshold,
                 plot_phase_boundaries=opts.plot_phase_boundaries,
+                find_flat_window=find_flat_window_enabled,
+                flat_window_detection=flat_window_detection,
             )
 
-    workflow.return_(
-        {
-            "diagnostics": diagnostics,
-            "figures": figures,
-            "dsp_diagnostics": dsp_diagnostics,
-            "dsp_figures": dsp_figures,
-            "metadata": {
-                "states": states,
-                "input_contract": "calibration_trace_handle",
-                "dsp_input_stage": "analysis_trace",
-                "dsp_backend": "scipy",
-                "dsp_compare_pre_demod_enabled": compare_pre_demod,
-                "dsp_reference_pre_demod_stage": "raw_before_demod",
-                "dsp_compare_demod_lpf_enabled": compare_demod_lpf,
-            },
-        }
+    payload = build_iq_time_trace_analysis_payload(
+        diagnostics=diagnostics,
+        figures=figures,
+        flat_window_figures=flat_window_figures,
+        dsp_diagnostics=dsp_diagnostics,
+        dsp_figures=dsp_figures,
+        flat_window_detection=flat_window_detection,
+        flat_window_updates=flat_window_updates,
+        metadata={
+            "states": states,
+            "input_contract": "calibration_trace_handle",
+            "dsp_input_stage": "analysis_trace",
+            "dsp_backend": "scipy",
+            "dsp_compare_pre_demod_enabled": compare_pre_demod,
+            "dsp_reference_pre_demod_stage": "raw_before_demod",
+            "dsp_compare_demod_lpf_enabled": compare_demod_lpf,
+            "flat_window_detection_enabled": find_flat_window_enabled,
+            "flat_window_debug_figure_enabled": bool(
+                find_flat_window_enabled and opts.do_plotting
+            ),
+        },
     )
+    workflow.return_(payload)
+
+
+@workflow.task
+def build_iq_time_trace_analysis_payload(
+    diagnostics: dict,
+    figures: dict,
+    flat_window_figures: dict,
+    dsp_diagnostics: dict,
+    dsp_figures: dict,
+    flat_window_detection: dict,
+    flat_window_updates: dict,
+    metadata: dict,
+) -> dict:
+    """Compose final analysis payload with materialized flat-window update dictionaries."""
+    old_parameter_values = {}
+    new_parameter_values = {}
+    if isinstance(flat_window_updates, dict):
+        maybe_old = flat_window_updates.get("old_parameter_values")
+        maybe_new = flat_window_updates.get("new_parameter_values")
+        if isinstance(maybe_old, dict):
+            old_parameter_values = maybe_old
+        if isinstance(maybe_new, dict):
+            new_parameter_values = maybe_new
+
+    return {
+        "diagnostics": diagnostics,
+        "figures": figures,
+        "flat_window_figures": flat_window_figures,
+        "dsp_diagnostics": dsp_diagnostics,
+        "dsp_figures": dsp_figures,
+        "flat_window_detection": flat_window_detection,
+        "old_parameter_values": old_parameter_values,
+        "new_parameter_values": new_parameter_values,
+        "metadata": metadata,
+    }
 
 
 @workflow.task
@@ -368,34 +473,66 @@ def truncate_time_traces_to_granularity(
     return truncated_data_dict
 
 
-def _integration_aligned_boundaries_ns(qubit) -> dict[str, float | None]:
-    readout_length_s = getattr(qubit.parameters, "readout_length", None)
-    readout_integration_delay_s = getattr(
-        qubit.parameters, "readout_integration_delay", None
+def _finite_float_or_none(value) -> float | None:
+    try:
+        out = float(value)
+    except (TypeError, ValueError):
+        return None
+    return out if np.isfinite(out) else None
+
+
+def _readout_integration_delay_ns(qubit) -> float:
+    delay_s = _finite_float_or_none(
+        getattr(qubit.parameters, "readout_integration_delay", None)
     )
+    if delay_s is None:
+        return 0.0
+    return float(delay_s * 1e9)
+
+
+def _readout_flat_length_ns(qubit) -> float | None:
+    readout_pulse = getattr(qubit.parameters, "readout_pulse", None)
+    if not isinstance(readout_pulse, dict):
+        return None
+
+    pulse_function = readout_pulse.get("function")
+    if pulse_function not in ("GaussianSquare", "GaussianSquareDRAG"):
+        return None
+
+    width_s = _finite_float_or_none(readout_pulse.get("width"))
+    if width_s is not None and width_s > 0.0:
+        return float(width_s * 1e9)
+
+    sigma = _finite_float_or_none(readout_pulse.get("sigma"))
+    risefall_sigma_ratio = _finite_float_or_none(
+        readout_pulse.get("risefall_sigma_ratio")
+    )
+    readout_length_s = _finite_float_or_none(
+        getattr(qubit.parameters, "readout_length", None)
+    )
+    if sigma is None or risefall_sigma_ratio is None or readout_length_s is None:
+        return None
+
+    flat_length_s = readout_length_s * (1.0 - risefall_sigma_ratio * sigma)
+    if not np.isfinite(flat_length_s) or flat_length_s <= 0.0:
+        return None
+    return float(flat_length_s * 1e9)
+
+
+def _readout_aligned_boundaries_ns(qubit) -> dict[str, float | None]:
     readout_integration_length_s = getattr(
         qubit.parameters, "readout_integration_length", None
     )
-
-    int_delay_ns = (
-        float(readout_integration_delay_s) * 1e9
-        if readout_integration_delay_s is not None
-        else 0.0
-    )
-    int_end_ns = (
-        float(readout_integration_length_s) * 1e9
-        if readout_integration_length_s is not None
-        else None
-    )
-    ro_end_ns = (
-        float(readout_length_s) * 1e9 - int_delay_ns
-        if readout_length_s is not None
-        else None
-    )
+    delay_ns = _readout_integration_delay_ns(qubit)
+    int_end_s = _finite_float_or_none(readout_integration_length_s)
+    int_end_ns = float(delay_ns + int_end_s * 1e9) if int_end_s is not None else None
+    ro_flat_ns = _readout_flat_length_ns(qubit)
+    if ro_flat_ns is not None:
+        ro_flat_ns = float(delay_ns + ro_flat_ns)
     return {
-        "int_start": 0.0,
+        "int_start": delay_ns,
         "int_end": int_end_ns,
-        "ro_end": ro_end_ns,
+        "ro_flat": ro_flat_ns,
     }
 
 
@@ -459,6 +596,291 @@ def _distance_to_boundary(
     return float(event_time_ns - boundary)
 
 
+def _required_flat_length_prior_ns(qubit) -> float:
+    expected_flat_ns = _readout_flat_length_ns(qubit)
+    if expected_flat_ns is None:
+        pulse = getattr(qubit.parameters, "readout_pulse", None)
+        raise ValueError(
+            "Cannot determine expected flat length for flat-window detection on "
+            f"qubit={qubit.uid!r}. Required prior: readout_pulse.width or "
+            "readout_pulse.{sigma, risefall_sigma_ratio} with GaussianSquare/"
+            f"GaussianSquareDRAG pulse. Got readout_pulse={pulse!r}."
+        )
+    return float(expected_flat_ns)
+
+
+def _robust_zscore(values: np.ndarray) -> np.ndarray:
+    """Return robust z-score (median/MAD based) with finite-sample guards."""
+    out = np.full(values.shape, np.nan, dtype=float)
+    finite = np.isfinite(values)
+    if not np.any(finite):
+        return out
+
+    x = values[finite]
+    med = float(np.median(x))
+    mad = float(np.median(np.abs(x - med)))
+    if mad <= np.finfo(float).eps:
+        std = float(np.std(x))
+        if std <= np.finfo(float).eps:
+            out[finite] = 0.0
+            return out
+        out[finite] = np.abs((x - med) / std)
+        return out
+
+    out[finite] = np.abs(0.6744897501960817 * (x - med) / mad)
+    return out
+
+
+def _finite_phase_gradient(
+    phase_unwrapped: np.ndarray, amplitude: np.ndarray, mask_abs: float, smooth_window: int
+) -> np.ndarray:
+    phase_masked = np.array(phase_unwrapped, copy=True, dtype=float)
+    if phase_masked.size > 0:
+        phase_masked[amplitude < mask_abs] = np.nan
+    phase_smoothed = _nan_moving_average(phase_masked, smooth_window)
+    phase_grad = np.abs(np.gradient(phase_smoothed)) if phase_smoothed.size > 0 else np.array([], dtype=float)
+    return phase_grad
+
+
+def _edge_feature_components_for_trace(
+    trace: np.ndarray,
+    phase_mask_relative_threshold: float,
+    smooth_window: int,
+    phase_weight: float,
+) -> dict[str, np.ndarray]:
+    """Return per-trace edge features and the combined state score."""
+    i_trace = np.real(trace)
+    q_trace = np.imag(trace)
+    amplitude = np.abs(trace)
+    amplitude_peak = float(np.max(amplitude)) if amplitude.size > 0 else 0.0
+    mask_abs = float(phase_mask_relative_threshold * amplitude_peak)
+    phase = np.unwrap(np.angle(trace)) if trace.size > 0 else np.array([], dtype=float)
+
+    i_smooth = _nan_moving_average(i_trace.astype(float), smooth_window)
+    q_smooth = _nan_moving_average(q_trace.astype(float), smooth_window)
+    a_smooth = _nan_moving_average(amplitude.astype(float), smooth_window)
+    p_grad = _finite_phase_gradient(phase, amplitude, mask_abs, smooth_window)
+
+    i_grad = np.abs(np.gradient(i_smooth)) if i_smooth.size > 0 else np.array([], dtype=float)
+    q_grad = np.abs(np.gradient(q_smooth)) if q_smooth.size > 0 else np.array([], dtype=float)
+    a_grad = np.abs(np.gradient(a_smooth)) if a_smooth.size > 0 else np.array([], dtype=float)
+
+    i_grad_z = _robust_zscore(i_grad)
+    q_grad_z = _robust_zscore(q_grad)
+    a_grad_z = _robust_zscore(a_grad)
+    p_grad_z = _robust_zscore(p_grad)
+    state_score = (
+        i_grad_z
+        + q_grad_z
+        + a_grad_z
+        + max(float(phase_weight), 0.0) * p_grad_z
+    )
+    return {
+        "dI_abs": i_grad,
+        "dQ_abs": q_grad,
+        "dA_abs": a_grad,
+        "dphase_abs": p_grad,
+        "state_score_z": state_score,
+    }
+
+
+def _find_best_edge_pair(
+    score_z: np.ndarray,
+    expected_length_samples: int,
+    tolerance_ratio: float,
+) -> tuple[int | None, int | None, float | None]:
+    finite_idx = np.where(np.isfinite(score_z))[0]
+    if finite_idx.size < 2:
+        return None, None, None
+
+    l0 = max(int(expected_length_samples), 1)
+    sigma_l = float(max(2, int(round(l0 * max(float(tolerance_ratio), 0.0)))))
+    denom = 2.0 * sigma_l * sigma_l
+
+    best_i = None
+    best_j = None
+    best_score = None
+    for i in finite_idx[:-1]:
+        js = finite_idx[finite_idx > i]
+        if js.size == 0:
+            continue
+        delta = js.astype(float) - float(i) - float(l0)
+        objective = score_z[i] + score_z[js] - (delta * delta) / denom
+        local_k = int(np.argmax(objective))
+        candidate_score = float(objective[local_k])
+        if best_score is None or candidate_score > best_score:
+            best_i = int(i)
+            best_j = int(js[local_k])
+            best_score = candidate_score
+
+    return best_i, best_j, best_score
+
+
+@workflow.task
+def detect_flat_window(
+    qubits: QuantumElements,
+    states: Sequence[str],
+    processed_data_dict: dict[str, dict[str, ArrayLike]],
+    sample_dt_ns: float = 0.5,
+    phase_mask_relative_threshold: float = 0.08,
+    smoothing_window_samples: int = 9,
+    soft_tolerance_ratio: float = 0.10,
+    phase_weight: float = 0.6,
+    min_peak_z: float = 2.0,
+) -> dict[str, dict]:
+    """Detect flat_start/flat_end using soft length-constrained two-edge search."""
+    if sample_dt_ns <= 0:
+        raise ValueError(f"sample_dt_ns must be > 0, got {sample_dt_ns}.")
+
+    qubits = validate_and_convert_qubits_sweeps(qubits)
+    phase_mask_relative_threshold = max(float(phase_mask_relative_threshold), 0.0)
+    smooth_window = _sanitize_smooth_window(smoothing_window_samples)
+    soft_tolerance_ratio = max(float(soft_tolerance_ratio), 0.0)
+    phase_weight = max(float(phase_weight), 0.0)
+    min_peak_z = float(min_peak_z)
+
+    out: dict[str, dict] = {}
+    for q in qubits:
+        expected_flat_ns = _required_flat_length_prior_ns(q)
+        expected_samples = max(int(round(expected_flat_ns / float(sample_dt_ns))), 1)
+        delay_ns = _readout_integration_delay_ns(q)
+
+        state_scores: list[np.ndarray] = []
+        min_n = None
+        for state in states:
+            trace = np.asarray(processed_data_dict[q.uid][state], dtype=complex)
+            feature_components = _edge_feature_components_for_trace(
+                trace=trace,
+                phase_mask_relative_threshold=phase_mask_relative_threshold,
+                smooth_window=smooth_window,
+                phase_weight=phase_weight,
+            )
+            score = feature_components["state_score_z"]
+            if min_n is None:
+                min_n = int(score.size)
+            else:
+                min_n = min(min_n, int(score.size))
+            state_scores.append(score)
+
+        if min_n is None or min_n < 3:
+            out[q.uid] = {
+                "success": False,
+                "flat_start_index": None,
+                "flat_end_index": None,
+                "flat_start_ns": None,
+                "flat_end_ns": None,
+                "flat_length_ns_detected": None,
+                "flat_length_ns_expected": float(expected_flat_ns),
+                "pair_score": None,
+                "reason": "insufficient_samples",
+            }
+            continue
+
+        stacked = np.vstack([score[:min_n] for score in state_scores])
+        combined_score = np.nanmedian(stacked, axis=0)
+        combined_score_z = _robust_zscore(combined_score)
+
+        flat_start_idx, flat_end_idx, pair_score = _find_best_edge_pair(
+            score_z=combined_score_z,
+            expected_length_samples=expected_samples,
+            tolerance_ratio=soft_tolerance_ratio,
+        )
+
+        if flat_start_idx is None or flat_end_idx is None:
+            out[q.uid] = {
+                "success": False,
+                "flat_start_index": None,
+                "flat_end_index": None,
+                "flat_start_ns": None,
+                "flat_end_ns": None,
+                "flat_length_ns_detected": None,
+                "flat_length_ns_expected": float(expected_flat_ns),
+                "pair_score": None,
+                "reason": "no_valid_edge_pair",
+            }
+            continue
+
+        start_z = combined_score_z[flat_start_idx]
+        end_z = combined_score_z[flat_end_idx]
+        if (
+            not np.isfinite(start_z)
+            or not np.isfinite(end_z)
+            or float(start_z) < min_peak_z
+            or float(end_z) < min_peak_z
+        ):
+            out[q.uid] = {
+                "success": False,
+                "flat_start_index": int(flat_start_idx),
+                "flat_end_index": int(flat_end_idx),
+                "flat_start_ns": float(delay_ns + flat_start_idx * sample_dt_ns),
+                "flat_end_ns": float(delay_ns + flat_end_idx * sample_dt_ns),
+                "flat_length_ns_detected": float((flat_end_idx - flat_start_idx) * sample_dt_ns),
+                "flat_length_ns_expected": float(expected_flat_ns),
+                "pair_score": float(pair_score) if pair_score is not None else None,
+                "reason": (
+                    "peak_below_threshold: "
+                    f"start_z={float(start_z):.2f}, end_z={float(end_z):.2f}, "
+                    f"min_peak_z={min_peak_z:.2f}"
+                ),
+            }
+            continue
+
+        flat_start_ns = float(delay_ns + flat_start_idx * sample_dt_ns)
+        flat_end_ns = float(delay_ns + flat_end_idx * sample_dt_ns)
+        out[q.uid] = {
+            "success": True,
+            "flat_start_index": int(flat_start_idx),
+            "flat_end_index": int(flat_end_idx),
+            "flat_start_ns": flat_start_ns,
+            "flat_end_ns": flat_end_ns,
+            "flat_length_ns_detected": float(flat_end_ns - flat_start_ns),
+            "flat_length_ns_expected": float(expected_flat_ns),
+            "pair_score": float(pair_score) if pair_score is not None else None,
+            "reason": None,
+        }
+
+    return out
+
+
+@workflow.task
+def build_flat_window_parameter_updates(
+    qubits: QuantumElements,
+    flat_window_detection: dict[str, dict],
+) -> dict[str, dict]:
+    """Build old/new readout-integration parameters from flat-window detection."""
+    qubits = validate_and_convert_qubits_sweeps(qubits)
+
+    out = {
+        "old_parameter_values": {},
+        "new_parameter_values": {},
+    }
+    for q in qubits:
+        old_delay = _finite_float_or_none(
+            getattr(q.parameters, "readout_integration_delay", None)
+        )
+        old_length = _finite_float_or_none(
+            getattr(q.parameters, "readout_integration_length", None)
+        )
+        out["old_parameter_values"][q.uid] = {
+            "readout_integration_delay": old_delay,
+            "readout_integration_length": old_length,
+        }
+
+        detection = flat_window_detection.get(q.uid, {})
+        if not detection.get("success"):
+            continue
+        start_ns = _finite_float_or_none(detection.get("flat_start_ns"))
+        end_ns = _finite_float_or_none(detection.get("flat_end_ns"))
+        if start_ns is None or end_ns is None or end_ns <= start_ns:
+            continue
+        out["new_parameter_values"][q.uid] = {
+            "readout_integration_delay": float(start_ns * 1e-9),
+            "readout_integration_length": float((end_ns - start_ns) * 1e-9),
+        }
+
+    return out
+
+
 @workflow.task
 def compute_diagnostics(
     qubits: QuantumElements,
@@ -473,9 +895,10 @@ def compute_diagnostics(
 
     diagnostics: dict[str, dict] = {}
     for q in qubits:
-        boundaries_ns = _integration_aligned_boundaries_ns(q)
+        boundaries_ns = _readout_aligned_boundaries_ns(q)
+        delay_ns = _readout_integration_delay_ns(q)
         q_diag: dict[str, object] = {
-            "axis_reference": "integration_start",
+            "axis_reference": "readout_start",
             "sample_dt_ns": float(sample_dt_ns),
             "states": {},
         }
@@ -483,7 +906,7 @@ def compute_diagnostics(
         for state in states:
             trace = np.asarray(processed_data_dict[q.uid][state], dtype=complex)
             n_samples = int(trace.size)
-            axis = np.arange(n_samples, dtype=float) * sample_dt_ns
+            axis = delay_ns + np.arange(n_samples, dtype=float) * sample_dt_ns
             time_end_ns = float(axis[-1]) if n_samples > 0 else 0.0
 
             amplitude = np.abs(trace)
@@ -564,9 +987,10 @@ def compute_dsp_diagnostics(
 
     dsp_diag: dict[str, dict] = {}
     for q in qubits:
-        boundaries_ns = _integration_aligned_boundaries_ns(q)
+        boundaries_ns = _readout_aligned_boundaries_ns(q)
+        delay_ns = _readout_integration_delay_ns(q)
         q_diag: dict[str, object] = {
-            "axis_reference": "integration_start",
+            "axis_reference": "readout_start",
             "sample_dt_ns": float(sample_dt_ns),
             "fs_hz": float(fs_hz),
             "states": {},
@@ -575,7 +999,7 @@ def compute_dsp_diagnostics(
         for state in states:
             trace = np.asarray(raw_data_dict[q.uid][state], dtype=complex)
             n_samples = int(trace.size)
-            axis_ns = np.arange(n_samples, dtype=float) * float(sample_dt_ns)
+            axis_ns = delay_ns + np.arange(n_samples, dtype=float) * float(sample_dt_ns)
             amplitude = np.abs(trace)
             amplitude_peak = float(np.max(amplitude)) if n_samples > 0 else 0.0
             mask_abs = phase_mask_relative_threshold * amplitude_peak
@@ -663,7 +1087,7 @@ def compute_dsp_diagnostics(
                         peak_flat = int(np.nanargmax(stft_mag))
                         peak_fi, peak_ti = np.unravel_index(peak_flat, stft_mag.shape)
                         stft_peak_freq_hz = float(stft_freq_hz[peak_fi])
-                        stft_peak_time_ns = float(stft_time_s[peak_ti] * 1e9)
+                        stft_peak_time_ns = float(stft_time_s[peak_ti] * 1e9 + delay_ns)
                     else:
                         stft_peak_freq_hz = None
                         stft_peak_time_ns = None
@@ -741,7 +1165,9 @@ def compute_dsp_diagnostics(
                                 raw_peak_flat, raw_stft_mag.shape
                             )
                             raw_stft_peak_freq_hz = float(raw_stft_freq_hz[raw_peak_fi])
-                            raw_stft_peak_time_ns = float(raw_stft_time_s[raw_peak_ti] * 1e9)
+                            raw_stft_peak_time_ns = float(
+                                raw_stft_time_s[raw_peak_ti] * 1e9 + delay_ns
+                            )
                         raw_stft_time_bins = int(len(raw_stft_time_s))
                         raw_stft_freq_bins = int(len(raw_stft_freq_hz))
                     else:
@@ -789,8 +1215,8 @@ def compute_dsp_diagnostics(
                 "distance_to_int_end_ns": _distance_to_boundary(
                     max_abs_inst_freq_time_ns, boundaries_ns, "int_end"
                 ),
-                "distance_to_ro_end_ns": _distance_to_boundary(
-                    max_abs_inst_freq_time_ns, boundaries_ns, "ro_end"
+                "distance_to_ro_flat_ns": _distance_to_boundary(
+                    max_abs_inst_freq_time_ns, boundaries_ns, "ro_flat"
                 ),
                 "boundaries_ns": dict(boundaries_ns),
             }
@@ -798,6 +1224,190 @@ def compute_dsp_diagnostics(
         dsp_diag[q.uid] = q_diag
 
     return dsp_diag
+
+
+@workflow.task
+def plot_flat_window_debug(
+    qubits: QuantumElements,
+    states: Sequence[str],
+    processed_data_dict: dict[str, dict[str, ArrayLike]],
+    flat_window_detection: dict[str, dict] | None = None,
+    options: BasePlottingOptions | None = None,
+    sample_dt_ns: float = 0.5,
+    phase_mask_relative_threshold: float = 0.08,
+    smoothing_window_samples: int = 9,
+    phase_weight: float = 0.6,
+) -> dict[str, mpl.figure.Figure]:
+    """Plot flat-window edge-feature diagnostics used by the detector."""
+    if sample_dt_ns <= 0:
+        raise ValueError(f"sample_dt_ns must be > 0, got {sample_dt_ns}.")
+
+    opts = BasePlottingOptions() if options is None else options
+    qubits = validate_and_convert_qubits_sweeps(qubits)
+    phase_mask_relative_threshold = max(float(phase_mask_relative_threshold), 0.0)
+    smooth_window = _sanitize_smooth_window(smoothing_window_samples)
+    phase_weight = max(float(phase_weight), 0.0)
+
+    figures: dict[str, mpl.figure.Figure] = {}
+    color_map = {0: "b", 1: "r", 2: "g"}
+    for q in qubits:
+        fig = plt.figure(figsize=(21, 11), constrained_layout=True)
+        grid = fig.add_gridspec(2, 3, hspace=0.22, wspace=0.22)
+        ax_di = fig.add_subplot(grid[0, 0])
+        ax_dq = fig.add_subplot(grid[0, 1], sharex=ax_di)
+        ax_da = fig.add_subplot(grid[0, 2], sharex=ax_di)
+        ax_dp = fig.add_subplot(grid[1, 0], sharex=ax_di)
+        ax_score = fig.add_subplot(grid[1, 1], sharex=ax_di)
+        ax_info = fig.add_subplot(grid[1, 2])
+        ax_info.axis("off")
+
+        fig.suptitle(timestamped_title(f"IQ Flat-Window Debug {q.uid}"), fontsize=14)
+        ax_di.set_title("Smoothed |dI|")
+        ax_di.set_ylabel("Magnitude (a.u./sample)")
+        ax_dq.set_title("Smoothed |dQ|")
+        ax_dq.set_ylabel("Magnitude (a.u./sample)")
+        ax_da.set_title("Smoothed |dA|")
+        ax_da.set_ylabel("Magnitude (a.u./sample)")
+        ax_dp.set_title("Smoothed |dphase|")
+        ax_dp.set_xlabel("Time (ns, readout-start frame)")
+        ax_dp.set_ylabel("Magnitude (rad/sample)")
+        ax_score.set_title("Edge Score (Combined)")
+        ax_score.set_xlabel("Time (ns, readout-start frame)")
+        ax_score.set_ylabel("Robust z-score")
+
+        detection_info = (flat_window_detection or {}).get(q.uid, {})
+        delay_ns = _readout_integration_delay_ns(q)
+
+        state_scores: list[np.ndarray] = []
+        min_n = None
+        for idx, state in enumerate(states):
+            color = color_map.get(idx, f"C{idx}")
+            trace = np.asarray(processed_data_dict[q.uid][state], dtype=complex)
+            feature_components = _edge_feature_components_for_trace(
+                trace=trace,
+                phase_mask_relative_threshold=phase_mask_relative_threshold,
+                smooth_window=smooth_window,
+                phase_weight=phase_weight,
+            )
+            score = feature_components["state_score_z"]
+            n = int(score.size)
+            axis = delay_ns + np.arange(n, dtype=float) * sample_dt_ns
+
+            ax_di.plot(axis, feature_components["dI_abs"], color=color, linewidth=1.0, alpha=0.9, label=state)
+            ax_dq.plot(axis, feature_components["dQ_abs"], color=color, linewidth=1.0, alpha=0.9, label=state)
+            ax_da.plot(axis, feature_components["dA_abs"], color=color, linewidth=1.0, alpha=0.9, label=state)
+            ax_dp.plot(axis, feature_components["dphase_abs"], color=color, linewidth=1.0, alpha=0.9, label=state)
+
+            if min_n is None:
+                min_n = n
+            else:
+                min_n = min(min_n, n)
+            state_scores.append(score)
+
+        if min_n is not None and min_n > 0 and state_scores:
+            stacked = np.vstack([score[:min_n] for score in state_scores])
+            combined_score = np.nanmedian(stacked, axis=0)
+            combined_score_z = _robust_zscore(combined_score)
+            score_axis = delay_ns + np.arange(min_n, dtype=float) * sample_dt_ns
+            ax_score.plot(
+                score_axis,
+                combined_score_z,
+                color="k",
+                linewidth=1.2,
+                alpha=0.95,
+                label="combined score",
+            )
+        else:
+            ax_score.text(
+                0.02,
+                0.92,
+                "insufficient samples for score",
+                transform=ax_score.transAxes,
+                fontsize=9,
+                va="top",
+            )
+
+        flat_start_ns = None
+        flat_end_ns = None
+        if isinstance(detection_info, dict) and detection_info.get("success"):
+            flat_start_ns = _finite_float_or_none(detection_info.get("flat_start_ns"))
+            flat_end_ns = _finite_float_or_none(detection_info.get("flat_end_ns"))
+
+        if flat_start_ns is not None:
+            for axis_obj in (ax_di, ax_dq, ax_da, ax_dp, ax_score):
+                axis_obj.axvline(
+                    flat_start_ns,
+                    color="k",
+                    linestyle=":",
+                    linewidth=1.0,
+                    alpha=0.35,
+                )
+        if flat_end_ns is not None:
+            for axis_obj in (ax_di, ax_dq, ax_da, ax_dp, ax_score):
+                axis_obj.axvline(
+                    flat_end_ns,
+                    color="k",
+                    linestyle="--",
+                    linewidth=1.0,
+                    alpha=0.35,
+                )
+
+        if isinstance(detection_info, dict):
+            if detection_info.get("success"):
+                ax_score.text(
+                    0.01,
+                    0.97,
+                    ": flat_start  |  --: flat_end",
+                    transform=ax_score.transAxes,
+                    va="top",
+                    fontsize=8,
+                    alpha=0.8,
+                )
+            else:
+                reason = detection_info.get("reason")
+                fail_message = (
+                    f"flat-window detection failed: {reason}"
+                    if reason
+                    else "flat-window detection failed"
+                )
+                ax_score.text(
+                    0.01,
+                    0.97,
+                    fail_message,
+                    transform=ax_score.transAxes,
+                    va="top",
+                    fontsize=8,
+                    alpha=0.85,
+                )
+
+        ax_info.text(
+            0.02,
+            0.95,
+            (
+                f"smoothing_window={smooth_window}\n"
+                f"phase_weight={phase_weight:.3f}\n"
+                f"phase_mask_threshold={phase_mask_relative_threshold:.3f}"
+            ),
+            transform=ax_info.transAxes,
+            va="top",
+            fontsize=9,
+        )
+
+        for axis_obj in (ax_di, ax_dq, ax_da, ax_dp, ax_score):
+            axis_obj.grid(True, linestyle=":", alpha=0.35)
+
+        handles, labels = ax_di.get_legend_handles_labels()
+        if handles:
+            fig.legend(handles, labels, loc="upper right", frameon=False, title="State")
+
+        if opts.save_figures:
+            workflow.save_artifact(f"IQ_flat_window_debug_{q.uid}", fig)
+        if opts.close_figures:
+            plt.close(fig)
+
+        figures[q.uid] = fig
+
+    return figures
 
 
 @workflow.task
@@ -809,6 +1419,8 @@ def plot_iq_time_traces(
     sample_dt_ns: float = 0.5,
     phase_mask_relative_threshold: float = 0.08,
     plot_phase_boundaries: bool = True,
+    find_flat_window: bool = False,
+    flat_window_detection: dict[str, dict] | None = None,
 ) -> dict[str, mpl.figure.Figure]:
     """Create 5-panel IQ time-trace plots."""
     opts = BasePlottingOptions() if options is None else options
@@ -830,15 +1442,15 @@ def plot_iq_time_traces(
         fig.suptitle(timestamped_title(f"IQ Time Trace {q.uid}"), fontsize=14)
 
         ax_i.set_title("I(t)")
-        ax_i.set_xlabel("Time (ns)")
+        ax_i.set_xlabel("Time (ns, readout-start frame)")
         ax_i.set_ylabel("Real Signal Component, $V_{\\mathrm{I}}$ (a.u.)")
 
         ax_q.set_title("Q(t)")
-        ax_q.set_xlabel("Time (ns)")
+        ax_q.set_xlabel("Time (ns, readout-start frame)")
         ax_q.set_ylabel("Imaginary Signal Component, $V_{\\mathrm{Q}}$ (a.u.)")
 
         ax_phase.set_title("Phase(t)")
-        ax_phase.set_xlabel("Time (ns)")
+        ax_phase.set_xlabel("Time (ns, readout-start frame)")
         ax_phase.set_ylabel("Phase (rad)")
         ax_phase.text(
             0.01,
@@ -858,42 +1470,62 @@ def plot_iq_time_traces(
         ax_iq_time.set_ylabel("Imaginary Signal Component, $V_{\\mathrm{Q}}$ (a.u.)")
 
         ax_amp.set_title("|IQ|(t)")
-        ax_amp.set_xlabel("Time (ns)")
+        ax_amp.set_xlabel("Time (ns, readout-start frame)")
         ax_amp.set_ylabel("Magnitude, $|IQ|$ (a.u.)")
 
-        if plot_phase_boundaries:
-            boundaries = _integration_aligned_boundaries_ns(q)
-            for key, style in (
-                ("int_start", ":"),
-                ("int_end", "-."),
-                ("ro_end", "--"),
-            ):
-                boundary_ns = boundaries.get(key)
-                if boundary_ns is None:
-                    continue
-                ax_i.axvline(
-                    boundary_ns, color="k", linestyle=style, linewidth=1.0, alpha=0.3
-                )
-                ax_q.axvline(
-                    boundary_ns, color="k", linestyle=style, linewidth=1.0, alpha=0.3
-                )
-                ax_phase.axvline(
-                    boundary_ns, color="k", linestyle=style, linewidth=1.0, alpha=0.3
-                )
-                ax_amp.axvline(
-                    boundary_ns, color="k", linestyle=style, linewidth=1.0, alpha=0.3
-                )
-
+        detection_info = (
+            (flat_window_detection or {}).get(q.uid, {})
+            if find_flat_window
+            else {}
+        )
+        if find_flat_window and plot_phase_boundaries and detection_info.get("success"):
+            flat_start_ns = _finite_float_or_none(detection_info.get("flat_start_ns"))
+            flat_end_ns = _finite_float_or_none(detection_info.get("flat_end_ns"))
+            if flat_start_ns is not None:
+                for axis_obj in (ax_i, ax_q, ax_phase, ax_amp):
+                    axis_obj.axvline(
+                        flat_start_ns,
+                        color="k",
+                        linestyle=":",
+                        linewidth=1.0,
+                        alpha=0.35,
+                    )
+            if flat_end_ns is not None:
+                for axis_obj in (ax_i, ax_q, ax_phase, ax_amp):
+                    axis_obj.axvline(
+                        flat_end_ns,
+                        color="k",
+                        linestyle="--",
+                        linewidth=1.0,
+                        alpha=0.35,
+                    )
             ax_phase.text(
                 0.01,
                 0.90,
-                "t=0: int_start  |  --: ro_end  |  -.: int_end",
+                ": flat_start  |  --: flat_end",
                 transform=ax_phase.transAxes,
                 va="top",
                 fontsize=8,
                 alpha=0.8,
             )
+        elif find_flat_window:
+            reason = detection_info.get("reason") if isinstance(detection_info, dict) else None
+            fail_message = (
+                f"flat-window detection failed: {reason}"
+                if reason
+                else "flat-window detection failed"
+            )
+            ax_phase.text(
+                0.01,
+                0.90,
+                fail_message,
+                transform=ax_phase.transAxes,
+                va="top",
+                fontsize=8,
+                alpha=0.85,
+            )
 
+        delay_ns = _readout_integration_delay_ns(q)
         time_color_mappable = None
         for i, state in enumerate(states):
             color = color_map.get(i, f"C{i}")
@@ -908,7 +1540,7 @@ def plot_iq_time_traces(
             phase_masked = np.array(phase, copy=True)
             phase_masked[amplitude < mask_abs] = np.nan
 
-            axis = np.arange(len(i_trace), dtype=float) * sample_dt_ns
+            axis = delay_ns + np.arange(len(i_trace), dtype=float) * sample_dt_ns
             ax_i.plot(axis, i_trace, "-", color=color, linewidth=1.0, alpha=0.9, label=state)
             ax_i.plot(
                 axis,
@@ -990,7 +1622,11 @@ def plot_iq_time_traces(
         ax_iq_time.grid(True, linestyle=":", alpha=0.25)
 
         if time_color_mappable is not None:
-            fig.colorbar(time_color_mappable, ax=ax_iq_time, label="Time (ns)")
+            fig.colorbar(
+                time_color_mappable,
+                ax=ax_iq_time,
+                label="Time (ns, readout-start frame)",
+            )
 
         handles, labels = ax_i.get_legend_handles_labels()
         if handles:
@@ -1055,6 +1691,7 @@ def plot_iq_dsp(
 
     figures: dict[str, mpl.figure.Figure] = {}
     for q in qubits:
+        delay_ns = _readout_integration_delay_ns(q)
         lo_frequency_hz = getattr(q.parameters, "readout_lo_frequency", None)
         raw_freq_offset_hz = float(lo_frequency_hz) if lo_frequency_hz is not None else 0.0
         analysis_freq_offset_hz = 0.0 if demod_axis_enabled else raw_freq_offset_hz
@@ -1091,7 +1728,7 @@ def plot_iq_dsp(
         ax_stft_raw.set_ylabel(raw_frequency_axis_label)
 
         ax_stft.set_title("STFT Spectrogram (Demodulated Trace)")
-        ax_stft.set_xlabel("Time (ns)")
+        ax_stft.set_xlabel("Time (ns, readout-start frame)")
         ax_stft.set_ylabel(analysis_frequency_axis_label)
 
         stft_freq_mhz_ref = None
@@ -1244,7 +1881,7 @@ def plot_iq_dsp(
 
                     if stft_freq_mhz_ref is None:
                         stft_freq_mhz_ref = (stft_freq_hz + analysis_freq_offset_hz) / 1e6
-                        stft_time_ns_ref = stft_time_s * 1e9
+                        stft_time_ns_ref = stft_time_s * 1e9 + delay_ns
                         stft_mag_db_accum = np.array(stft_mag_db, copy=True)
                         stft_count = 1
                     elif (
@@ -1333,7 +1970,7 @@ def plot_iq_dsp(
                             raw_stft_freq_mhz_ref = (
                                 raw_stft_freq_hz + raw_freq_offset_hz
                             ) / 1e6
-                            raw_stft_time_ns_ref = raw_stft_time_s * 1e9
+                            raw_stft_time_ns_ref = raw_stft_time_s * 1e9 + delay_ns
                             raw_stft_mag_db_accum = np.array(raw_stft_mag_db, copy=True)
                             raw_stft_count = 1
                         elif (

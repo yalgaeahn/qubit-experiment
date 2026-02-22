@@ -17,6 +17,7 @@ from laboneq_applications.experiments.options import BaseExperimentOptions
 from laboneq_applications.tasks.parameter_updating import (
     temporary_qpu,
     temporary_quantum_elements_from_qpu,
+    update_qpu,
 )
 
 if TYPE_CHECKING:
@@ -27,6 +28,9 @@ if TYPE_CHECKING:
     from laboneq.dsl.session import Session
 
     from laboneq_applications.typing import QuantumElements
+
+
+_FIND_FLAT_WINDOW_INTEGRATION_LENGTH_S = 2.0e-6
 
 
 def _validate_states(states: Sequence[str]) -> None:
@@ -63,6 +67,25 @@ class IQTimeTraceExperimentWorkflowOptions:
     do_analysis: bool = workflow.option_field(
         True, description="Whether to run the analysis workflow."
     )
+    update: bool = workflow.option_field(
+        False, description="Whether to update qubit parameters from analysis results."
+    )
+    find_flat_window: bool = workflow.option_field(
+        False,
+        description=(
+            "Force readout_integration_delay=0 and readout_integration_length=2.0e-6 "
+            "during acquisition, then detect flat_start/flat_end from IQ traces."
+        ),
+    )
+
+
+@workflow.task
+def _apply_find_flat_window_capture_policy(qubits: QuantumElements) -> None:
+    """Force capture settings used for flat-window detection."""
+    validated_qubits = validation.validate_and_convert_qubits_sweeps(qubits)
+    for q in validated_qubits:
+        q.parameters.readout_integration_delay = 0.0
+        q.parameters.readout_integration_length = _FIND_FLAT_WINDOW_INTEGRATION_LENGTH_S
 
 
 @workflow.workflow(name="iq_time_trace")
@@ -77,9 +100,17 @@ def experiment_workflow(
 ) -> None:
     """Run IQ time-trace experiment and optional analysis."""
     opts = IQTimeTraceExperimentWorkflowOptions() if options is None else options
+    if opts.find_flat_window and not opts.do_analysis:
+        raise ValueError(
+            "find_flat_window=True requires do_analysis=True because flat-window "
+            "detection is performed in analysis_workflow."
+        )
 
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
     qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)
+    qubits = validation.validate_and_convert_qubits_sweeps(qubits)
+    with workflow.if_(opts.find_flat_window):
+        _apply_find_flat_window_capture_policy(qubits)
     exp = create_experiment(
         qpu=temp_qpu,
         qubits=qubits,
@@ -87,8 +118,17 @@ def experiment_workflow(
     )
     compiled_exp = compile_experiment(session, exp)
     result = run_experiment(session, compiled_exp)
+    analysis_result = None
     with workflow.if_(opts.do_analysis):
-        analysis_workflow(result=result, qubits=qubits, states=states)
+        analysis_result = analysis_workflow(
+            result=result,
+            qubits=qubits,
+            states=states,
+            find_flat_window=opts.find_flat_window,
+        )
+        with workflow.if_(opts.update):
+            with workflow.if_(opts.find_flat_window):
+                update_qpu(qpu, analysis_result.output["new_parameter_values"])
     workflow.return_(result)
 
 
