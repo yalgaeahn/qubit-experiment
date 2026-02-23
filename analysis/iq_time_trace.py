@@ -29,6 +29,9 @@ if TYPE_CHECKING:
     from laboneq_applications.typing import QuantumElements
 
 
+_FLAT_WINDOW_DISTANCE_BAND_RATIO = 0.02
+
+
 @workflow.workflow_options
 class IQTimeTraceAnalysisWorkflowOptions:
     """Options for IQ time-trace analysis workflow."""
@@ -68,7 +71,7 @@ class IQTimeTraceAnalysisWorkflowOptions:
         5, description="Order of low-pass filter used after software demodulation."
     )
     phase_mask_relative_threshold: float = workflow.option_field(
-        0.08,
+        0.15,
         description=(
             "Hide phase samples where |IQ| is below this fraction of the "
             "per-trace peak amplitude."
@@ -98,7 +101,7 @@ class IQTimeTraceAnalysisWorkflowOptions:
         ),
     )
     flat_window_phase_weight: float = workflow.option_field(
-        0.6,
+        0.4,
         description="Relative weight of phase-derivative feature in edge score.",
     )
     flat_window_min_peak_z: float = workflow.option_field(
@@ -688,12 +691,16 @@ def _find_best_edge_pair(
     score_z: np.ndarray,
     expected_length_samples: int,
     tolerance_ratio: float,
-) -> tuple[int | None, int | None, float | None]:
+) -> tuple[int | None, int | None, float | None, int, int]:
+    l0 = max(int(expected_length_samples), 1)
+    distance_band_ratio = _FLAT_WINDOW_DISTANCE_BAND_RATIO
+    min_sep = max(1, int(np.ceil(l0 * (1.0 - distance_band_ratio))))
+    max_sep = max(min_sep, int(np.floor(l0 * (1.0 + distance_band_ratio))))
+
     finite_idx = np.where(np.isfinite(score_z))[0]
     if finite_idx.size < 2:
-        return None, None, None
+        return None, None, None, min_sep, max_sep
 
-    l0 = max(int(expected_length_samples), 1)
     sigma_l = float(max(2, int(round(l0 * max(float(tolerance_ratio), 0.0)))))
     denom = 2.0 * sigma_l * sigma_l
 
@@ -701,7 +708,9 @@ def _find_best_edge_pair(
     best_j = None
     best_score = None
     for i in finite_idx[:-1]:
-        js = finite_idx[finite_idx > i]
+        seps = finite_idx - i
+        valid = (seps >= min_sep) & (seps <= max_sep)
+        js = finite_idx[valid]
         if js.size == 0:
             continue
         delta = js.astype(float) - float(i) - float(l0)
@@ -713,7 +722,7 @@ def _find_best_edge_pair(
             best_j = int(js[local_k])
             best_score = candidate_score
 
-    return best_i, best_j, best_score
+    return best_i, best_j, best_score, min_sep, max_sep
 
 
 @workflow.task
@@ -722,10 +731,10 @@ def detect_flat_window(
     states: Sequence[str],
     processed_data_dict: dict[str, dict[str, ArrayLike]],
     sample_dt_ns: float = 0.5,
-    phase_mask_relative_threshold: float = 0.08,
+    phase_mask_relative_threshold: float = 0.15,
     smoothing_window_samples: int = 9,
     soft_tolerance_ratio: float = 0.10,
-    phase_weight: float = 0.6,
+    phase_weight: float = 0.4,
     min_peak_z: float = 2.0,
 ) -> dict[str, dict]:
     """Detect flat_start/flat_end using soft length-constrained two-edge search."""
@@ -743,6 +752,11 @@ def detect_flat_window(
     for q in qubits:
         expected_flat_ns = _required_flat_length_prior_ns(q)
         expected_samples = max(int(round(expected_flat_ns / float(sample_dt_ns))), 1)
+        band = _FLAT_WINDOW_DISTANCE_BAND_RATIO
+        allowed_min_sep_samples = max(1, int(np.ceil(expected_samples * (1.0 - band))))
+        allowed_max_sep_samples = max(
+            allowed_min_sep_samples, int(np.floor(expected_samples * (1.0 + band)))
+        )
         delay_ns = _readout_integration_delay_ns(q)
 
         state_scores: list[np.ndarray] = []
@@ -771,6 +785,10 @@ def detect_flat_window(
                 "flat_end_ns": None,
                 "flat_length_ns_detected": None,
                 "flat_length_ns_expected": float(expected_flat_ns),
+                "expected_length_samples": int(expected_samples),
+                "allowed_min_sep_samples": int(allowed_min_sep_samples),
+                "allowed_max_sep_samples": int(allowed_max_sep_samples),
+                "detected_sep_samples": None,
                 "pair_score": None,
                 "reason": "insufficient_samples",
             }
@@ -780,7 +798,13 @@ def detect_flat_window(
         combined_score = np.nanmedian(stacked, axis=0)
         combined_score_z = _robust_zscore(combined_score)
 
-        flat_start_idx, flat_end_idx, pair_score = _find_best_edge_pair(
+        (
+            flat_start_idx,
+            flat_end_idx,
+            pair_score,
+            allowed_min_sep_samples,
+            allowed_max_sep_samples,
+        ) = _find_best_edge_pair(
             score_z=combined_score_z,
             expected_length_samples=expected_samples,
             tolerance_ratio=soft_tolerance_ratio,
@@ -795,8 +819,12 @@ def detect_flat_window(
                 "flat_end_ns": None,
                 "flat_length_ns_detected": None,
                 "flat_length_ns_expected": float(expected_flat_ns),
+                "expected_length_samples": int(expected_samples),
+                "allowed_min_sep_samples": int(allowed_min_sep_samples),
+                "allowed_max_sep_samples": int(allowed_max_sep_samples),
+                "detected_sep_samples": None,
                 "pair_score": None,
-                "reason": "no_valid_edge_pair",
+                "reason": "no_candidate_in_distance_band",
             }
             continue
 
@@ -816,6 +844,10 @@ def detect_flat_window(
                 "flat_end_ns": float(delay_ns + flat_end_idx * sample_dt_ns),
                 "flat_length_ns_detected": float((flat_end_idx - flat_start_idx) * sample_dt_ns),
                 "flat_length_ns_expected": float(expected_flat_ns),
+                "expected_length_samples": int(expected_samples),
+                "allowed_min_sep_samples": int(allowed_min_sep_samples),
+                "allowed_max_sep_samples": int(allowed_max_sep_samples),
+                "detected_sep_samples": int(flat_end_idx - flat_start_idx),
                 "pair_score": float(pair_score) if pair_score is not None else None,
                 "reason": (
                     "peak_below_threshold: "
@@ -835,6 +867,10 @@ def detect_flat_window(
             "flat_end_ns": flat_end_ns,
             "flat_length_ns_detected": float(flat_end_ns - flat_start_ns),
             "flat_length_ns_expected": float(expected_flat_ns),
+            "expected_length_samples": int(expected_samples),
+            "allowed_min_sep_samples": int(allowed_min_sep_samples),
+            "allowed_max_sep_samples": int(allowed_max_sep_samples),
+            "detected_sep_samples": int(flat_end_idx - flat_start_idx),
             "pair_score": float(pair_score) if pair_score is not None else None,
             "reason": None,
         }
@@ -887,7 +923,7 @@ def compute_diagnostics(
     states: Sequence[str],
     processed_data_dict: dict[str, dict[str, ArrayLike]],
     sample_dt_ns: float = 0.5,
-    phase_mask_relative_threshold: float = 0.08,
+    phase_mask_relative_threshold: float = 0.15,
 ) -> dict[str, dict]:
     """Compute compact diagnostics for IQ time traces."""
     qubits = validate_and_convert_qubits_sweeps(qubits)
@@ -965,7 +1001,7 @@ def compute_dsp_diagnostics(
     pre_demod_data_dict: dict[str, dict[str, ArrayLike]] | None = None,
     compare_pre_demod: bool = False,
     sample_dt_ns: float = 0.5,
-    phase_mask_relative_threshold: float = 0.08,
+    phase_mask_relative_threshold: float = 0.15,
     welch_nperseg: int = 256,
     welch_noverlap: int = 128,
     stft_nperseg: int = 256,
@@ -1234,9 +1270,9 @@ def plot_flat_window_debug(
     flat_window_detection: dict[str, dict] | None = None,
     options: BasePlottingOptions | None = None,
     sample_dt_ns: float = 0.5,
-    phase_mask_relative_threshold: float = 0.08,
+    phase_mask_relative_threshold: float = 0.15,
     smoothing_window_samples: int = 9,
-    phase_weight: float = 0.6,
+    phase_weight: float = 0.4,
 ) -> dict[str, mpl.figure.Figure]:
     """Plot flat-window edge-feature diagnostics used by the detector."""
     if sample_dt_ns <= 0:
@@ -1353,6 +1389,23 @@ def plot_flat_window_debug(
                 )
 
         if isinstance(detection_info, dict):
+            expected_length_samples = detection_info.get("expected_length_samples")
+            allowed_min_sep = detection_info.get("allowed_min_sep_samples")
+            allowed_max_sep = detection_info.get("allowed_max_sep_samples")
+            detected_sep = detection_info.get("detected_sep_samples")
+            ax_score.text(
+                0.01,
+                0.90,
+                (
+                    f"L0={expected_length_samples}, "
+                    f"allowed_sep=[{allowed_min_sep}, {allowed_max_sep}], "
+                    f"detected_sep={detected_sep}"
+                ),
+                transform=ax_score.transAxes,
+                va="top",
+                fontsize=8,
+                alpha=0.82,
+            )
             if detection_info.get("success"):
                 ax_score.text(
                     0.01,
@@ -1417,7 +1470,7 @@ def plot_iq_time_traces(
     processed_data_dict: dict[str, dict[str, ArrayLike]],
     options: BasePlottingOptions | None = None,
     sample_dt_ns: float = 0.5,
-    phase_mask_relative_threshold: float = 0.08,
+    phase_mask_relative_threshold: float = 0.15,
     plot_phase_boundaries: bool = True,
     find_flat_window: bool = False,
     flat_window_detection: dict[str, dict] | None = None,
@@ -1654,7 +1707,7 @@ def plot_iq_dsp(
     compare_demod_lpf: bool = False,
     options: BasePlottingOptions | None = None,
     sample_dt_ns: float = 0.5,
-    phase_mask_relative_threshold: float = 0.08,
+    phase_mask_relative_threshold: float = 0.15,
     welch_nperseg: int = 256,
     welch_noverlap: int = 128,
     stft_nperseg: int = 256,

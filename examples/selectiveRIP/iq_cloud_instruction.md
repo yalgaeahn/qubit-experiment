@@ -28,7 +28,11 @@
 - `options.update=True`이면 threshold를 qpu 파라미터에 반영
 
 핸들 규칙:
-- `"{qubit_uid}/iq_cloud/{prepared_label}"`
+- 1Q canonical: `dsl.handles.calibration_trace_handle(qubit_uid, state)`
+  - 예: `q0/cal_trace/g`, `q0/cal_trace/e`
+- 2Q canonical: `example_helpers.workflow.handles.calibration_trace_2q_handle(qubit_uid, prepared_label)`
+  - 예: `q0/cal_trace_2q/gg`, `q1/cal_trace_2q/ge`
+- legacy (분석 fallback 전용): `"{qubit_uid}/iq_cloud/{prepared_label}"`
 
 ## 3. Analysis Model
 

@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from example_helpers.workflow.handles import calibration_trace_2q_handle as _cal_trace_2q
+from laboneq.simple import dsl
+
 PREPARED_LABELS_1Q: tuple[str, ...] = ("g", "e")
 PREPARED_LABELS_2Q: tuple[str, ...] = ("gg", "ge", "eg", "ee")
 JOINT_LABELS_2Q: tuple[str, ...] = ("gg", "ge", "eg", "ee")
@@ -25,5 +28,21 @@ def prepared_labels_for_num_qubits(num_qubits: int) -> tuple[str, ...]:
 
 
 def iq_cloud_handle(qubit_uid: str, prepared_label: str) -> str:
-    """Result handle for one qubit and one prepared label."""
+    """Legacy IQ-cloud result handle for one qubit and one prepared label.
+
+    Deprecated: kept for backward compatibility with historical datasets.
+    Canonical handles are:
+    - 1Q: dsl.handles.calibration_trace_handle(qubit_uid, state)
+    - 2Q: calibration_trace_2q_handle(qubit_uid, prepared_label)
+    """
     return f"{qubit_uid}/iq_cloud/{prepared_label}"
+
+
+def iq_cloud_1q_cal_trace_handle(qubit_uid: str, state: str) -> str:
+    """Canonical 1Q IQ-cloud handle."""
+    return dsl.handles.calibration_trace_handle(qubit_uid, state)
+
+
+def iq_cloud_2q_cal_trace_handle(qubit_uid: str, prepared_label: str) -> str:
+    """Canonical 2Q IQ-cloud handle."""
+    return _cal_trace_2q(qubit_uid, prepared_label)

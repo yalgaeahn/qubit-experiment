@@ -9,6 +9,7 @@ from laboneq.dsl.enums import AcquisitionType, AveragingMode
 from laboneq.simple import Experiment, SectionAlignment, dsl
 from laboneq.workflow.tasks import compile_experiment, run_experiment
 
+from example_helpers.workflow.handles import calibration_trace_2q_handle
 from analysis.iq_cloud import (
     analysis_workflow,
     collect_shots,
@@ -16,7 +17,6 @@ from analysis.iq_cloud import (
     fit_decision_models,
 )
 from experiments.iq_cloud_common import (
-    iq_cloud_handle,
     prepared_labels_for_num_qubits,
     validate_supported_num_qubits,
 )
@@ -123,8 +123,9 @@ def create_experiment(
     """Create an IQ-cloud experiment for 1Q single or 2Q multiplexed readout."""
     opts = IQCloudExperimentOptions() if options is None else options
     qubits = validation.validate_and_convert_qubits_sweeps(qubits)
-    validate_supported_num_qubits(len(qubits))
-    prepared_labels = prepared_labels_for_num_qubits(len(qubits))
+    num_qubits = len(qubits)
+    validate_supported_num_qubits(num_qubits)
+    prepared_labels = prepared_labels_for_num_qubits(num_qubits)
 
     qop = qpu.quantum_operations
     max_measure_section_length = qop.measure_section_length(qubits)
@@ -137,54 +138,64 @@ def create_experiment(
         repetition_time=opts.repetition_time,
         reset_oscillator_phase=opts.reset_oscillator_phase,
     ):
-        for prepared_label in prepared_labels:
-            with dsl.section(
-                name=f"iq_cloud_{prepared_label}",
-                alignment=SectionAlignment.LEFT,
-            ):
-                prep_play_after = None
-                if opts.active_reset:
-                    active_reset_sec = qop.active_reset(
-                        qubits,
-                        active_reset_states=opts.active_reset_states,
-                        number_resets=opts.active_reset_repetitions,
-                        measure_section_length=max_measure_section_length,
-                    )
-                    prep_play_after = active_reset_sec.uid
-
-                prep_kwargs = {
-                    "name": f"prep_{prepared_label}",
-                    "alignment": SectionAlignment.LEFT,
-                }
-                if prep_play_after is not None:
-                    prep_kwargs["play_after"] = prep_play_after
-
-                with dsl.section(**prep_kwargs) as prep_sec:
-                    prev_uid = None
-                    for idx, (q, state) in enumerate(zip(qubits, prepared_label)):
-                        sec_kwargs = {
-                            "name": f"prep_{q.uid}_{state}_{prepared_label}_{idx}",
-                            "alignment": SectionAlignment.LEFT,
-                        }
-                        if prev_uid is not None:
-                            sec_kwargs["play_after"] = prev_uid
-                        with dsl.section(**sec_kwargs) as prep_single:
-                            qop.prepare_state(q, state=state)
-                        prev_uid = prep_single.uid
-
+        if num_qubits == 1:
+            qop.calibration_traces.omit_section(
+                qubits=qubits,
+                states=prepared_labels,
+                active_reset=opts.active_reset,
+                active_reset_states=opts.active_reset_states,
+                active_reset_repetitions=opts.active_reset_repetitions,
+                measure_section_length=max_measure_section_length,
+            )
+        else:
+            for prepared_label in prepared_labels:
                 with dsl.section(
-                    name=f"measure_{prepared_label}",
+                    name=f"iq_cloud_{prepared_label}",
                     alignment=SectionAlignment.LEFT,
-                    play_after=prep_sec.uid,
                 ):
-                    for q in qubits:
-                        sec = qop.measure(
-                            q,
-                            handle=iq_cloud_handle(q.uid, prepared_label),
+                    prep_play_after = None
+                    if opts.active_reset:
+                        active_reset_sec = qop.active_reset(
+                            qubits,
+                            active_reset_states=opts.active_reset_states,
+                            number_resets=opts.active_reset_repetitions,
+                            measure_section_length=max_measure_section_length,
                         )
-                        sec.length = max_measure_section_length
-                    for q in qubits:
-                        qop.passive_reset(q)
+                        prep_play_after = active_reset_sec.uid
+
+                    prep_kwargs = {
+                        "name": f"prep_{prepared_label}",
+                        "alignment": SectionAlignment.LEFT,
+                    }
+                    if prep_play_after is not None:
+                        prep_kwargs["play_after"] = prep_play_after
+
+                    with dsl.section(**prep_kwargs) as prep_sec:
+                        prev_uid = None
+                        for idx, (q, state) in enumerate(zip(qubits, prepared_label)):
+                            sec_kwargs = {
+                                "name": f"prep_{q.uid}_{state}_{prepared_label}_{idx}",
+                                "alignment": SectionAlignment.LEFT,
+                            }
+                            if prev_uid is not None:
+                                sec_kwargs["play_after"] = prev_uid
+                            with dsl.section(**sec_kwargs) as prep_single:
+                                qop.prepare_state(q, state=state)
+                            prev_uid = prep_single.uid
+
+                    with dsl.section(
+                        name=f"measure_{prepared_label}",
+                        alignment=SectionAlignment.LEFT,
+                        play_after=prep_sec.uid,
+                    ):
+                        for q in qubits:
+                            sec = qop.measure(
+                                q,
+                                handle=calibration_trace_2q_handle(q.uid, prepared_label),
+                            )
+                            sec.length = max_measure_section_length
+                        for q in qubits:
+                            qop.passive_reset(q)
 
 
 @workflow.task

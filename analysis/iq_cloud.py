@@ -7,10 +7,13 @@ from typing import TYPE_CHECKING
 import matplotlib.pyplot as plt
 import numpy as np
 from laboneq import workflow
+from laboneq.simple import dsl
 from matplotlib.patches import Ellipse
 
+from example_helpers.workflow.handles import calibration_trace_2q_handle
 from experiments.iq_cloud_common import (
     JOINT_LABELS_2Q,
+    iq_cloud_handle,
     prepared_labels_for_num_qubits,
     validate_supported_num_qubits,
 )
@@ -160,6 +163,34 @@ def _unwrap_result_like(result_like):
             continue
         return current
     return current
+
+
+def _read_iq_cloud_shots_with_fallback(
+    *,
+    result,
+    qubit_uid: str,
+    prepared_label: str,
+    num_qubits: int,
+) -> np.ndarray:
+    handles_to_try: list[str] = []
+    if num_qubits == 1:
+        handles_to_try.append(dsl.handles.calibration_trace_handle(qubit_uid, prepared_label))
+    else:
+        handles_to_try.append(calibration_trace_2q_handle(qubit_uid, prepared_label))
+    # Backward-compatible fallback for historical iq_cloud datasets.
+    handles_to_try.append(iq_cloud_handle(qubit_uid, prepared_label))
+
+    for handle in handles_to_try:
+        try:
+            return np.asarray(result[handle].data).reshape(-1)
+        except KeyError:
+            continue
+
+    raise KeyError(
+        "No IQ-cloud acquisition handle found for "
+        f"qubit={qubit_uid!r}, label={prepared_label!r}. "
+        f"Tried handles={handles_to_try!r}."
+    )
 
 
 def _label_to_bits(prepared_label: str) -> list[int]:
@@ -489,18 +520,22 @@ def collect_shots(
     result = _unwrap_result_like(result)
     validate_result(result)
     qubits = validate_and_convert_qubits_sweeps(qubits)
-    validate_supported_num_qubits(len(qubits))
-    prepared_labels = prepared_labels_for_num_qubits(len(qubits))
+    num_qubits = len(qubits)
+    validate_supported_num_qubits(num_qubits)
+    prepared_labels = prepared_labels_for_num_qubits(num_qubits)
 
     payload = {
         "prepared_labels": list(prepared_labels),
         "shots_per_qubit": {q.uid: {} for q in qubits},
     }
-    from experiments.iq_cloud_common import iq_cloud_handle
-
     for label in prepared_labels:
         for q in qubits:
-            data = np.asarray(result[iq_cloud_handle(q.uid, label)].data).reshape(-1)
+            data = _read_iq_cloud_shots_with_fallback(
+                result=result,
+                qubit_uid=q.uid,
+                prepared_label=label,
+                num_qubits=num_qubits,
+            )
             payload["shots_per_qubit"][q.uid][label] = data.tolist()
     return payload
 

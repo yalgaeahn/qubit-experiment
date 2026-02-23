@@ -16,6 +16,8 @@ from laboneq.simple import SectionAlignment, dsl
 
 from laboneq_applications.typing import QuantumElements
 
+from example_helpers.workflow.handles import calibration_trace_2q_handle
+
 from .qubit_types import FixedTransmonQubit
 
 import custom_pulse_library
@@ -1177,6 +1179,98 @@ class FixedTransmonOperations(dsl.QuantumOperations):
                             q, dsl.handles.calibration_trace_handle(q.uid, state)
                         )
                         # Fix the length of the measure section
+                        if measure_section_length is not None:
+                            sec.length = measure_section_length
+                        self.passive_reset(q)
+
+    @dsl.quantum_operation(broadcast=False)
+    def calibration_traces_2q(
+        self,
+        qubits: QuantumElements,
+        prepared_labels: Sequence[str] = ("gg", "ge", "eg", "ee"),
+        active_reset: bool = False,  # noqa: FBT001, FBT002
+        active_reset_states: str | tuple = "ge",
+        active_reset_repetitions: int = 1,
+        feedback_processing_delay: float = 0.0,
+        measure_section_length: float | None = None,
+    ) -> None:
+        """Add 2Q multiplexed calibration-trace measurements.
+
+        Arguments:
+            qubits:
+                Exactly two qubits measured in multiplexed mode.
+            prepared_labels:
+                Prepared-state labels to iterate. Supported labels are
+                ("gg", "ge", "eg", "ee").
+            active_reset:
+                Whether to run active reset before each prepared label.
+            active_reset_states:
+                The qubit states to reset. Can be any combination of ("g", "e", "f").
+            active_reset_repetitions:
+                Number of active reset rounds to apply.
+            feedback_processing_delay:
+                Feedback processing time.
+            measure_section_length:
+                Optional fixed measure section length shared by both qubits.
+        """
+        if isinstance(qubits, FixedTransmonQubit):
+            qubits = [qubits]
+        qubits = list(qubits)
+        if len(qubits) != 2:
+            raise ValueError(
+                "calibration_traces_2q supports exactly 2 qubits. "
+                f"Received {len(qubits)} qubits."
+            )
+
+        labels = (
+            (prepared_labels,)
+            if isinstance(prepared_labels, str)
+            else tuple(prepared_labels)
+        )
+        allowed_labels = {"gg", "ge", "eg", "ee"}
+        invalid_labels = sorted(set(labels) - allowed_labels)
+        if invalid_labels:
+            raise ValueError(
+                "Invalid prepared_labels for calibration_traces_2q: "
+                f"{invalid_labels}. Supported labels are {sorted(allowed_labels)}."
+            )
+
+        for prepared_label in labels:
+            if active_reset:
+                active_reset_handles = [
+                    dsl.handles.active_reset_calibration_trace_handle(
+                        q.uid, prepared_label
+                    )
+                    for q in qubits
+                ]
+                self.active_reset(
+                    qubits,
+                    active_reset_states=active_reset_states,
+                    number_resets=active_reset_repetitions,
+                    feedback_processing_delay=feedback_processing_delay,
+                    handles=active_reset_handles,
+                    measure_section_length=measure_section_length,
+                )
+
+            with dsl.section(
+                name=f"cal2q_{prepared_label}",
+                alignment=SectionAlignment.RIGHT,
+            ):
+                with dsl.section(
+                    name=f"cal2q_prep_{prepared_label}",
+                    alignment=SectionAlignment.RIGHT,
+                ):
+                    for q, state in zip(qubits, prepared_label):
+                        self.prepare_state.omit_section(q, state=state)
+                with dsl.section(
+                    name=f"cal2q_measure_{prepared_label}",
+                    alignment=SectionAlignment.LEFT,
+                ):
+                    for q in qubits:
+                        sec = self.measure(
+                            q,
+                            calibration_trace_2q_handle(q.uid, prepared_label),
+                        )
                         if measure_section_length is not None:
                             sec.length = measure_section_length
                         self.passive_reset(q)
