@@ -12,6 +12,7 @@ from experiments.two_qubit_tomography_common import (
     OUTCOME_LABELS,
     READOUT_CALIBRATION_STATES,
     TOMOGRAPHY_SETTINGS,
+    canonical_two_qubit_state_label,
     readout_calibration_handle,
     tomography_handle,
 )
@@ -477,14 +478,24 @@ def _rotation_y(theta: float) -> np.ndarray:
     return np.array([[c, -s], [s, c]], dtype=complex)
 
 
+_SINGLE_QUBIT_PREROTATION_UNITARIES = {
+    "X": _rotation_y(-np.pi / 2),
+    "Y": _rotation_x(np.pi / 2),
+    "Z": np.eye(2, dtype=complex),
+}
+
+
 def _single_qubit_prerotation_unitary(axis: str) -> np.ndarray:
-    if axis == "X":
-        return _rotation_y(-np.pi / 2)
-    if axis == "Y":
-        return _rotation_x(np.pi / 2)
-    if axis == "Z":
-        return np.eye(2, dtype=complex)
-    raise ValueError(f"Unsupported axis: {axis!r}.")
+    """Return prerotation unitaries consistent with experiment qop mapping.
+
+    Keep this mapping aligned with
+    `experiments.two_qubit_state_tomography:qop.apply_tomography_prerotation`:
+    X -> R_y(-pi/2), Y -> R_x(+pi/2), Z -> identity.
+    """
+    try:
+        return _SINGLE_QUBIT_PREROTATION_UNITARIES[axis]
+    except KeyError as exc:
+        raise ValueError(f"Unsupported axis: {axis!r}.") from exc
 
 
 def _computational_projectors_2q() -> list[np.ndarray]:
@@ -589,21 +600,24 @@ def _target_to_density_matrix(target_state) -> np.ndarray | None:
 
     if isinstance(target_state, str):
         key = target_state.strip().lower()
-        basis_map = {
-            "00": np.array([1, 0, 0, 0], dtype=complex),
-            "01": np.array([0, 1, 0, 0], dtype=complex),
-            "10": np.array([0, 0, 1, 0], dtype=complex),
-            "11": np.array([0, 0, 0, 1], dtype=complex),
-            "gg": np.array([1, 0, 0, 0], dtype=complex),
-            "ge": np.array([0, 1, 0, 0], dtype=complex),
-            "eg": np.array([0, 0, 1, 0], dtype=complex),
-            "ee": np.array([0, 0, 0, 1], dtype=complex),
+        plus = np.array([1, 1], dtype=complex) / np.sqrt(2)
+        minus = np.array([1, -1], dtype=complex) / np.sqrt(2)
+        single_qubit_statevectors = {
+            "0": np.array([1, 0], dtype=complex),
+            "1": np.array([0, 1], dtype=complex),
+            "+": plus,
+            "-": minus,
         }
-        if key in basis_map:
-            psi = basis_map[key]
-            return np.outer(psi, psi.conj())
-        if key in {"plus_plus", "++"}:
-            psi = np.array([1, 1, 1, 1], dtype=complex) / 2
+
+        try:
+            canonical = canonical_two_qubit_state_label(key)
+        except ValueError:
+            canonical = None
+        if canonical is not None:
+            psi = np.kron(
+                single_qubit_statevectors[canonical[0]],
+                single_qubit_statevectors[canonical[1]],
+            )
             return np.outer(psi, psi.conj())
         if key in {"bell_phi_plus", "phi_plus", "phiplus"}:
             psi = np.array([1, 0, 0, 1], dtype=complex) / np.sqrt(2)

@@ -427,6 +427,52 @@ class FixedTransmonOperations(dsl.QuantumOperations):
             raise ValueError(f"Only states g, e and f can be prepared, not {state!r}")
 
     @dsl.quantum_operation
+    def prepare_tomography_state(
+        self,
+        q: FixedTransmonQubit,
+        token: str,
+    ) -> None:
+        """Prepare a qubit in one of the tomography tokens: g, e, +, -."""
+        if token == "g":
+            self.prepare_state.omit_section(q, state="g")
+            return
+        if token == "e":
+            self.prepare_state.omit_section(q, state="e")
+            return
+        if token == "+":
+            self.prepare_state.omit_section(q, state="g")
+            self.y90.omit_section(q)
+            return
+        if token == "-":
+            self.prepare_state.omit_section(q, state="g")
+            self.ry.omit_section(q, angle=-self._PI_BY_2)
+            return
+        raise ValueError(
+            "Unsupported single-qubit tomography token. "
+            f"Expected one of ('g', 'e', '+', '-'), got {token!r}."
+        )
+
+    @dsl.quantum_operation
+    def apply_tomography_prerotation(
+        self,
+        q: FixedTransmonQubit,
+        axis: str,
+    ) -> None:
+        """Apply tomography prerotation before Z-basis measurement."""
+        if axis == "X":
+            self.ry.omit_section(q, angle=-self._PI_BY_2)
+            return
+        if axis == "Y":
+            self.rx.omit_section(q, angle=self._PI_BY_2)
+            return
+        if axis == "Z":
+            return
+        raise ValueError(
+            "Unsupported tomography axis. "
+            f"Expected one of ('X', 'Y', 'Z'), got {axis!r}."
+        )
+
+    @dsl.quantum_operation
     def passive_reset(
         self,
         q: FixedTransmonQubit,

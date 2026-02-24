@@ -44,6 +44,7 @@ class BusCavityParameters(QuantumParameters):
     # RIP parameters
     rip_amplitude: float = 1.0
     rip_length: float = 1e-6
+    rip_phase: float = 1.5707963267948966
     rip_pulse: dict = attrs.field(
         factory=lambda: {"function": "NestedCosine"}
     )

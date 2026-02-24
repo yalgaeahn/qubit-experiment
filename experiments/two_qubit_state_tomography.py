@@ -20,6 +20,8 @@ from experiments.two_qubit_readout_calibration import (
 )
 from experiments.two_qubit_tomography_common import (
     TOMOGRAPHY_SETTINGS,
+    canonical_two_qubit_state_label,
+    state_token_for_section_name,
     tomography_handle,
 )
 from laboneq_applications.core import validation
@@ -104,7 +106,8 @@ class TwoQStateTomographyWorkflowOptions:
         "++",
         description=(
             "Initial 2-qubit product state for tomography experiment. "
-            "Supported labels: '++', '00', '01', '10', '11', 'gg', 'ge', 'eg', 'ee'."
+            "Supported labels: '++', '+-', '-+', '--', "
+            "'00', '01', '10', '11', 'gg', 'ge', 'eg', 'ee'."
         ),
     )
     enforce_target_match: bool = workflow.option_field(
@@ -148,17 +151,20 @@ def experiment_workflow(
     ctrl: QuantumElements,
     targ: QuantumElements,
     bus: QuantumElements,
-    bus_frequency: float,
-    rip_amplitude: float,
-    rip_length: float,
-    rip_phase: float = np.pi / 2,
     readout_calibration_result=None,
     target_state=None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,
     options: TwoQStateTomographyWorkflowOptions | None = None,
 ) -> None:
-    """Run 2Q tomography with RIP preparation and optional readout calibration."""
+    """Run 2Q tomography with optional RIP preparation.
+
+    Args:
+        bus:
+            Either a single bus element or a list/tuple of bus elements.
+            When multiple buses are provided, RIP drives are played simultaneously
+            inside the same RIP section.
+    """
     options = (
         TwoQStateTomographyWorkflowOptions() if options is None else options
     )
@@ -195,10 +201,6 @@ def experiment_workflow(
         ctrl,
         targ,
         bus,
-        bus_frequency=bus_frequency,
-        rip_amplitude=rip_amplitude,
-        rip_length=rip_length,
-        rip_phase=rip_phase,
         use_rip=resolved_config["used_rip"],
         initial_state=resolved_config["initial_state"],
     )
@@ -245,10 +247,6 @@ def experiment_workflow(
                     ctrl,
                     targ,
                     bus,
-                    bus_frequency=bus_frequency,
-                    rip_amplitude=rip_amplitude,
-                    rip_length=rip_length,
-                    rip_phase=rip_phase,
                     use_rip=suite_resolved_config["used_rip"],
                     initial_state=suite_resolved_config["initial_state"],
                 )
@@ -564,26 +562,14 @@ def extract_main_run_optimization_convergence(
 
 def _canonical_initial_state_label(state: str) -> str:
     """Normalize 2Q product-state label."""
-    if not isinstance(state, str):
-        raise ValueError(f"initial_state must be a string, got {type(state)!r}.")
-    s = state.strip().lower().replace(" ", "")
-    aliases = {
-        "++": "++",
-        "00": "00",
-        "01": "01",
-        "10": "10",
-        "11": "11",
-        "gg": "00",
-        "ge": "01",
-        "eg": "10",
-        "ee": "11",
-    }
-    if s in aliases:
-        return aliases[s]
-    raise ValueError(
-        "Unsupported initial_state. Use one of "
-        "'++', '00', '01', '10', '11', 'gg', 'ge', 'eg', 'ee'."
-    )
+    try:
+        return canonical_two_qubit_state_label(state)
+    except ValueError as exc:
+        raise ValueError(
+            "Unsupported initial_state. Use one of "
+            "'++', '+-', '-+', '--', "
+            "'00', '01', '10', '11', 'gg', 'ge', 'eg', 'ee'."
+        ) from exc
 
 
 def _canonical_target_state_label(target_state) -> str:
@@ -591,27 +577,18 @@ def _canonical_target_state_label(target_state) -> str:
     if not isinstance(target_state, str):
         return str(target_state)
     s = target_state.strip().lower().replace(" ", "")
-    aliases = {
-        "++": "++",
-        "plus_plus": "++",
-        "00": "00",
-        "01": "01",
-        "10": "10",
-        "11": "11",
-        "gg": "00",
-        "ge": "01",
-        "eg": "10",
-        "ee": "11",
-    }
-    return aliases.get(s, s)
+    try:
+        return canonical_two_qubit_state_label(s)
+    except ValueError:
+        return s
 
 
 def _single_qubit_state_token(label: str, *, qubit_role: str) -> str:
     """Extract and map a single-qubit token from canonical 2Q label."""
     idx = 0 if qubit_role == "ctrl" else 1
     token = label[idx]
-    if token == "+":
-        return "+"
+    if token in {"+", "-"}:
+        return token
     if token == "0":
         return "g"
     if token == "1":
@@ -619,36 +596,67 @@ def _single_qubit_state_token(label: str, *, qubit_role: str) -> str:
     raise ValueError(f"Unsupported token {token!r} in initial_state {label!r}.")
 
 
-def _prepare_single_qubit_state(qop, qubit, token: str) -> None:
-    """Prepare one qubit in g/e/+ state."""
-    if token == "g":
-        qop.prepare_state(qubit, state="g")
-        return
-    if token == "e":
-        qop.prepare_state(qubit, state="e")
-        return
-    if token == "+":
-        qop.prepare_state(qubit, state="g")
-        qop.y90(qubit)
-        return
-    raise ValueError(f"Unsupported single-qubit initial-state token: {token!r}.")
-
-
 def _state_token_for_section_name(token: str) -> str:
     """Map state tokens to section-name friendly labels."""
-    return {"g": "g", "e": "e", "+": "plus"}[token]
+    return state_token_for_section_name(token)
 
 
-def _apply_measurement_prerotation(qop, qubit, axis: str):
-    """Apply pre-rotation so final Z-basis measurement corresponds to axis."""
-    if axis == "X":
-        return qop.ry(qubit, angle=-np.pi / 2)
-    elif axis == "Y":
-        return qop.rx(qubit, angle=np.pi / 2)
-    elif axis == "Z":
-        return None
-    else:
-        raise ValueError(f"Unsupported tomography axis: {axis!r}.")
+def _validate_tomography_qop_contract(qop) -> None:
+    """Ensure required tomography qop methods exist on the current operation set."""
+    required_methods = (
+        "prepare_tomography_state",
+        "apply_tomography_prerotation",
+    )
+    missing = [
+        name for name in required_methods if not callable(getattr(qop, name, None))
+    ]
+    if missing:
+        missing_display = ", ".join(missing)
+        raise TypeError(
+            "The current quantum_operations class does not define required "
+            "tomography methods for two_qubit_state_tomography. "
+            f"class={type(qop).__name__!r}, missing=[{missing_display}]."
+        )
+
+
+def _normalize_bus_elements(bus: QuantumElements) -> list:
+    """Normalize bus input to a non-empty list of unique bus elements."""
+    bus_list = list(bus) if isinstance(bus, (list, tuple)) else [bus]
+    if len(bus_list) == 0:
+        raise ValueError("bus cannot be an empty list.")
+
+    normalized = []
+    seen_uids: set[str] = set()
+    for item in bus_list:
+        bus_elem = validation.validate_and_convert_single_qubit_sweeps(item)
+        uid = getattr(bus_elem, "uid", None)
+        if not isinstance(uid, str):
+            raise TypeError(f"Invalid bus element type: {type(bus_elem)!r}.")
+        if uid in seen_uids:
+            raise ValueError(f"Duplicate bus uid in input: {uid!r}.")
+        seen_uids.add(uid)
+        normalized.append(bus_elem)
+    return normalized
+
+
+def _resolve_bus_rf_frequency(bus_elem) -> float:
+    """Resolve bus RF frequency from bus parameters."""
+    resonance = getattr(bus_elem.parameters, "resonance_frequency_bus", None)
+    if resonance is None:
+        raise ValueError(
+            f"Bus {bus_elem.uid!r} requires parameters.resonance_frequency_bus "
+            "when use_rip=True."
+        )
+    detuning = getattr(bus_elem.parameters, "rip_detuning", None) or 0.0
+    return float(resonance + detuning)
+
+
+def _resolve_bus_rip_phase(bus_elem) -> float:
+    """Resolve RIP phase from bus parameters with a pi/2 fallback."""
+    phase = getattr(bus_elem.parameters, "rip_phase", None)
+    if phase is None:
+        return float(np.pi / 2)
+    return float(phase)
 
 
 @workflow.task
@@ -658,15 +666,16 @@ def create_experiment(
     ctrl: QuantumElements,
     targ: QuantumElements,
     bus: QuantumElements,
-    bus_frequency: float,
-    rip_amplitude: float,
-    rip_length: float,
-    rip_phase: float = np.pi / 2,
     use_rip: bool = True,
     initial_state: str = "++",
     options: TwoQStateTomographyExperimentOptions | None = None,
 ) -> Experiment:
-    """Create 2Q tomography experiment with RIP state preparation."""
+    """Create 2Q tomography experiment with optional RIP state preparation.
+
+    RIP parameters are resolved per bus from element parameters:
+    `resonance_frequency_bus + rip_detuning`, `rip_amplitude`, `rip_length`,
+    and `rip_phase`.
+    """
     opts = TwoQStateTomographyExperimentOptions() if options is None else options
     if AcquisitionType(opts.acquisition_type) != AcquisitionType.INTEGRATION:
         raise ValueError(
@@ -678,7 +687,7 @@ def create_experiment(
         )
     ctrl = validation.validate_and_convert_single_qubit_sweeps(ctrl)
     targ = validation.validate_and_convert_single_qubit_sweeps(targ)
-    bus = validation.validate_and_convert_single_qubit_sweeps(bus)
+    buses = _normalize_bus_elements(bus)
     canonical_initial_state = _canonical_initial_state_label(initial_state)
     ctrl_token = _single_qubit_state_token(canonical_initial_state, qubit_role="ctrl")
     targ_token = _single_qubit_state_token(canonical_initial_state, qubit_role="targ")
@@ -686,6 +695,7 @@ def create_experiment(
     targ_token_name = _state_token_for_section_name(targ_token)
 
     qop = qpu.quantum_operations
+    _validate_tomography_qop_contract(qop)
     max_measure_section_length = qop.measure_section_length([ctrl, targ])
 
     with dsl.acquire_loop_rt(
@@ -696,8 +706,13 @@ def create_experiment(
         repetition_time=opts.repetition_time,
         reset_oscillator_phase=opts.reset_oscillator_phase,
     ):
-        # set_bus_frequency can only be called once per signal in one experiment
-        qop.set_bus_frequency(bus, frequency=bus_frequency)
+        if use_rip:
+            # set_bus_frequency can only be called once per signal in one experiment
+            for bus_elem in buses:
+                qop.set_bus_frequency(
+                    bus_elem,
+                    frequency=_resolve_bus_rf_frequency(bus_elem),
+                )
 
         for setting_label, (ctrl_axis, targ_axis) in TOMOGRAPHY_SETTINGS:
             with dsl.section(
@@ -728,14 +743,14 @@ def create_experiment(
                         name=f"prep_ctrl_{ctrl_token_name}_{setting_label}",
                         alignment=SectionAlignment.LEFT,
                     ) as prep_ctrl_g:
-                        _prepare_single_qubit_state(qop, ctrl, ctrl_token)
+                        qop.prepare_tomography_state(ctrl, ctrl_token)
 
                     with dsl.section(
                         name=f"prep_targ_{targ_token_name}_{setting_label}",
                         alignment=SectionAlignment.LEFT,
                         play_after=prep_ctrl_g.uid,
                     ):
-                        _prepare_single_qubit_state(qop, targ, targ_token)
+                        qop.prepare_tomography_state(targ, targ_token)
 
                 basis_play_after = prep_sec.uid
                 if use_rip:
@@ -744,12 +759,11 @@ def create_experiment(
                         alignment=SectionAlignment.LEFT,
                         play_after=prep_sec.uid,
                     ) as rip_sec:
-                        qop.rip(
-                            bus,
-                            amplitude=rip_amplitude,
-                            phase=rip_phase,
-                            length=rip_length,
-                        )
+                        for bus_elem in buses:
+                            qop.rip(
+                                bus_elem,
+                                phase=_resolve_bus_rip_phase(bus_elem),
+                            )
                     basis_play_after = rip_sec.uid
 
                 with dsl.section(
@@ -761,14 +775,14 @@ def create_experiment(
                         name=f"basis_ctrl_{setting_label}",
                         alignment=SectionAlignment.LEFT,
                     ) as basis_ctrl:
-                        _apply_measurement_prerotation(qop, ctrl, ctrl_axis)
+                        qop.apply_tomography_prerotation(ctrl, ctrl_axis)
 
                     with dsl.section(
                         name=f"basis_targ_{setting_label}",
                         alignment=SectionAlignment.LEFT,
                         play_after=basis_ctrl.uid,
                     ):
-                        _apply_measurement_prerotation(qop, targ, targ_axis)
+                        qop.apply_tomography_prerotation(targ, targ_axis)
 
                 with dsl.section(
                     name=f"measure_{setting_label}",
