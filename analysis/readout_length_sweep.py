@@ -45,13 +45,6 @@ class ReadoutLengthSweepAnalysisOptions:
         5e-4,
         description="Tolerance from max fidelity for tie candidates.",
     )
-    fidelity_floor: float = workflow.option_field(
-        0.95,
-        description=(
-            "Minimum assignment fidelity floor used to select best readout length. "
-            "The smallest length with fidelity >= fidelity_floor is selected."
-        ),
-    )
     prefer_shorter_within_tolerance: bool = workflow.option_field(
         True,
         description="Prefer shortest readout length among near-optimal points.",
@@ -94,7 +87,6 @@ def analysis_workflow(
         dropped_reasons=dropped_reasons,
         point_metrics=point_metrics,
         ridge_target_condition=options.ridge_target_condition,
-        fidelity_floor=options.fidelity_floor,
         fidelity_tolerance=options.fidelity_tolerance,
         prefer_shorter_within_tolerance=options.prefer_shorter_within_tolerance,
         bootstrap_samples=options.bootstrap_samples,
@@ -262,7 +254,6 @@ def calculate_metrics(
     dropped_reasons: Sequence[str] | None = None,
     point_metrics: Sequence[dict] | None = None,
     ridge_target_condition: float = 1e6,
-    fidelity_floor: float = 0.95,
     fidelity_tolerance: float = 5e-4,
     prefer_shorter_within_tolerance: bool = True,
     bootstrap_samples: int = 400,
@@ -419,43 +410,14 @@ def calculate_metrics(
             snr_ci_low[i] = float(ci["snr_ci_low"])
             snr_ci_high[i] = float(ci["snr_ci_high"])
 
-    floor = float(fidelity_floor)
-    if not np.isfinite(floor):
-        raise ValueError(f"fidelity_floor must be finite, got {fidelity_floor!r}.")
-    if floor < 0.0 or floor > 1.0:
-        raise ValueError(
-            f"fidelity_floor must be within [0, 1], got {fidelity_floor!r}."
-        )
-
-    floor_mask = np.isfinite(fidelity) & (fidelity >= floor)
-    if np.any(floor_mask):
-        candidate_idx = np.where(floor_mask)[0]
-        candidate_lengths = length_points[candidate_idx]
-        min_length = float(np.min(candidate_lengths))
-        min_len_idx = candidate_idx[np.isclose(candidate_lengths, min_length)]
-        if min_len_idx.size > 1:
-            # Tie-break at same minimum length by fidelity, then SNR.
-            local_fid = fidelity[min_len_idx]
-            best_local = int(np.nanargmax(local_fid))
-            tied = min_len_idx[np.isclose(local_fid, local_fid[best_local])]
-            if tied.size > 1:
-                local_snr = snr[tied]
-                best_local_snr = int(np.nanargmax(local_snr))
-                best_idx = int(tied[best_local_snr])
-            else:
-                best_idx = int(tied[0])
-        else:
-            best_idx = int(min_len_idx[0])
-        quality_flag = "fidelity_floor_met"
-    else:
-        best = select_best_index(
-            assignment_fidelity=fidelity,
-            delta_mu_over_sigma=snr,
-            fidelity_tolerance=float(fidelity_tolerance),
-            prefer_smallest=bool(prefer_shorter_within_tolerance),
-        )
-        best_idx = int(best["index"])
-        quality_flag = f"fidelity_floor_unmet|{best['quality_flag']}"
+    best = select_best_index(
+        assignment_fidelity=fidelity,
+        delta_mu_over_sigma=snr,
+        fidelity_tolerance=float(fidelity_tolerance),
+        prefer_smallest=bool(prefer_shorter_within_tolerance),
+    )
+    best_idx = int(best["index"])
+    quality_flag = str(best["quality_flag"])
 
     best_length = float(length_points[best_idx])
     best_delay = float(integration_delay[best_idx])

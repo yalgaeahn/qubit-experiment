@@ -171,14 +171,21 @@ def extract_qubit_parameters(
 
     for q in qubits:
         # Store the old pi and pi-half pulse amplitude values
-        old_drive_length = (
-            q.parameters.ef_drive_length
-            if "f" in opts.transition
-            else q.parameters.ge_drive_length
-        )
-        qubit_parameters["old_parameter_values"][q.uid] = {
-            f"{opts.transition}_drive_length": old_drive_length,
-        }
+        if "f" in opts.transition:
+            old_drive_length = q.parameters.ef_drive_length
+            qubit_parameters["old_parameter_values"][q.uid] = {
+                "ef_drive_length": old_drive_length,
+            }
+        else:
+            old_ge_drive_length_pi = (
+                q.parameters.ge_drive_length_pi
+                if q.parameters.ge_drive_length_pi is not None
+                else q.parameters.ge_drive_length
+            )
+            qubit_parameters["old_parameter_values"][q.uid] = {
+                "ge_drive_length_pi": old_ge_drive_length_pi,
+                "ge_drive_length": q.parameters.ge_drive_length,
+            }
 
         if opts.do_fitting and q.uid in fit_results:
             # Extract and store the new pi and pi-half pulse amplitude values
@@ -212,9 +219,16 @@ def extract_qubit_parameters(
                 comment(f"Could not extract pi- and pi/2-pulse amplitudes for {q.uid}.")
                 continue
 
-            qubit_parameters["new_parameter_values"][q.uid] = {
-                f"{opts.transition}_drive_length": pi_drive_length,
-            }
+            if "f" in opts.transition:
+                qubit_parameters["new_parameter_values"][q.uid] = {
+                    "ef_drive_length": pi_drive_length,
+                }
+            else:
+                qubit_parameters["new_parameter_values"][q.uid] = {
+                    "ge_drive_length_pi": pi_drive_length,
+                    # Compatibility update for legacy code/data paths.
+                    "ge_drive_length": pi_drive_length,
+                }
 
     return qubit_parameters
 
@@ -295,9 +309,19 @@ def plot_population(
             )
 
             if len(qubit_parameters["new_parameter_values"][q.uid]) > 0:
-                new_pi_length = qubit_parameters["new_parameter_values"][q.uid][
-                    f"{opts.transition}_drive_length"
-                ]
+                if "f" in opts.transition:
+                    new_pi_length = qubit_parameters["new_parameter_values"][q.uid][
+                        "ef_drive_length"
+                    ]
+                else:
+                    new_pi_length = qubit_parameters["new_parameter_values"][
+                        q.uid
+                    ].get(
+                        "ge_drive_length_pi",
+                        qubit_parameters["new_parameter_values"][q.uid][
+                            "ge_drive_length"
+                        ],
+                    )
                 # point at pi-pulse length
                 ax.plot(
                     new_pi_length.nominal_value * 1e9,

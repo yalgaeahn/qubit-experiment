@@ -149,6 +149,11 @@ def create_experiment(
     ##################################################################################
     #max_measure_section_length = qpu.measure_section_length(ctrl) #for multiplexing
     qop = qpu.quantum_operations
+    ctrl_ge_drive_length_pi = (
+        ctrl.parameters.ge_drive_length_pi
+        if ctrl.parameters.ge_drive_length_pi is not None
+        else ctrl.parameters.ge_drive_length
+    )
     states = ['g', 'e']
     
     with dsl.acquire_loop_rt(
@@ -178,7 +183,7 @@ def create_experiment(
                     for state in states:
                         with dsl.match(name="ctrl_prep", sweep_parameter=state) as ctrl_prep:
                             with dsl.case(0):
-                                qop.delay.omit_section(q=ctrl, time=ctrl.parameters.ge_drive_length)
+                                qop.delay.omit_section(q=ctrl, time=ctrl_ge_drive_length_pi)
                             with dsl.case(1):
                                 qop.x180.omit_section(ctrl)
                                 
@@ -198,7 +203,7 @@ def create_experiment(
                             with dsl.case(1): #Y
                                 qop.rx.omit_section(q=targ, angle=np.pi/2)
                             with dsl.case(2): #Z
-                                qop.delay.omit_section(q=targ, time=ctrl.parameters.ge_drive_length)
+                                qop.delay.omit_section(q=targ, time=ctrl_ge_drive_length_pi)
 
                         with dsl.section(name="measure", play_after=targ_basis_prep.uid) as measure:
                             qop.measure.omit_section(q=targ, handle=dsl.handles.result_handle(qubit_name=targ.uid, suffix=None))

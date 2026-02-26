@@ -11,7 +11,6 @@ from laboneq import workflow
 from analysis.readout_sweep_common import (
     calibration_shots_by_state_and_sweep,
     evaluate_iq_binary,
-    select_best_index,
     unwrap_result_like,
 )
 from laboneq_applications.core.validation import (
@@ -147,7 +146,8 @@ def calculate_metrics(
     bootstrap_confidence_level: float = 0.95,
     bootstrap_seed: int | None = None,
 ) -> dict:
-    """Compute fidelity/SNR curves and select best readout amplitude."""
+    """Compute fidelity/SNR curves and select best readout amplitude by fidelity."""
+    _ = fidelity_tolerance  # Reserved for API compatibility; best_idx uses fidelity argmax.
     qubit, amplitude_points = validate_and_convert_single_qubit_sweeps(qubit, amplitudes)
     amplitude_points = np.asarray(amplitude_points, dtype=float).reshape(-1)
     if amplitude_points.size < 1:
@@ -193,14 +193,13 @@ def calculate_metrics(
         snr_ci_low[i] = float(ci["snr_ci_low"])
         snr_ci_high[i] = float(ci["snr_ci_high"])
 
-    global_best = select_best_index(
-        assignment_fidelity=fidelity,
-        delta_mu_over_sigma=snr,
-        fidelity_tolerance=float(fidelity_tolerance),
-        prefer_smallest=False,
-    )
-    best_idx = int(global_best["index"])
-    quality_flag = str(global_best["quality_flag"])
+    fid_clean = np.asarray(fidelity, dtype=float).reshape(-1)
+    finite_mask = np.isfinite(fid_clean)
+    if not np.any(finite_mask):
+        raise ValueError("assignment_fidelity has no finite points.")
+    fid_clean = np.where(finite_mask, fid_clean, -np.inf)
+    best_idx = int(np.argmax(fid_clean))
+    quality_flag = "edge_hit" if best_idx in (0, fid_clean.size - 1) else "ok"
 
     return {
         "sweep_parameter": "readout_amplitude",

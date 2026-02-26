@@ -227,7 +227,11 @@ def fit_data(
         echo_pulse_length = (
             q.parameters.ef_drive_length
             if "f" in opts.transition
-            else q.parameters.ge_drive_length
+            else (
+                q.parameters.ge_drive_length_pi
+                if q.parameters.ge_drive_length_pi is not None
+                else q.parameters.ge_drive_length
+            )
         )
         swpts_fit = np.asarray(delays) + echo_pulse_length
 

@@ -262,7 +262,7 @@ def create_experiment(
     # Match the RIP drive length to ring-up + Ramsey section length.
     # Ramsey consists of two x90 pulses plus the swept delay.
     _, transition_params = q.transition_parameters(opts.transition)
-    ramsey_section_length = swp_delays + 2 * transition_params["length"]
+    ramsey_section_length = swp_delays + 2 * transition_params["length_pi2"]
 
     # len(swp_delays)=len(swp_phases) => multi dimensional sweep 할때 1d 병렬 sweep으로 동작
 

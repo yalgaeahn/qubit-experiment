@@ -229,14 +229,24 @@ def create_experiment(
                 with dsl.section(name="main_drive", alignment=SectionAlignment.RIGHT):
                     for q, q_lengths in zip(qubits, lengths_sweep_pars):
                         qop.prepare_state.omit_section(q, state=opts.transition[0])
-                        
-                
-                        
-                    
-                        sec = qop.qubit_spectroscopy_drive(
-                            q,amplitude=q.parameters.ge_drive_amplitude_pi, phase=0.0, length=q_lengths, pulse={'sigma':0.25, 'risefall_sigma_ratio':None,'width':q_lengths - q.parameters.ge_drive_length}
+                        ge_drive_length_pi = (
+                            q.parameters.ge_drive_length_pi
+                            if q.parameters.ge_drive_length_pi is not None
+                            else q.parameters.ge_drive_length
                         )
-                        
+
+                        sec = qop.qubit_spectroscopy_drive(
+                            q,
+                            amplitude=q.parameters.ge_drive_amplitude_pi,
+                            phase=0.0,
+                            length=q_lengths,
+                            pulse={
+                                "sigma": 0.25,
+                                "risefall_sigma_ratio": None,
+                                "width": q_lengths - ge_drive_length_pi,
+                            },
+                        )
+
                         # sec = qop.x180(
                         #     q, amplitude=q_lengths, transition=opts.transition
                         # )

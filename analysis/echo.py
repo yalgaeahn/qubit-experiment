@@ -198,7 +198,11 @@ def fit_data(
         echo_pulse_length = (
             q.parameters.ef_drive_length
             if "f" in opts.transition
-            else q.parameters.ge_drive_length
+            else (
+                q.parameters.ge_drive_length_pi
+                if q.parameters.ge_drive_length_pi is not None
+                else q.parameters.ge_drive_length
+            )
         )
         swpts_fit = processed_data_dict[q.uid]["sweep_points"] + echo_pulse_length
         data_to_fit = processed_data_dict[q.uid]["population"]
@@ -334,7 +338,11 @@ def plot_raw_complex_data_1d(
         echo_pulse_length = (
             q.parameters.ef_drive_length
             if "f" in opts.transition
-            else q.parameters.ge_drive_length
+            else (
+                q.parameters.ge_drive_length_pi
+                if q.parameters.ge_drive_length_pi is not None
+                else q.parameters.ge_drive_length
+            )
         )
         qubit_fig = plt_hlp.plot_raw_complex_data_1d(
             q,
@@ -389,7 +397,11 @@ def plot_population(
         echo_pulse_length = (
             q.parameters.ef_drive_length
             if "f" in opts.transition
-            else q.parameters.ge_drive_length
+            else (
+                q.parameters.ge_drive_length_pi
+                if q.parameters.ge_drive_length_pi is not None
+                else q.parameters.ge_drive_length
+            )
         )
         sweep_points = processed_data_dict[q.uid]["sweep_points"] + echo_pulse_length
         data = processed_data_dict[q.uid][

@@ -57,13 +57,6 @@ class ReadoutLengthSweepWorkflowOptions:
     do_plotting_error_bars: bool = workflow.option_field(
         True, description="Whether to include bootstrap error bars in metric plots."
     )
-    f_min: float = workflow.option_field(
-        0.95,
-        description=(
-            "Minimum assignment fidelity floor used when selecting the optimal "
-            "readout_length. The smallest length with fidelity >= f_min is chosen."
-        ),
-    )
     count: int = workflow.option_field(
         4096,
         description="Single-shot count for iq_time_trace and iq_cloud at each point.",
@@ -90,7 +83,31 @@ class ReadoutLengthSweepWorkflowOptions:
     )
     flat_window_sample_dt_ns: float = workflow.option_field(
         0.5,
-        description="Sampling period in ns used for flat-window detection from RAW traces.",
+        description="Sampling period in ns used for flat-window detection traces.",
+    )
+    flat_window_apply_software_demodulation: bool = workflow.option_field(
+        True,
+        description=(
+            "Apply software demodulation before flat-window detection trace analysis."
+        ),
+    )
+    flat_window_apply_lpf_after_demodulation: bool = workflow.option_field(
+        True,
+        description=(
+            "Apply low-pass filtering after software demodulation for flat-window "
+            "detection traces."
+        ),
+    )
+    flat_window_lpf_cutoff_frequency_hz: float | None = workflow.option_field(
+        25e6,
+        description=(
+            "LPF cutoff frequency in Hz for flat-window detection traces when "
+            "flat_window_apply_lpf_after_demodulation=True."
+        ),
+    )
+    flat_window_lpf_order: int = workflow.option_field(
+        5,
+        description="LPF order for flat-window detection traces.",
     )
     flat_window_phase_mask_relative_threshold: float = workflow.option_field(
         0.15,
@@ -441,8 +458,10 @@ def experiment_workflow(
                 result=iqt_result,
                 states=("g", "e"),
                 sample_dt_ns=options.flat_window_sample_dt_ns,
-                apply_software_demodulation=False,
-                apply_lpf_after_demodulation=False,
+                apply_software_demodulation=options.flat_window_apply_software_demodulation,
+                apply_lpf_after_demodulation=options.flat_window_apply_lpf_after_demodulation,
+                lpf_cutoff_frequency_hz=options.flat_window_lpf_cutoff_frequency_hz,
+                lpf_order=options.flat_window_lpf_order,
             )
             flat_window_detection = analysis_iq_time_trace.detect_flat_window(
                 qubits=raw_capture_qubit,
@@ -554,7 +573,6 @@ def experiment_workflow(
             dropped_points=collected_dropped_points,
             dropped_reasons=collected_dropped_reasons,
             point_metrics=collected_point_metrics,
-            fidelity_floor=options.f_min,
         )
         with workflow.if_(options.do_plotting):
             plot_metrics(

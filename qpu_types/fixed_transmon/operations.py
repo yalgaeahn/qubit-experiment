@@ -607,9 +607,11 @@ class FixedTransmonOperations(dsl.QuantumOperations):
 
                 Otherwise the values override or extend the existing ones.
         """
+        _, params = q.transition_parameters(transition)
         if amplitude is None:
-            _, params = q.transition_parameters(transition)
             amplitude = params["amplitude_pi2"]
+        if length is None:
+            length = params["length_pi2"]
 
         self.rx.omit_section(
             q,
@@ -667,9 +669,11 @@ class FixedTransmonOperations(dsl.QuantumOperations):
 
                 Otherwise the values override or extend the existing ones.
         """
+        _, params = q.transition_parameters(transition)
         if amplitude is None:
-            _, params = q.transition_parameters(transition)
             amplitude = params["amplitude_pi"]
+        if length is None:
+            length = params["length_pi"]
 
         self.rx.omit_section(
             q,
@@ -798,9 +802,11 @@ class FixedTransmonOperations(dsl.QuantumOperations):
 
                 Otherwise the values override or extend the existing ones.
         """
+        _, params = q.transition_parameters(transition)
         if amplitude is None:
-            _, params = q.transition_parameters(transition)
             amplitude = params["amplitude_pi2"]
+        if length is None:
+            length = params["length_pi2"]
 
         self.ry.omit_section(
             q,
@@ -858,9 +864,11 @@ class FixedTransmonOperations(dsl.QuantumOperations):
 
                 Otherwise the values override or extend the existing ones.
         """
+        _, params = q.transition_parameters(transition)
         if amplitude is None:
-            _, params = q.transition_parameters(transition)
             amplitude = params["amplitude_pi"]
+        if length is None:
+            length = params["length_pi"]
 
         self.ry.omit_section(
             q,

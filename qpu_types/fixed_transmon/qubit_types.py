@@ -54,7 +54,12 @@ class FixedTransmonQubitParameters(QuantumParameters):
         ge_drive_amplitude_pi2:
             Amplitude for a half-pi pulse on the g-e transition.
         ge_drive_length:
-            Length of g-e transition drive pulses (seconds).
+            Deprecated compatibility field for g-e pi pulse length (seconds).
+        ge_drive_length_pi:
+            Length of g-e pi pulses (seconds). If `None`, `ge_drive_length` is used.
+        ge_drive_length_pi2:
+            Length of g-e half-pi pulses (seconds). If `None`,
+            `ge_drive_length_pi` (or `ge_drive_length` fallback) is used.
         ge_drive_pulse:
             Pulse parameters for g-e transition drive pulses.
 
@@ -147,7 +152,10 @@ class FixedTransmonQubitParameters(QuantumParameters):
 
     ge_drive_amplitude_pi: float = 0.2
     ge_drive_amplitude_pi2: float = 0.1
+    # Deprecated compatibility field retained for legacy inputs/code paths.
     ge_drive_length: float = 50e-9
+    ge_drive_length_pi: float | None = None
+    ge_drive_length_pi2: float | None = None
     ge_drive_pulse: dict = attrs.field(
         factory=lambda: {
             "function": "drag",
@@ -287,10 +295,31 @@ class FixedTransmonQubit(QuantumElement):
             )
         line = "drive" if transition == "ge" else "drive_ef"
 
-        param_keys = ["amplitude_pi", "amplitude_pi2", "length", "pulse"]
-        params = {
-            k: getattr(self.parameters, f"{transition}_drive_{k}") for k in param_keys
-        }
+        if transition == "ge":
+            length_pi = self.parameters.ge_drive_length_pi
+            if length_pi is None:
+                length_pi = self.parameters.ge_drive_length
+            length_pi2 = self.parameters.ge_drive_length_pi2
+            if length_pi2 is None:
+                length_pi2 = length_pi
+
+            params = {
+                "amplitude_pi": self.parameters.ge_drive_amplitude_pi,
+                "amplitude_pi2": self.parameters.ge_drive_amplitude_pi2,
+                "length": length_pi,
+                "length_pi": length_pi,
+                "length_pi2": length_pi2,
+                "pulse": self.parameters.ge_drive_pulse,
+            }
+        else:
+            params = {
+                "amplitude_pi": self.parameters.ef_drive_amplitude_pi,
+                "amplitude_pi2": self.parameters.ef_drive_amplitude_pi2,
+                "length": self.parameters.ef_drive_length,
+                "length_pi": self.parameters.ef_drive_length,
+                "length_pi2": self.parameters.ef_drive_length,
+                "pulse": self.parameters.ef_drive_pulse,
+            }
 
         return line, params
 
