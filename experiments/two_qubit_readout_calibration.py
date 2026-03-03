@@ -8,11 +8,6 @@ from laboneq import workflow
 from laboneq.dsl.enums import AcquisitionType, AveragingMode
 from laboneq.simple import Experiment, SectionAlignment, dsl
 from laboneq.workflow.tasks import compile_experiment, run_experiment
-
-from experiments.two_qubit_tomography_common import (
-    READOUT_CALIBRATION_STATES,
-    readout_calibration_handle,
-)
 from laboneq_applications.core import validation
 from laboneq_applications.experiments.options import BaseExperimentOptions
 from laboneq_applications.tasks.parameter_updating import (
@@ -20,11 +15,15 @@ from laboneq_applications.tasks.parameter_updating import (
     temporary_quantum_elements_from_qpu,
 )
 
+from experiments.two_qubit_tomography_common import (
+    READOUT_CALIBRATION_STATES,
+    readout_calibration_handle,
+)
+
 if TYPE_CHECKING:
     from laboneq.dsl.quantum import QuantumParameters
     from laboneq.dsl.quantum.qpu import QPU
     from laboneq.dsl.session import Session
-
     from laboneq_applications.typing import QuantumElements
 
 
@@ -50,17 +49,15 @@ class TwoQReadoutCalibrationExperimentOptions:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    ctrl: QuantumElements,
-    targ: QuantumElements,
+    qubits: QuantumElements,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,
 ) -> None:
     """Run 2Q readout calibration (|00>,|01>,|10>,|11>)."""
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
-    ctrl = temporary_quantum_elements_from_qpu(temp_qpu, ctrl)
-    targ = temporary_quantum_elements_from_qpu(temp_qpu, targ)
+    qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)
 
-    exp = create_experiment(temp_qpu, ctrl, targ)
+    exp = create_experiment(temp_qpu, qubits)
     compiled_exp = compile_experiment(session, exp)
     result = run_experiment(session, compiled_exp)
     workflow.return_(result)
@@ -70,8 +67,7 @@ def experiment_workflow(
 @dsl.qubit_experiment
 def create_experiment(
     qpu: QPU,
-    ctrl: QuantumElements,
-    targ: QuantumElements,
+    qubits: QuantumElements,
     options: TwoQReadoutCalibrationExperimentOptions | None = None,
 ) -> Experiment:
     """Create 2Q readout calibration experiment."""
@@ -84,8 +80,7 @@ def create_experiment(
         raise ValueError(
             "two_qubit_readout_calibration only supports AveragingMode.SINGLE_SHOT."
         )
-    ctrl = validation.validate_and_convert_single_qubit_sweeps(ctrl)
-    targ = validation.validate_and_convert_single_qubit_sweeps(targ)
+    ctrl, targ = _normalize_two_qubits(qubits)
 
     qop = qpu.quantum_operations
     #max_measure_section_length = qpu.measure_section_length([ctrl, targ])
@@ -138,11 +133,11 @@ def create_experiment(
                     alignment=SectionAlignment.LEFT,
                     play_after=prep_sec.uid,
                 ):
-                    sec_ctrl = qop.measure(
+                    qop.measure(
                         ctrl,
                         handle=readout_calibration_handle(ctrl.uid, prepared_label),
                     )
-                    sec_targ = qop.measure(
+                    qop.measure(
                         targ,
                         handle=readout_calibration_handle(targ.uid, prepared_label),
                     )
@@ -150,3 +145,16 @@ def create_experiment(
                     #sec_targ.length = max_measure_section_length
                     qop.passive_reset(ctrl)
                     qop.passive_reset(targ)
+
+
+def _normalize_two_qubits(qubits: QuantumElements):
+    """Validate qubits input and return exactly two single-qubit elements."""
+    qlist = list(validation.validate_and_convert_qubits_sweeps(qubits))
+    if len(qlist) != 2:
+        raise ValueError(
+            "two_qubit_readout_calibration expects exactly 2 qubits in `qubits`."
+            f" Received {len(qlist)}."
+        )
+    ctrl = validation.validate_and_convert_single_qubit_sweeps(qlist[0])
+    targ = validation.validate_and_convert_single_qubit_sweeps(qlist[1])
+    return ctrl, targ

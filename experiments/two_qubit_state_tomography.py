@@ -9,6 +9,12 @@ from laboneq import workflow
 from laboneq.dsl.enums import AcquisitionType, AveragingMode
 from laboneq.simple import Experiment, SectionAlignment, dsl
 from laboneq.workflow.tasks import compile_experiment, run_experiment
+from laboneq_applications.core import validation
+from laboneq_applications.experiments.options import BaseExperimentOptions
+from laboneq_applications.tasks.parameter_updating import (
+    temporary_qpu,
+    temporary_quantum_elements_from_qpu,
+)
 
 from analysis.two_qubit_state_tomography import (
     TwoQStateTomographyAnalysisOptions,
@@ -24,18 +30,11 @@ from experiments.two_qubit_tomography_common import (
     state_token_for_section_name,
     tomography_handle,
 )
-from laboneq_applications.core import validation
-from laboneq_applications.experiments.options import BaseExperimentOptions
-from laboneq_applications.tasks.parameter_updating import (
-    temporary_qpu,
-    temporary_quantum_elements_from_qpu,
-)
 
 if TYPE_CHECKING:
     from laboneq.dsl.quantum import QuantumParameters
     from laboneq.dsl.quantum.qpu import QPU
     from laboneq.dsl.session import Session
-
     from laboneq_applications.typing import QuantumElements
 
 
@@ -129,6 +128,28 @@ def _materialize_list(items: list) -> list:
 
 
 @workflow.task(save=False)
+def _select_qubit_for_analysis(
+    qubits: QuantumElements,
+    index: int,
+    expected_len: int,
+    caller: str,
+):
+    """Select one qubit by index after runtime validation."""
+    qlist = list(validation.validate_and_convert_qubits_sweeps(qubits))
+    if len(qlist) != int(expected_len):
+        raise ValueError(
+            f"{caller} expects exactly {expected_len} qubits in `qubits`."
+            f" Received {len(qlist)}."
+        )
+    idx = int(index)
+    if idx < 0 or idx >= int(expected_len):
+        raise ValueError(
+            f"Invalid qubit index {idx} for expected_len={expected_len}."
+        )
+    return validation.validate_and_convert_single_qubit_sweeps(qlist[idx])
+
+
+@workflow.task(save=False)
 def resolve_convergence_repeat_indices(repeats_per_state: int) -> tuple[int, ...]:
     repeats = int(repeats_per_state)
     if repeats < 1:
@@ -148,8 +169,7 @@ def resolve_convergence_repeats_per_state(repeats_per_state: int) -> int:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    ctrl: QuantumElements,
-    targ: QuantumElements,
+    qubits: QuantumElements,
     bus: QuantumElements,
     readout_calibration_result=None,
     target_state=None,
@@ -170,15 +190,17 @@ def experiment_workflow(
     )
 
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
-    ctrl = temporary_quantum_elements_from_qpu(temp_qpu, ctrl)
-    targ = temporary_quantum_elements_from_qpu(temp_qpu, targ)
+    qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)
     bus = temporary_quantum_elements_from_qpu(temp_qpu, bus)
 
     calibration_result = readout_calibration_result
     with workflow.if_(
         options.do_readout_calibration and readout_calibration_result is None
     ):
-        readout_cal_exp = create_readout_calibration_experiment(temp_qpu, ctrl, targ)
+        readout_cal_exp = create_readout_calibration_experiment(
+            temp_qpu,
+            qubits,
+        )
         compiled_readout_cal = compile_experiment(session, readout_cal_exp)
         calibration_result = run_experiment(session, compiled_readout_cal)
 
@@ -198,14 +220,26 @@ def experiment_workflow(
 
     exp = create_experiment(
         temp_qpu,
-        ctrl,
-        targ,
+        qubits,
         bus,
         use_rip=resolved_config["used_rip"],
         initial_state=resolved_config["initial_state"],
     )
     compiled_exp = compile_experiment(session, exp)
     tomography_result = run_experiment(session, compiled_exp)
+
+    ctrl = _select_qubit_for_analysis(
+        qubits=qubits,
+        index=0,
+        expected_len=2,
+        caller="two_qubit_state_tomography",
+    )
+    targ = _select_qubit_for_analysis(
+        qubits=qubits,
+        index=1,
+        expected_len=2,
+        caller="two_qubit_state_tomography",
+    )
 
     analysis_result = None
     with workflow.if_(options.do_analysis):
@@ -244,8 +278,7 @@ def experiment_workflow(
                 )
                 suite_exp = create_experiment(
                     temp_qpu,
-                    ctrl,
-                    targ,
+                    qubits,
                     bus,
                     use_rip=suite_resolved_config["used_rip"],
                     initial_state=suite_resolved_config["initial_state"],
@@ -663,8 +696,7 @@ def _resolve_bus_rip_phase(bus_elem) -> float:
 @dsl.qubit_experiment
 def create_experiment(
     qpu: QPU,
-    ctrl: QuantumElements,
-    targ: QuantumElements,
+    qubits: QuantumElements,
     bus: QuantumElements,
     use_rip: bool = True,
     initial_state: str = "++",
@@ -685,8 +717,7 @@ def create_experiment(
         raise ValueError(
             "two_qubit_state_tomography only supports AveragingMode.SINGLE_SHOT."
         )
-    ctrl = validation.validate_and_convert_single_qubit_sweeps(ctrl)
-    targ = validation.validate_and_convert_single_qubit_sweeps(targ)
+    ctrl, targ = _normalize_two_qubits(qubits)
     buses = _normalize_bus_elements(bus)
     canonical_initial_state = _canonical_initial_state_label(initial_state)
     ctrl_token = _single_qubit_state_token(canonical_initial_state, qubit_role="ctrl")
@@ -801,3 +832,16 @@ def create_experiment(
                     sec_targ.length = max_measure_section_length
                     qop.passive_reset(ctrl)
                     qop.passive_reset(targ)
+
+
+def _normalize_two_qubits(qubits: QuantumElements):
+    """Validate qubits input and return exactly two single-qubit elements."""
+    qlist = list(validation.validate_and_convert_qubits_sweeps(qubits))
+    if len(qlist) != 2:
+        raise ValueError(
+            "two_qubit_state_tomography expects exactly 2 qubits in `qubits`."
+            f" Received {len(qlist)}."
+        )
+    ctrl = validation.validate_and_convert_single_qubit_sweeps(qlist[0])
+    targ = validation.validate_and_convert_single_qubit_sweeps(qlist[1])
+    return ctrl, targ

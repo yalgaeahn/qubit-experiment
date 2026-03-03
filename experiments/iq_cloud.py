@@ -8,18 +8,6 @@ from laboneq import workflow
 from laboneq.dsl.enums import AcquisitionType, AveragingMode
 from laboneq.simple import Experiment, SectionAlignment, dsl
 from laboneq.workflow.tasks import compile_experiment, run_experiment
-
-from example_helpers.workflow.handles import calibration_trace_2q_handle
-from analysis.iq_cloud import (
-    analysis_workflow,
-    collect_shots,
-    extract_qubit_parameters_for_discrimination,
-    fit_decision_models,
-)
-from experiments.iq_cloud_common import (
-    prepared_labels_for_num_qubits,
-    validate_supported_num_qubits,
-)
 from laboneq_applications.core import validation
 from laboneq_applications.experiments.options import BaseExperimentOptions
 from laboneq_applications.tasks.parameter_updating import (
@@ -28,11 +16,22 @@ from laboneq_applications.tasks.parameter_updating import (
     update_qpu,
 )
 
+from analysis.iq_cloud import (
+    analysis_workflow,
+    collect_shots,
+    extract_qubit_parameters_for_discrimination,
+    fit_decision_models,
+)
+from example_helpers.workflow.handles import calibration_trace_2q_handle
+from experiments.iq_cloud_common import (
+    prepared_labels_for_num_qubits,
+    validate_supported_num_qubits,
+)
+
 if TYPE_CHECKING:
     from laboneq.dsl.quantum import QuantumParameters
     from laboneq.dsl.quantum.qpu import QPU
     from laboneq.dsl.session import Session
-
     from laboneq_applications.typing import QuantumElements
 
 
@@ -84,7 +83,7 @@ def experiment_workflow(
     | None = None,
     options: IQCloudWorkflowOptions | None = None,
 ) -> None:
-    """Run IQ-cloud experiment (1Q or 2Q multiplexed) with optional analysis/update."""
+    """Run IQ-cloud experiment (1Q or NQ multiplexed) with optional analysis/update."""
     options = IQCloudWorkflowOptions() if options is None else options
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
     qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)
@@ -120,7 +119,7 @@ def create_experiment(
     qubits: QuantumElements,
     options: IQCloudExperimentOptions | None = None,
 ) -> Experiment:
-    """Create an IQ-cloud experiment for 1Q single or 2Q multiplexed readout."""
+    """Create an IQ-cloud experiment for 1Q single or NQ multiplexed readout."""
     opts = IQCloudExperimentOptions() if options is None else options
     qubits = validation.validate_and_convert_qubits_sweeps(qubits)
     num_qubits = len(qubits)

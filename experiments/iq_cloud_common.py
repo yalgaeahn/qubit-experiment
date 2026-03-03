@@ -2,29 +2,43 @@
 
 from __future__ import annotations
 
-from example_helpers.workflow.handles import calibration_trace_2q_handle as _cal_trace_2q
+from itertools import product
+
 from laboneq.simple import dsl
+
+from example_helpers.workflow.handles import calibration_trace_2q_handle as _cal_trace_2q
 
 PREPARED_LABELS_1Q: tuple[str, ...] = ("g", "e")
 PREPARED_LABELS_2Q: tuple[str, ...] = ("gg", "ge", "eg", "ee")
+# Backward-compatible alias for code that imports historical 2Q joint labels.
 JOINT_LABELS_2Q: tuple[str, ...] = ("gg", "ge", "eg", "ee")
 
 
 def validate_supported_num_qubits(num_qubits: int) -> None:
     """Validate IQ-cloud supported qubit counts."""
-    if num_qubits not in (1, 2):
+    if num_qubits < 1:
         raise ValueError(
-            "iq_cloud supports only 1 or 2 qubits. "
+            "iq_cloud supports one or more qubits. "
             f"Received {num_qubits} qubits."
         )
 
 
 def prepared_labels_for_num_qubits(num_qubits: int) -> tuple[str, ...]:
-    """Return prepared-state labels for 1Q/2Q g/e-only experiments."""
+    """Return prepared-state labels for NQ g/e-only experiments."""
     validate_supported_num_qubits(num_qubits)
     if num_qubits == 1:
         return PREPARED_LABELS_1Q
-    return PREPARED_LABELS_2Q
+    if num_qubits == 2:
+        return PREPARED_LABELS_2Q
+    return tuple("".join(bits) for bits in product(("g", "e"), repeat=num_qubits))
+
+
+def joint_labels_for_num_qubits(num_qubits: int) -> tuple[str, ...]:
+    """Return joint computational-basis labels in qubit-order binary order."""
+    labels = prepared_labels_for_num_qubits(num_qubits)
+    if num_qubits == 2:
+        return JOINT_LABELS_2Q
+    return labels
 
 
 def iq_cloud_handle(qubit_uid: str, prepared_label: str) -> str:

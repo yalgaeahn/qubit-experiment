@@ -8,24 +8,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 from laboneq import workflow
 from laboneq.simple import dsl
+from laboneq_applications.core.validation import (
+    validate_and_convert_qubits_sweeps,
+    validate_result,
+)
 from matplotlib.patches import Ellipse
 
 from example_helpers.workflow.handles import calibration_trace_2q_handle
 from experiments.iq_cloud_common import (
-    JOINT_LABELS_2Q,
     iq_cloud_handle,
+    joint_labels_for_num_qubits,
     prepared_labels_for_num_qubits,
     validate_supported_num_qubits,
-)
-from laboneq_applications.core.validation import (
-    validate_and_convert_qubits_sweeps,
-    validate_result,
 )
 
 if TYPE_CHECKING:
     import matplotlib as mpl
     from laboneq.workflow.tasks.run_experiment import RunExperimentResults
-
     from laboneq_applications.typing import QuantumElements
 
 
@@ -195,6 +194,13 @@ def _read_iq_cloud_shots_with_fallback(
 
 def _label_to_bits(prepared_label: str) -> list[int]:
     return [0 if ch == "g" else 1 for ch in prepared_label]
+
+
+def _bits_to_index(bits: np.ndarray | list[int]) -> int:
+    index = 0
+    for bit in bits:
+        index = (index << 1) | int(bit)
+    return index
 
 
 def _real2(shots: np.ndarray) -> np.ndarray:
@@ -374,32 +380,34 @@ def _assignment_core(
         "assignment_fidelity": {"per_qubit": fidelity_per_qubit},
     }
 
-    if len(qubit_uids) == 2:
-        uid0, uid1 = qubit_uids
-        joint_counts = np.zeros((4, 4), dtype=int)
+    if len(qubit_uids) >= 2:
+        num_states = len(prepared_labels)
+        powers = (1 << np.arange(len(qubit_uids) - 1, -1, -1)).astype(int)
+        joint_counts = np.zeros((num_states, num_states), dtype=int)
         for label in prepared_labels:
             true_bits = _label_to_bits(label)
-            true_idx = 2 * true_bits[0] + true_bits[1]
-            shots0 = shot_arrays[uid0][label]
-            shots1 = shot_arrays[uid1][label]
-            n = min(len(shots0), len(shots1))
+            true_idx = _bits_to_index(true_bits)
+            n = min(len(shot_arrays[uid][label]) for uid in qubit_uids)
             if n < 1:
                 continue
-            pred0 = _predict_bits(shots0[:n], decision_model[uid0])
-            pred1 = _predict_bits(shots1[:n], decision_model[uid1])
-            pred_idx = 2 * pred0 + pred1
+            pred_cols = [
+                _predict_bits(shot_arrays[uid][label][:n], decision_model[uid])
+                for uid in qubit_uids
+            ]
+            pred_matrix = np.column_stack(pred_cols)
+            pred_idx = pred_matrix @ powers
             for p in pred_idx:
                 joint_counts[true_idx, int(p)] += 1
 
         joint_norm = _counts_to_normalized(joint_counts)
         joint_total = float(np.sum(joint_counts))
         joint_fidelity = float(np.trace(joint_counts) / joint_total) if joint_total > 0 else 0.0
-        average_fidelity = float(np.mean([fidelity_per_qubit[uid0], fidelity_per_qubit[uid1]]))
+        average_fidelity = float(np.mean([fidelity_per_qubit[uid] for uid in qubit_uids]))
 
         out["confusion_matrices"]["joint"] = {
             "counts": joint_counts.tolist(),
             "normalized": joint_norm.tolist(),
-            "labels": list(JOINT_LABELS_2Q),
+            "labels": list(joint_labels_for_num_qubits(len(qubit_uids))),
         }
         out["assignment_fidelity"]["joint"] = joint_fidelity
         out["assignment_fidelity"]["average"] = average_fidelity
@@ -516,7 +524,7 @@ def collect_shots(
     result: RunExperimentResults,
     qubits: QuantumElements,
 ) -> dict:
-    """Collect integrated complex IQ shots for g/e-only 1Q or 2Q prepared states."""
+    """Collect integrated complex IQ shots for g/e-only prepared states."""
     result = _unwrap_result_like(result)
     validate_result(result)
     qubits = validate_and_convert_qubits_sweeps(qubits)
@@ -647,20 +655,10 @@ def bootstrap_metrics(
     for _ in range(b):
         sampled = {uid: {} for uid in qubit_uids}
         for label in prepared_labels:
-            if len(qubit_uids) == 1:
-                uid = qubit_uids[0]
-                shots = shot_arrays[uid][label]
-                n = len(shots)
-                idx = rng.integers(0, n, size=n) if n > 0 else np.array([], dtype=int)
-                sampled[uid][label] = shots[idx]
-            else:
-                uid0, uid1 = qubit_uids
-                shots0 = shot_arrays[uid0][label]
-                shots1 = shot_arrays[uid1][label]
-                n = min(len(shots0), len(shots1))
-                idx = rng.integers(0, n, size=n) if n > 0 else np.array([], dtype=int)
-                sampled[uid0][label] = shots0[:n][idx]
-                sampled[uid1][label] = shots1[:n][idx]
+            n = min(len(shot_arrays[uid][label]) for uid in qubit_uids)
+            idx = rng.integers(0, n, size=n) if n > 0 else np.array([], dtype=int)
+            for uid in qubit_uids:
+                sampled[uid][label] = shot_arrays[uid][label][:n][idx]
 
         model_bs = _fit_models_core(
             shot_arrays=sampled,
@@ -685,7 +683,7 @@ def bootstrap_metrics(
                 float(separation_bs[uid]["delta_mu_over_sigma"])
             )
 
-        if len(qubit_uids) == 2:
+        if len(qubit_uids) >= 2:
             joint_fidelity_vals.append(float(assignment_bs["assignment_fidelity"]["joint"]))
             average_fidelity_vals.append(
                 float(assignment_bs["assignment_fidelity"]["average"])
@@ -701,7 +699,7 @@ def bootstrap_metrics(
             ),
         }
 
-    if len(qubit_uids) == 2:
+    if len(qubit_uids) >= 2:
         out["joint"] = {"fidelity": _ci_summary(joint_fidelity_vals, cl)}
         out["average"] = {"fidelity": _ci_summary(average_fidelity_vals, cl)}
 
@@ -856,12 +854,12 @@ def plot_assignment_matrices(
     separation_metrics: dict | None = None,
     bootstrap: dict | None = None,
 ) -> dict[str, mpl.figure.Figure]:
-    """Plot assignment matrices for per-qubit and optional 2Q joint metrics."""
+    """Plot assignment matrices for per-qubit and optional joint metrics."""
     qubits = validate_and_convert_qubits_sweeps(qubits)
     validate_supported_num_qubits(len(qubits))
     qubit_uids = [q.uid for q in qubits]
 
-    panel_count = len(qubit_uids) + (1 if len(qubit_uids) == 2 else 0)
+    panel_count = len(qubit_uids) + (1 if len(qubit_uids) >= 2 else 0)
     fig, axes = plt.subplots(1, panel_count, figsize=(4.6 * panel_count, 3.8), squeeze=False)
     axes = axes.ravel()
 
@@ -900,7 +898,7 @@ def plot_assignment_matrices(
                 )
         fig.colorbar(im, ax=ax, fraction=0.046)
 
-    if len(qubit_uids) == 2:
+    if len(qubit_uids) >= 2:
         ax = axes[-1]
         matrix = np.asarray(confusion_matrices["joint"]["normalized"], dtype=float)
         im = ax.imshow(matrix, vmin=0.0, vmax=1.0, cmap="Reds")
@@ -914,11 +912,17 @@ def plot_assignment_matrices(
         )
         ax.set_xlabel("Predicted")
         ax.set_ylabel("Prepared")
-        labels = list(JOINT_LABELS_2Q)
-        ax.set_xticks(range(4), labels)
-        ax.set_yticks(range(4), labels)
-        for r in range(4):
-            for c in range(4):
+        dim = int(matrix.shape[0])
+        labels = confusion_matrices.get("joint", {}).get("labels", [])
+        if len(labels) != dim:
+            labels = list(joint_labels_for_num_qubits(len(qubit_uids)))
+        ax.set_xticks(range(dim), labels)
+        ax.set_yticks(range(dim), labels)
+        if dim > 4:
+            plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
+        text_size = 8 if dim <= 4 else 7 if dim <= 8 else 6
+        for r in range(dim):
+            for c in range(dim):
                 v = matrix[r, c]
                 ax.text(
                     c,
@@ -927,7 +931,7 @@ def plot_assignment_matrices(
                     ha="center",
                     va="center",
                     color="white" if v > 0.6 else "black",
-                    fontsize=8,
+                    fontsize=text_size,
                 )
         fig.colorbar(im, ax=ax, fraction=0.046)
 
@@ -984,7 +988,7 @@ def plot_bootstrap_summary(
         ax.grid(alpha=0.2)
         if key == "fidelity":
             ax.set_ylim(0.0, 1.02)
-            if len(qubit_uids) == 2:
+            if len(qubit_uids) >= 2:
                 joint = bootstrap.get("joint", {}).get("fidelity")
                 avg = bootstrap.get("average", {}).get("fidelity")
                 if isinstance(joint, dict):
