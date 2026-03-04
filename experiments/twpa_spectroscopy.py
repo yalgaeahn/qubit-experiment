@@ -30,7 +30,8 @@ from laboneq_applications.experiments.options import (
     TWPASpectroscopyExperimentOptions,
 )
 from laboneq_applications.tasks.parameter_updating import (
-    temporary_modify,
+    temporary_qpu,
+    temporary_quantum_elements_from_qpu,
 )
 
 if TYPE_CHECKING:
@@ -101,10 +102,13 @@ def experiment_workflow(
         ).run()
         ```
     """
-    parametric_amplifier = temporary_modify(parametric_amplifier, temporary_parameters)
+    temp_qpu = temporary_qpu(qpu, temporary_parameters)
+    parametric_amplifier = temporary_quantum_elements_from_qpu(
+        temp_qpu, parametric_amplifier
+    )
 
     exp = create_experiment(
-        qpu,
+        temp_qpu,
         parametric_amplifier,
         frequencies=frequencies,
     )

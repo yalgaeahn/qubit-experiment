@@ -1,6 +1,12 @@
 # Copyright 2024 Zurich Instruments AG
 # SPDX-License-Identifier: Apache-2.0
 
+"""Coherence spectroscopy analysis workflow.
+
+Analyze 2D coherence-spectroscopy data over delay and frequency sweeps, fit population
+dynamics, and extract qubit/coherent-response parameters with diagnostic plots.
+"""
+
 from __future__ import annotations
 
 import logging

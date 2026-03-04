@@ -31,8 +31,9 @@ from laboneq_applications.experiments.options import (
     TWPATuneUpWorkflowOptions,
 )
 from laboneq_applications.tasks.parameter_updating import (
-    temporary_modify,
-    update_qubits,
+    temporary_qpu,
+    temporary_quantum_elements_from_qpu,
+    update_qpu,
 )
 
 if TYPE_CHECKING:
@@ -64,7 +65,7 @@ def experiment_workflow(
     - [compile_experiment]()
     - [run_experiment]()
     - [analysis_workflow]()
-    - [update_qubits]()
+    - [update_qpu]()
 
     Arguments:
         session:
@@ -108,9 +109,12 @@ def experiment_workflow(
         ).run()
         ```
     """
-    parametric_amplifier = temporary_modify(parametric_amplifier, temporary_parameters)
+    temp_qpu = temporary_qpu(qpu, temporary_parameters)
+    parametric_amplifier = temporary_quantum_elements_from_qpu(
+        temp_qpu, parametric_amplifier
+    )
     exp1 = create_experiment(
-        qpu=qpu,
+        qpu=temp_qpu,
         parametric_amplifier=parametric_amplifier,
         pump_frequency=pump_frequency,
         pump_power=pump_power,
@@ -121,7 +125,7 @@ def experiment_workflow(
     data_signal_pump_on = run_experiment(session, compiled_exp1)
 
     exp2 = create_experiment(
-        qpu=qpu,
+        qpu=temp_qpu,
         parametric_amplifier=parametric_amplifier,
         pump_frequency=pump_frequency,
         pump_power=pump_power,
@@ -133,7 +137,7 @@ def experiment_workflow(
 
     with workflow.if_(options.do_snr):
         exp3 = create_experiment(
-            qpu=qpu,
+            qpu=temp_qpu,
             parametric_amplifier=parametric_amplifier,
             pump_frequency=pump_frequency,
             pump_power=pump_power,
@@ -144,7 +148,7 @@ def experiment_workflow(
         data_noise_pump_on = run_experiment(session, compiled_exp3)
 
         exp4 = create_experiment(
-            qpu=qpu,
+            qpu=temp_qpu,
             parametric_amplifier=parametric_amplifier,
             pump_frequency=[],
             pump_power=[],
@@ -166,7 +170,7 @@ def experiment_workflow(
             )
             parametric_amplifier_parameters = analysis_results.output
             with workflow.if_(options.update):
-                update_qubits(
+                update_qpu(
                     qpu, parametric_amplifier_parameters["new_parameter_values"]
                 )
 
@@ -188,7 +192,7 @@ def experiment_workflow(
             )
             parametric_amplifier_parameters = analysis_results.output
             with workflow.if_(options.update):
-                update_qubits(
+                update_qpu(
                     qpu, parametric_amplifier_parameters["new_parameter_values"]
                 )
         workflow.return_(

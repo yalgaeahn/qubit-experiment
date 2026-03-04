@@ -33,8 +33,9 @@ from laboneq_applications.experiments.options import (
     TWPATuneUpExperimentOptions,
 )
 from laboneq_applications.tasks.parameter_updating import (
-    temporary_modify,
-    update_qubits,
+    temporary_qpu,
+    temporary_quantum_elements_from_qpu,
+    update_qpu,
 )
 
 if TYPE_CHECKING:
@@ -66,7 +67,7 @@ def experiment_workflow(
     - [compile_experiment]()
     - [run_experiment]()
     - [analysis_workflow]()
-    - [update_qubits]()
+    - [update_qpu]()
 
     Arguments:
         session:
@@ -110,9 +111,12 @@ def experiment_workflow(
         ).run()
         ```
     """
-    parametric_amplifier = temporary_modify(parametric_amplifier, temporary_parameters)
+    temp_qpu = temporary_qpu(qpu, temporary_parameters)
+    parametric_amplifier = temporary_quantum_elements_from_qpu(
+        temp_qpu, parametric_amplifier
+    )
     exp_on = create_experiment(
-        qpu,
+        temp_qpu,
         parametric_amplifier,
         cancel_phase=cancel_phase,
         cancel_attenuation=cancel_attenuation,
@@ -122,7 +126,7 @@ def experiment_workflow(
     result_on = run_experiment(session, compiled_exp_on)
 
     exp_off = create_experiment(
-        qpu,
+        temp_qpu,
         parametric_amplifier,
         cancel_phase=cancel_phase,
         cancel_attenuation=cancel_attenuation,
@@ -141,7 +145,7 @@ def experiment_workflow(
         )
         parametric_amplifier_parameters = analysis_results.output
         with workflow.if_(options.update):
-            update_qubits(qpu, parametric_amplifier_parameters["new_parameter_values"])
+            update_qpu(qpu, parametric_amplifier_parameters["new_parameter_values"])
     workflow.return_(data=result_on, ref=result_off)
 
 

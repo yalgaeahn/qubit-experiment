@@ -1,6 +1,12 @@
 # Copyright 2024 Zurich Instruments AG
 # SPDX-License-Identifier: Apache-2.0
 
+"""Echo-based coherence spectroscopy analysis workflow.
+
+Analyze 2D echo coherence data over delay and frequency sweeps, fit decay behavior, and
+extract qubit/coherent-response parameters with diagnostic plots.
+"""
+
 from __future__ import annotations
 
 import logging
