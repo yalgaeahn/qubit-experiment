@@ -18,11 +18,12 @@ from laboneq.simple import dsl
 from analysis.fitting_helpers import cosine_oscillatory_decay_fit
 from laboneq_applications.analysis.calibration_traces_rotation import calculate_population_1d
 from laboneq_applications.analysis.options import TuneUpAnalysisWorkflowOptions
-from laboneq_applications.analysis.plotting_helpers import timestamped_title
+from analysis.plotting_helpers import timestamped_title
 from laboneq_applications.core.validation import (
     validate_and_convert_qubits_sweeps,
     validate_result,
 )
+from analysis.plot_theme import get_semantic_color, get_state_color, with_plot_theme
 
 if TYPE_CHECKING:
     import lmfit
@@ -936,6 +937,7 @@ def _format_ufloat_hz(value: unc.core.Variable) -> str:
 
 
 @workflow.task
+@with_plot_theme
 def plot_population(
     pair_key: str,
     ctrl_uid: str,
@@ -976,7 +978,8 @@ def plot_population(
         else "Raw amplitude (arb.)"
     )
 
-    for state, color in [("g", "tab:blue"), ("e", "tab:orange")]:
+    for state in ("g", "e"):
+        color = get_state_color(state)
         y = np.asarray(y_by_state[state], dtype=float)
         ax.plot(
             x_s * 1e6,
@@ -1019,7 +1022,12 @@ def plot_population(
         ha="left",
         va="bottom",
         fontsize=9,
-        bbox={"boxstyle": "round,pad=0.2", "facecolor": "white", "alpha": 0.75},
+        bbox={
+            "boxstyle": "round,pad=0.2",
+            "facecolor": get_semantic_color("text_box"),
+            "edgecolor": get_semantic_color("text_box_edge"),
+            "alpha": 0.85,
+        },
     )
     ax.grid(alpha=0.25)
     ax.legend(loc="best")
@@ -1033,6 +1041,7 @@ def plot_population(
 
 
 @workflow.task
+@with_plot_theme
 def plot_residual_zz_summary(
     qubit_parameters: dict[str, dict[str, object]],
     save_figures: bool = True,
@@ -1073,7 +1082,9 @@ def plot_residual_zz_summary(
         ax.plot(
             x[~ok],
             np.zeros(np.count_nonzero(~ok)),
-            "rx",
+            linestyle="None",
+            marker="x",
+            color=get_semantic_color("fail"),
             label="fit failed",
         )
 
@@ -1081,7 +1092,7 @@ def plot_residual_zz_summary(
     ax.set_xticklabels(labels, rotation=20, ha="right")
     ax.set_ylabel("Residual ZZ (MHz)")
     ax.set_title(timestamped_title("Residual ZZ Summary"))
-    ax.axhline(0.0, color="k", lw=0.8, alpha=0.4)
+    ax.axhline(0.0, color=get_semantic_color("boundary"), lw=0.8, alpha=0.4)
     ax.grid(alpha=0.3)
     ax.legend(loc="best")
 

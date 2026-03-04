@@ -22,7 +22,7 @@ import numpy as np
 import uncertainties as unc
 from laboneq import workflow
 
-from laboneq_applications.analysis import plotting_helpers as plt_hlp
+from analysis import plotting_helpers as plt_hlp
 from laboneq_applications.analysis.calibration_traces_rotation import (
     calculate_qubit_population,
 )
@@ -37,6 +37,7 @@ from laboneq_applications.core.validation import (
     validate_and_convert_qubits_sweeps,
     validate_result,
 )
+from analysis.plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import lmfit
@@ -358,6 +359,7 @@ def plot_raw_complex_data_1d(
 
 
 @workflow.task
+@with_plot_theme
 def plot_population(
     qubits: QuantumElements,
     processed_data_dict: dict[str, dict[str, ArrayLike]],

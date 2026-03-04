@@ -111,6 +111,29 @@ qubits = load_qubit_parameters(filename="latest", save_folder="./qubit_parameter
 save_qubit_parameters(qubits, save_folder="./qubit_parameters")
 ```
 
+## Plot Theme
+
+Analysis plots and `example_helpers` plotting now use a unified Matplotlib theme by
+default: `high_contrast_publication_dark`.
+
+Session-wide override with environment variable:
+
+```bash
+export QUBIT_EXPERIMENT_PLOT_THEME=clean_scientific
+```
+
+Programmatic override:
+
+```python
+from analysis import plot_theme_context, set_default_plot_theme
+
+set_default_plot_theme("high_contrast_publication_light")
+
+with plot_theme_context(theme="minimal_no_grid"):
+    # create temporary plots with this theme
+    ...
+```
+
 ## Troubleshooting
 
 - Import errors in notebooks: ensure you installed with `pip install -e .[dev]` and

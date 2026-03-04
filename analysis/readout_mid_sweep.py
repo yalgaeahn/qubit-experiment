@@ -17,6 +17,7 @@ from analysis.readout_sweep_common import (
     unwrap_result_like,
 )
 from laboneq_applications.core.validation import validate_result
+from analysis.plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import matplotlib as mpl
@@ -810,6 +811,7 @@ def calculate_metrics(
 
 
 @workflow.task(save=False)
+@with_plot_theme
 def plot_mid_curves_1d(
     sweep_axis: Literal["frequency", "amplitude"],
     frequency_points: np.ndarray,
@@ -867,6 +869,7 @@ def plot_mid_curves_1d(
 
 
 @workflow.task(save=False)
+@with_plot_theme
 def plot_mid_heatmap(metrics: dict) -> mpl.figure.Figure:
     """Plot 2D MID heatmap for frequency × amplitude sweep."""
     sweep = metrics["sweep_points"]
@@ -914,6 +917,7 @@ def plot_mid_heatmap(metrics: dict) -> mpl.figure.Figure:
 
 
 @workflow.task(save=False)
+@with_plot_theme
 def plot_mapping_validation_summary(
     metrics: dict,
     delays: ArrayLike,
@@ -992,6 +996,7 @@ def plot_mapping_validation_summary(
 
 
 @workflow.task(save=False)
+@with_plot_theme
 def plot_mid_diagnostics(
     metrics: dict,
     delays: ArrayLike,

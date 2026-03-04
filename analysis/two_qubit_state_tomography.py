@@ -17,6 +17,7 @@ from experiments.two_qubit_tomography_common import (
     tomography_handle,
 )
 from laboneq_applications.core.validation import validate_result
+from analysis.plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import matplotlib as mpl
@@ -854,6 +855,7 @@ def summarize_statistical_convergence(
 
 
 @workflow.task
+@with_plot_theme
 def plot_density_matrix(
     rho_hat_real: list[list[float]],
     rho_hat_imag: list[list[float]],
@@ -883,6 +885,7 @@ def plot_density_matrix(
 
 
 @workflow.task
+@with_plot_theme
 def plot_counts(
     observed_counts: list[list[int]],
     predicted_counts: list[list[float]],

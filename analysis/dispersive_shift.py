@@ -18,8 +18,9 @@ from laboneq import workflow
 from laboneq.simple import dsl
 
 from laboneq_applications.analysis.options import BasePlottingOptions
-from laboneq_applications.analysis.plotting_helpers import timestamped_title
+from analysis.plotting_helpers import timestamped_title
 from laboneq_applications.core import validation
+from analysis.plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -417,6 +418,7 @@ def calculate_dispersive_shift_metrics(
 
 
 @workflow.task
+@with_plot_theme
 def plot_dispersive_shift(
     qubit: QuantumElement,
     metrics: dict,
@@ -521,6 +523,7 @@ def plot_dispersive_shift(
 
 
 @workflow.task
+@with_plot_theme
 def plot_signal_distances(
     qubit: QuantumElement,
     metrics: dict,

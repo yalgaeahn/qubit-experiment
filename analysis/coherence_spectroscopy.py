@@ -32,11 +32,9 @@ from laboneq_applications.analysis.options import (
     PlotPopulationOptions,
     TuneUpAnalysisWorkflowOptions,
 )
-from laboneq_applications.analysis.plotting_helpers import (
-    plot_raw_complex_data_1d,
-    timestamped_title,
-)
+from analysis.plotting_helpers import timestamped_title
 from laboneq_applications.core.validation import validate_and_convert_qubits_sweeps
+from analysis.plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import lmfit
@@ -531,6 +529,7 @@ def fit_mid_rate_data(
 
 
 @workflow.task
+@with_plot_theme
 def plot_photon_numbers_vs_frequency(
     qubits: QuantumElements,
     qubit_parameters: dict[str, dict[str, dict[str, int | float | unc.core.Variable]]],
@@ -567,6 +566,7 @@ def plot_photon_numbers_vs_frequency(
 
 
 @workflow.task
+@with_plot_theme
 def plot_population(
     qubits: QuantumElements,
     processed_data_dict: dict[str, dict[str, ArrayLike]],
@@ -755,6 +755,7 @@ def plot_population(
 
 
 @workflow.task
+@with_plot_theme
 def plot_t2_star_vs_frequency(
     qubits: QuantumElements,
     qubit_parameters: dict[str, dict[str, dict[str, int | float | unc.core.Variable]]],
@@ -827,6 +828,7 @@ def plot_t2_star_vs_frequency(
     return figures
 ########################### 
 @workflow.task
+@with_plot_theme
 def plot_MID_rate_vs_frequency(
     qubits: QuantumElements,
     qubit_parameters: dict[str, dict[str, dict[str, int | float | unc.core.Variable]]],
@@ -906,6 +908,7 @@ def plot_MID_rate_vs_frequency(
 
 ######################
 @workflow.task
+@with_plot_theme
 def plot_population_heatmap_2d(
     qubits: QuantumElements,
     processed_data_dict: dict[str, dict[str, ArrayLike]],
@@ -938,6 +941,7 @@ def plot_population_heatmap_2d(
 
 
 @workflow.task
+@with_plot_theme
 def plot_raw_iq_heatmap_2d(
     qubits: QuantumElements,
     processed_data_dict: dict[str, dict[str, ArrayLike]],

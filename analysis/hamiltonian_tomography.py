@@ -27,7 +27,6 @@ from laboneq_applications.analysis.options import (
     PlotPopulationOptions
 )
 from analysis.fitting_helpers import blochtrajectory_fit, find_oscillation_frequency_and_phase
-from laboneq_applications.analysis.plotting_helpers import timestamped_title
 #     plot_raw_complex_data_2d,
 #     plot_signal_magnitude_and_phase_2d,
 # )
@@ -35,6 +34,7 @@ from laboneq_applications.core.validation import (
     validate_and_convert_single_qubit_sweeps,
     validate_result,
 )
+from analysis.plot_theme import get_semantic_color, get_state_color, with_plot_theme
 
 
 if TYPE_CHECKING:
@@ -210,6 +210,7 @@ def extract_interaction_rates(
     pass
 
 @workflow.task
+@with_plot_theme
 def plot_trajectory(
     qubit: QuantumElements,
     processed_data_dict: dict[str, dict[str, ArrayLike]],
@@ -245,6 +246,9 @@ def plot_trajectory(
         z_model = lmfit.models.ExpressionModel(eqr_temps['z'], independent_vars=['x'])
 
         fig, (axx,axy,axz,axr) = plt.subplots(4,1, figsize=(15,15), sharex=True)
+        g_color = get_state_color("g")
+        e_color = get_state_color("e")
+        boundary_color = get_semantic_color("boundary")
         fit_res = fit_results[float(amplitude)]
 
         g_params= fit_res['g'].params
@@ -280,32 +284,32 @@ def plot_trajectory(
 
 
 
-        axx.scatter(swpts,ctrl0_x_data, color='blue', linewidths=1.0, label='ctrl in |0>' )
-        axx.plot(swpts_dense, ctrl0_x, color='blue')
-        axx.scatter(swpts,ctrl1_x_data, color='red', label='ctrl in |1>' )
-        axx.plot(swpts_dense, ctrl1_x, color='red')  
+        axx.scatter(swpts,ctrl0_x_data, color=g_color, linewidths=1.0, label='ctrl in |0>' )
+        axx.plot(swpts_dense, ctrl0_x, color=g_color)
+        axx.scatter(swpts,ctrl1_x_data, color=e_color, label='ctrl in |1>' )
+        axx.plot(swpts_dense, ctrl1_x, color=e_color)  
         axx.set_ylabel('<X(t)>', fontsize = 20)
         axx.set_title('Pauli Expectation Value', fontsize = 20)
         axx.set_ylim(-1.0,1.0)
 
-        axy.scatter(swpts,ctrl0_y_data, color='blue', linewidths=1.0, label='ctrl in |0>' )
-        axy.plot(swpts_dense, ctrl0_y, color='blue')
-        axy.scatter(swpts,ctrl1_y_data, color='red', label='ctrl in |1>' )
-        axy.plot(swpts_dense, ctrl1_y, color='red')  
+        axy.scatter(swpts,ctrl0_y_data, color=g_color, linewidths=1.0, label='ctrl in |0>' )
+        axy.plot(swpts_dense, ctrl0_y, color=g_color)
+        axy.scatter(swpts,ctrl1_y_data, color=e_color, label='ctrl in |1>' )
+        axy.plot(swpts_dense, ctrl1_y, color=e_color)  
         axy.set_ylabel('<Y(t)>', fontsize = 20)
         axy.set_ylim(-1.0,1.0)
 
-        axz.scatter(swpts,ctrl0_z_data, color='blue', linewidths=1.0, label='ctrl in |0>' )
-        axz.plot(swpts_dense, ctrl0_z, color='blue')
-        axz.scatter(swpts,ctrl1_z_data, color='red', label='ctrl in |1>' )
-        axz.plot(swpts_dense, ctrl1_z, color='red')  
+        axz.scatter(swpts,ctrl0_z_data, color=g_color, linewidths=1.0, label='ctrl in |0>' )
+        axz.plot(swpts_dense, ctrl0_z, color=g_color)
+        axz.scatter(swpts,ctrl1_z_data, color=e_color, label='ctrl in |1>' )
+        axz.plot(swpts_dense, ctrl1_z, color=e_color)  
         axz.set_ylabel('Z<(t)>', fontsize = 20)
         axr.set_ylim(-1.0,1.0)
         ##########################################################
-        axr.scatter(swpts, y=R_data, color = 'black')
-        axr.plot(swpts_dense, R, color='black')
-        axr.plot(swpts, np.linalg.norm(r0_traj_data, axis=1), color='blue')
-        axr.plot(swpts, np.linalg.norm(r1_traj_data, axis=1), color='red')
+        axr.scatter(swpts, y=R_data, color=boundary_color)
+        axr.plot(swpts_dense, R, color=boundary_color)
+        axr.plot(swpts, np.linalg.norm(r0_traj_data, axis=1), color=g_color)
+        axr.plot(swpts, np.linalg.norm(r1_traj_data, axis=1), color=e_color)
         axr.set_ylim(0,1.2)
         
         figures[float(amplitude)]=fig
@@ -368,6 +372,3 @@ def generate_initial_guess(x,x_data, y_data, z_data):
             b=dict(value=1e-9, min=-1,max=1))
         init_param_set.append(emp_param)
     return init_param_set
-
-
-

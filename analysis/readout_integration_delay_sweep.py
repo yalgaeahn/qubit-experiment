@@ -14,6 +14,7 @@ from analysis.readout_sweep_common import (
     unwrap_result_like,
 )
 from laboneq_applications.core.validation import validate_result
+from analysis.plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -202,6 +203,7 @@ def calculate_metrics(
 
 
 @workflow.task
+@with_plot_theme
 def plot_heatmaps(metrics: dict) -> mpl.figure.Figure:
     """Plot assignment fidelity and SNR over (integration_length, delay)."""
     lengths = np.asarray(

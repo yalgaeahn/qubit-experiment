@@ -17,6 +17,7 @@ from laboneq_applications.core.validation import (
     validate_and_convert_single_qubit_sweeps,
     validate_result,
 )
+from analysis.plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import matplotlib as mpl
@@ -245,6 +246,7 @@ def calculate_metrics(
 
 
 @workflow.task(save=False)
+@with_plot_theme
 def plot_metrics(
     metrics: dict,
     include_error_bars: bool = True,

@@ -14,6 +14,8 @@ import numpy as np
 # scipy optimize for curve fitting
 import scipy.optimize as opt
 
+from analysis.plot_theme import plot_theme_context
+
 warnings.warn(
     "The laboneq.contrib.example_helpers.data_analysis package was"
     " deprecated in LabOne Q 2.15. Please use laboneq.analysis.fitting"
@@ -79,9 +81,10 @@ def fit_Rabi(x, y, freq, phase, amp=None, off=None, plot=False, bounds=None):
             popt, pcov = opt.curve_fit(func_osc, x, y, p0=[freq, phase], bounds=bounds)
 
     if plot:
-        plt.plot(x, y, ".k")
-        plt.plot(x, func_osc(x, *popt), "-r")
-        plt.show()
+        with plot_theme_context():
+            plt.plot(x, y, ".k")
+            plt.plot(x, func_osc(x, *popt), "-r")
+            plt.show()
 
     return popt, pcov
 
@@ -99,9 +102,10 @@ def fit_Ramsey(
     popt, pcov = opt.curve_fit(func_decayOsc, x, y, p0=p0, bounds=bounds)
 
     if plot:
-        plt.plot(x, y, ".k")
-        plt.plot(x, func_decayOsc(x, *popt), "-r")
-        plt.show()
+        with plot_theme_context():
+            plt.plot(x, y, ".k")
+            plt.plot(x, func_decayOsc(x, *popt), "-r")
+            plt.show()
 
     return popt, pcov
 
@@ -122,9 +126,10 @@ def fit_T1(x, y, rate, off, amp=None, plot=False, bounds=None):
             )
 
     if plot:
-        plt.plot(x, y, ".k")
-        plt.plot(x, func_exp(x, *popt), "-r")
-        plt.show()
+        with plot_theme_context():
+            plt.plot(x, y, ".k")
+            plt.plot(x, func_exp(x, *popt), "-r")
+            plt.show()
 
     return popt, pcov
 
@@ -147,9 +152,10 @@ def fit_Spec(x, y, width, pos, amp, off=None, plot=False, bounds=None):
             )
 
     if plot:
-        plt.plot(x, y, ".k")
-        plt.plot(x, func_invLorentz(x, *popt), "-r")
-        plt.show()
+        with plot_theme_context():
+            plt.plot(x, y, ".k")
+            plt.plot(x, func_invLorentz(x, *popt), "-r")
+            plt.show()
 
     return popt, pcov
 
@@ -172,9 +178,10 @@ def fit_3DSpec(x, y, width, pos, amp, off=None, plot=False, bounds=None):
             )
 
     if plot:
-        plt.plot(x, y, ".k")
-        plt.plot(x, func_lorentz(x, *popt), "-r")
-        plt.show()
+        with plot_theme_context():
+            plt.plot(x, y, ".k")
+            plt.plot(x, func_lorentz(x, *popt), "-r")
+            plt.show()
 
     return popt, pcov
 
@@ -197,8 +204,9 @@ def fit_ResSpec(x, y, width, pos, amp, fano, off=None, plot=False, bounds=None):
             )
 
     if plot:
-        plt.plot(x, y, ".k")
-        plt.plot(x, func_Fano(x, *popt), "-r")
-        plt.show()
+        with plot_theme_context():
+            plt.plot(x, y, ".k")
+            plt.plot(x, func_Fano(x, *popt), "-r")
+            plt.show()
 
     return popt, pcov

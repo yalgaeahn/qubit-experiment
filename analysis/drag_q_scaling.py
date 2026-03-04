@@ -39,7 +39,7 @@ from laboneq_applications.analysis.options import (
     PlotPopulationOptions,
     TuneUpAnalysisWorkflowOptions,
 )
-from laboneq_applications.analysis.plotting_helpers import (
+from analysis.plotting_helpers import (
     plot_raw_complex_data_1d,
     timestamped_title,
 )
@@ -47,6 +47,7 @@ from laboneq_applications.core.validation import (
     validate_and_convert_qubits_sweeps,
     validate_result,
 )
+from analysis.plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import lmfit
@@ -669,6 +670,7 @@ def extract_qubit_parameters(
 
 
 @workflow.task
+@with_plot_theme
 def plot_population(
     qubits: QuantumElements,
     processed_data_dict: dict[str, dict[str, dict[str, ArrayLike]]],
@@ -827,6 +829,7 @@ def plot_population(
 
 
 @workflow.task
+@with_plot_theme
 def plot_allxy_scores(
     qubits: QuantumElements,
     allxy_beta_results: dict[

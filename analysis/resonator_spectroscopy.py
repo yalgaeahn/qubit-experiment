@@ -29,11 +29,12 @@ from laboneq_applications.analysis.fitting_helpers import (
     )
                                                            
 from laboneq_applications.analysis.options import BasePlottingOptions
-from laboneq_applications.analysis.plotting_helpers import (
+from analysis.plotting_helpers import (
     plot_raw_complex_data_1d,
     timestamped_title,
 )
 from laboneq_applications.core import validation
+from analysis.plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import lmfit
@@ -537,6 +538,7 @@ def extract_qubit_parameters(
 
 
 @workflow.task
+@with_plot_theme
 def plot_magnitude_phase(
     qubit: QuantumElement,
     processed_data_dict: dict[str, ArrayLike],
@@ -691,6 +693,7 @@ def plot_magnitude_phase(
 
 
 @workflow.task
+@with_plot_theme
 def plot_real_imaginary(
     qubit: QuantumElement,
     #result: RunExperimentResults,

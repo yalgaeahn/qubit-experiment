@@ -8,8 +8,17 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pytest
+from matplotlib.colors import to_hex
+
+pytest.importorskip("laboneq")
 
 import analysis.iq_cloud as iq_cloud
+from analysis.plot_theme import (
+    get_plot_theme_rc_params,
+    get_semantic_color,
+    get_state_color,
+)
 from experiments.iq_cloud_common import prepared_labels_for_num_qubits
 
 
@@ -101,6 +110,8 @@ def test_plot_assignment_matrices_smoke_for_3q(monkeypatch) -> None:
     fig = figures["assignment_matrices"]
     assert fig is not None
     assert len(fig.axes) >= 4
+    expected_face = to_hex(get_plot_theme_rc_params()["axes.facecolor"])
+    assert to_hex(fig.axes[0].get_facecolor()) == expected_face
     plt.close(fig)
 
 
@@ -117,5 +128,66 @@ def test_plot_bootstrap_summary_smoke_for_3q(monkeypatch) -> None:
     fig = figures["bootstrap_summary"]
     assert fig is not None
     assert len(fig.axes) == 3
+    expected_face = to_hex(get_plot_theme_rc_params()["axes.facecolor"])
+    assert to_hex(fig.axes[0].get_facecolor()) == expected_face
+    expected_g = to_hex(get_state_color("g"))
+    marker_line = fig.axes[0].lines[0]
+    assert to_hex(marker_line.get_color()) == expected_g
     plt.close(fig)
 
+
+def test_plot_iq_clouds_theme_colors_smoke(monkeypatch) -> None:
+    qubits = [DummyQubit(uid=f"q{i}") for i in range(2)]
+    monkeypatch.setattr(iq_cloud, "validate_and_convert_qubits_sweeps", lambda q: q)
+
+    rng = np.random.default_rng(123)
+    labels = prepared_labels_for_num_qubits(2)
+    processed_data = {
+        "shots_per_qubit": {
+            q.uid: {
+                label: (
+                    rng.normal(0.0, 0.15, size=128)
+                    + 1j * rng.normal(0.0, 0.15, size=128)
+                ).tolist()
+                for label in labels
+            }
+            for q in qubits
+        }
+    }
+    decision_model = {
+        q.uid: {
+            "w": np.array([1.0, -0.2]),
+            "b": 0.1,
+            "axis_unit": np.array([1.0, 0.0]),
+            "mu_g": np.array([-0.2, 0.0]),
+            "mu_e": np.array([0.3, 0.1]),
+            "sigma": np.array([[0.05, 0.0], [0.0, 0.05]]),
+            "t": 0.02,
+        }
+        for q in qubits
+    }
+
+    figures = iq_cloud.plot_iq_clouds.func(
+        processed_data=processed_data,
+        decision_model=decision_model,
+        qubits=qubits,
+        bootstrap=None,
+    )
+    fig = figures[qubits[0].uid]
+    ax_iq = fig.axes[0]
+
+    expected_axes_face = to_hex(get_plot_theme_rc_params()["axes.facecolor"])
+    assert to_hex(ax_iq.get_facecolor()) == expected_axes_face
+
+    collection_colors = {
+        to_hex(collection.get_facecolor()[0])
+        for collection in ax_iq.collections
+        if hasattr(collection, "get_facecolor")
+        and collection.get_facecolor().size > 0
+    }
+    assert to_hex(get_state_color("g")) in collection_colors
+    assert to_hex(get_state_color("e")) in collection_colors
+
+    line_colors = {to_hex(line.get_color()) for line in ax_iq.lines}
+    assert to_hex(get_semantic_color("boundary")) in line_colors
+    plt.close(fig)

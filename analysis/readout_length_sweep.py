@@ -14,6 +14,7 @@ from analysis.readout_sweep_common import (
     select_best_index,
 )
 from laboneq_applications.core.validation import validate_result
+from analysis.plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -484,6 +485,7 @@ def calculate_metrics(
 
 
 @workflow.task(save=False)
+@with_plot_theme
 def plot_metrics(
     metrics: dict,
     include_error_bars: bool = True,

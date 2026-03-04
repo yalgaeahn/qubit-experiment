@@ -25,6 +25,7 @@ from analysis.iq_cloud import (
     select_confusion_matrices,
 )
 from laboneq_applications.core.validation import validate_result
+from analysis.plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -505,6 +506,7 @@ def plot_optimal_iq_cloud_bundle(
 
 
 @workflow.task(save=False)
+@with_plot_theme
 def plot_metrics(metrics: dict, include_error_bars: bool = True) -> mpl.figure.Figure:
     """Plot readout-frequency sweep metrics."""
     frequency_points = np.asarray(metrics["sweep_points"], dtype=float)

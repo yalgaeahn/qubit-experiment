@@ -21,6 +21,7 @@ from experiments.iq_cloud_common import (
     prepared_labels_for_num_qubits,
     validate_supported_num_qubits,
 )
+from analysis.plot_theme import get_semantic_color, get_state_color, with_plot_theme
 
 if TYPE_CHECKING:
     import matplotlib as mpl
@@ -746,6 +747,7 @@ def extract_qubit_parameters_for_discrimination(
 
 
 @workflow.task
+@with_plot_theme
 def plot_iq_clouds(
     processed_data: dict,
     decision_model: dict,
@@ -763,6 +765,9 @@ def plot_iq_clouds(
     for q_index, uid in enumerate(qubit_uids):
         fig, axes = plt.subplots(1, 2, figsize=(10, 4))
         ax_iq, ax_proj = axes
+        g_color = get_state_color("g")
+        e_color = get_state_color("e")
+        boundary_color = get_semantic_color("boundary")
         model = decision_model[uid]
         w = np.asarray(model["w"], dtype=float)
         b = float(model["b"])
@@ -787,7 +792,7 @@ def plot_iq_clouds(
             s=8,
             alpha=0.25,
             label="g",
-            color="tab:blue",
+            color=g_color,
         )
         ax_iq.scatter(
             np.real(e_shots),
@@ -795,15 +800,15 @@ def plot_iq_clouds(
             s=8,
             alpha=0.25,
             label="e",
-            color="tab:red",
+            color=e_color,
         )
-        ax_iq.plot(mu_g[0], mu_g[1], "o", color="tab:blue", ms=8)
-        ax_iq.plot(mu_e[0], mu_e[1], "o", color="tab:red", ms=8)
+        ax_iq.plot(mu_g[0], mu_g[1], "o", color=g_color, ms=8)
+        ax_iq.plot(mu_e[0], mu_e[1], "o", color=e_color, ms=8)
 
         ell_g = _ellipse_from_covariance(mu_g, sigma)
         ell_e = _ellipse_from_covariance(mu_e, sigma)
-        ell_g.set_edgecolor("tab:blue")
-        ell_e.set_edgecolor("tab:red")
+        ell_g.set_edgecolor(g_color)
+        ell_e.set_edgecolor(e_color)
         ax_iq.add_patch(ell_g)
         ax_iq.add_patch(ell_e)
 
@@ -812,10 +817,23 @@ def plot_iq_clouds(
         if abs(w[1]) > _EPS:
             xs = np.linspace(x_min, x_max, 200)
             ys = -(w[0] * xs + b) / w[1]
-            ax_iq.plot(xs, ys, "--", color="k", lw=1.5, label="Bayes boundary")
+            ax_iq.plot(
+                xs,
+                ys,
+                "--",
+                color=boundary_color,
+                lw=1.5,
+                label="Bayes boundary",
+            )
         elif abs(w[0]) > _EPS:
             x0 = -b / w[0]
-            ax_iq.axvline(x0, linestyle="--", color="k", lw=1.5, label="Bayes boundary")
+            ax_iq.axvline(
+                x0,
+                linestyle="--",
+                color=boundary_color,
+                lw=1.5,
+                label="Bayes boundary",
+            )
 
         ax_iq.set_xlim(x_min, x_max)
         ax_iq.set_ylim(y_min, y_max)
@@ -827,13 +845,24 @@ def plot_iq_clouds(
 
         proj_g = _real2(g_shots) @ axis
         proj_e = _real2(e_shots) @ axis
-        ax_proj.hist(proj_g, bins=80, density=True, alpha=0.45, label="g", color="tab:blue")
-        ax_proj.hist(proj_e, bins=80, density=True, alpha=0.45, label="e", color="tab:red")
-        ax_proj.axvline(thr_center, linestyle="--", color="k", label=f"t={thr_center:.4g}")
+        ax_proj.hist(proj_g, bins=80, density=True, alpha=0.45, label="g", color=g_color)
+        ax_proj.hist(proj_e, bins=80, density=True, alpha=0.45, label="e", color=e_color)
+        ax_proj.axvline(
+            thr_center,
+            linestyle="--",
+            color=boundary_color,
+            label=f"t={thr_center:.4g}",
+        )
         if isinstance(thr_ci, dict):
             t_low = float(thr_ci.get("ci_low", thr_center))
             t_high = float(thr_ci.get("ci_high", thr_center))
-            ax_proj.axvspan(t_low, t_high, color="k", alpha=0.12, label="t 95% CI")
+            ax_proj.axvspan(
+                t_low,
+                t_high,
+                color=boundary_color,
+                alpha=0.12,
+                label="t 95% CI",
+            )
         ax_proj.set_title(
             f"Projection on LDA axis (SNR={_format_ci(snr, snr_ci, digits=3)})"
         )
@@ -847,6 +876,7 @@ def plot_iq_clouds(
 
 
 @workflow.task
+@with_plot_theme
 def plot_assignment_matrices(
     confusion_matrices: dict,
     assignment_fidelity: dict,
@@ -941,6 +971,7 @@ def plot_assignment_matrices(
 
 
 @workflow.task
+@with_plot_theme
 def plot_bootstrap_summary(
     bootstrap: dict,
     qubits: QuantumElements,
@@ -960,6 +991,9 @@ def plot_bootstrap_summary(
 
     fig, axes = plt.subplots(1, 3, figsize=(13, 3.8), squeeze=False)
     axes = axes.ravel()
+    g_color = get_state_color("g")
+    e_color = get_state_color("e")
+    ok_color = get_semantic_color("ok")
     for ax, (key, title) in zip(axes, metrics):
         means = []
         low_err = []
@@ -981,7 +1015,7 @@ def plot_bootstrap_summary(
             fmt="o",
             capsize=4,
             linestyle="None",
-            color="tab:blue",
+            color=g_color,
         )
         ax.set_xticks(x, qubit_uids)
         ax.set_title(title)
@@ -992,9 +1026,19 @@ def plot_bootstrap_summary(
                 joint = bootstrap.get("joint", {}).get("fidelity")
                 avg = bootstrap.get("average", {}).get("fidelity")
                 if isinstance(joint, dict):
-                    ax.axhline(float(joint.get("mean", 0.0)), color="tab:red", linestyle="--", label="joint mean")
+                    ax.axhline(
+                        float(joint.get("mean", 0.0)),
+                        color=e_color,
+                        linestyle="--",
+                        label="joint mean",
+                    )
                 if isinstance(avg, dict):
-                    ax.axhline(float(avg.get("mean", 0.0)), color="tab:green", linestyle=":", label="avg mean")
+                    ax.axhline(
+                        float(avg.get("mean", 0.0)),
+                        color=ok_color,
+                        linestyle=":",
+                        label="avg mean",
+                    )
                 if isinstance(joint, dict) or isinstance(avg, dict):
                     ax.legend(frameon=False, fontsize=8)
 

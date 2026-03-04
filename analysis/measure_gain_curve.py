@@ -23,8 +23,9 @@ from laboneq_applications.analysis.options import (
     BasePlottingOptions,
     TuneUpAnalysisWorkflowOptions,
 )
-from laboneq_applications.analysis.plotting_helpers import timestamped_title
+from analysis.plotting_helpers import timestamped_title
 from laboneq_applications.core import validation
+from analysis.plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import matplotlib as mpl
@@ -197,6 +198,7 @@ def extract_parametric_amplifier_parameters(
 
 
 @workflow.task
+@with_plot_theme
 def plot_2D(  # noqa: N802
     parametric_amplifier: TWPAParameters,
     parametric_amplifier_parameters: dict,
@@ -258,6 +260,7 @@ def plot_2D(  # noqa: N802
 
 
 @workflow.task
+@with_plot_theme
 def plot_1D(  # noqa: N802
     signal_dict: dict,
     probe_frequency: ArrayLike,

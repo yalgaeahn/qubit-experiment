@@ -13,11 +13,12 @@ from laboneq import workflow
 from laboneq.simple import dsl
 
 from laboneq_applications.analysis.options import BasePlottingOptions
-from laboneq_applications.analysis.plotting_helpers import timestamped_title
+from analysis.plotting_helpers import timestamped_title
 from laboneq_applications.core.validation import (
     validate_and_convert_qubits_sweeps,
     validate_result,
 )
+from analysis.plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -1263,6 +1264,7 @@ def compute_dsp_diagnostics(
 
 
 @workflow.task
+@with_plot_theme
 def plot_flat_window_debug(
     qubits: QuantumElements,
     states: Sequence[str],
@@ -1464,6 +1466,7 @@ def plot_flat_window_debug(
 
 
 @workflow.task
+@with_plot_theme
 def plot_iq_time_traces(
     qubits: QuantumElements,
     states: Sequence[str],
@@ -1697,6 +1700,7 @@ def plot_iq_time_traces(
 
 
 @workflow.task
+@with_plot_theme
 def plot_iq_dsp(
     qubits: QuantumElements,
     states: Sequence[str],

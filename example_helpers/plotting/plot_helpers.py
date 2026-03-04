@@ -17,23 +17,19 @@ import matplotlib.pyplot as plt
 # numpy for mathematics
 import numpy as np
 
+from analysis.plot_theme import plot_theme_context
 from laboneq.core.types.compiled_experiment import CompiledExperiment
 from laboneq.simulator.output_simulator import OutputSimulator
 
 
 def zi_mpl_theme():
-    # Zurich Instruments style plotting
-    return matplotlib.rc_context(
-        {
-            "font.weight": "light",
-            "axes.labelweight": "light",
-            "axes.titleweight": "normal",
-            "axes.prop_cycle": matplotlib.cycler(
-                color=["#006699", "#FF0000", "#66CC33", "#CC3399"]
-            ),
-            "svg.fonttype": "none",  # Make text editable in SVG
+    """Backward-compatible plotting context routed to the unified theme."""
+    return plot_theme_context(
+        theme="high_contrast_publication_dark",
+        rc_overrides={
+            "svg.fonttype": "none",  # Keep text editable in SVG.
             "text.usetex": False,
-        }
+        },
     )
 
 

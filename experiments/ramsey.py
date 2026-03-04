@@ -20,6 +20,7 @@ in parallel on all the qubits.
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -35,11 +36,6 @@ from laboneq.workflow.tasks import (
     compile_experiment,
     run_experiment,
 )
-
-from laboneq_applications.analysis.ramsey import (
-    analysis_workflow,
-    validate_and_convert_detunings,
-)
 from laboneq_applications.core import validation
 from laboneq_applications.experiments.options import (
     TuneupExperimentOptions,
@@ -48,9 +44,12 @@ from laboneq_applications.experiments.options import (
 from laboneq_applications.tasks.parameter_updating import (
     temporary_qpu,
     temporary_quantum_elements_from_qpu,
-    update_qubits,
-    update_qpu
+    update_qpu,
 )
+
+from analysis.echo import analysis_workflow as echo_analysis_workflow
+from analysis.ramsey import analysis_workflow as ramsey_analysis_workflow
+from analysis.ramsey import validate_and_convert_detunings
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -58,8 +57,70 @@ if TYPE_CHECKING:
     from laboneq.dsl.quantum import QuantumParameters
     from laboneq.dsl.quantum.qpu import QPU
     from laboneq.dsl.session import Session
-
     from laboneq_applications.typing import QuantumElements, QubitSweepPoints
+
+
+@workflow.workflow_options(base_class=TuneUpWorkflowOptions)
+class RamseyWorkflowOptions:
+    """Workflow options for Ramsey/Echo dual-mode execution."""
+
+    echo: bool = workflow.option_field(
+        False,
+        description=(
+            "Enable Hahn-echo mode: insert refocus pulse and use echo analysis."
+        ),
+    )
+    refocus_qop: str = workflow.option_field(
+        "y180",
+        description="Refocusing operation inserted between x90 pulses in echo mode.",
+    )
+
+
+def _analysis_workflow_for_mode(*, echo: bool):
+    """Return the analysis workflow function for the selected mode."""
+    return echo_analysis_workflow if echo else ramsey_analysis_workflow
+
+
+def _has_nonzero_detunings(detunings: Sequence[float]) -> bool:
+    """Return True when at least one detuning value is non-zero."""
+    return bool(np.any(np.abs(np.asarray(detunings, dtype=float)) > 0.0))
+
+
+def _compute_phase_values_for_mode(
+    delay_values: np.ndarray,
+    detuning_hz: float,
+    *,
+    echo: bool,
+) -> np.ndarray:
+    """Compute second-pulse phase values for Ramsey or echo mode."""
+    if echo:
+        return np.zeros_like(delay_values, dtype=float)
+    return ((delay_values - delay_values[0]) * float(detuning_hz) * 2 * np.pi) % (
+        2 * np.pi
+    )
+
+
+def _ramsey_qop_kwargs(
+    *,
+    transition: str,
+    echo: bool,
+    refocus_qop: str,
+) -> dict[str, str]:
+    """Build keyword arguments passed to qop.ramsey(.omit_section)."""
+    kwargs: dict[str, str] = {"transition": transition}
+    if echo:
+        kwargs["echo_pulse"] = refocus_qop
+    return kwargs
+
+
+def _maybe_log_ignored_detunings(*, echo: bool, detunings: Sequence[float]) -> None:
+    """Warn once when echo mode receives non-zero detunings."""
+    if echo and _has_nonzero_detunings(detunings):
+        workflow.log(
+            logging.WARNING,
+            "Echo mode ignores detunings for phase programming; received detunings=%s.",
+            detunings,
+        )
 
 
 @workflow.workflow(name="ramsey")
@@ -71,7 +132,7 @@ def experiment_workflow(
     detunings: float | Sequence[float] | None = None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,
-    options: TuneUpWorkflowOptions | None = None,
+    options: RamseyWorkflowOptions | None = None,
 ) -> None:
     """The Ramsey Workflow.
 
@@ -134,6 +195,7 @@ def experiment_workflow(
         ).run()
         ```
     """
+    opts = RamseyWorkflowOptions() if options is None else options
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
     qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)
     exp = create_experiment(
@@ -141,13 +203,24 @@ def experiment_workflow(
         qubits,
         delays=delays,
         detunings=detunings,
+        echo=opts.echo,
+        refocus_qop=opts.refocus_qop,
     )
     compiled_exp = compile_experiment(session, exp)
     result = run_experiment(session, compiled_exp)
-    with workflow.if_(options.do_analysis):
-        analysis_results = analysis_workflow(result, qubits, delays, detunings)
+    with workflow.if_(opts.do_analysis):
+        analysis_results = None
+        with workflow.if_(opts.echo):
+            analysis_results = echo_analysis_workflow(result, qubits, delays)
+        with workflow.else_():
+            analysis_results = ramsey_analysis_workflow(
+                result,
+                qubits,
+                delays,
+                detunings,
+            )
         qubit_parameters = analysis_results.output
-        with workflow.if_(options.update):
+        with workflow.if_(opts.update):
             update_qpu(qpu, qubit_parameters["new_parameter_values"])
     workflow.return_(result)
 
@@ -160,6 +233,9 @@ def create_experiment(
     delays: QubitSweepPoints,
     detunings: float | Sequence[float] | None = None,
     options: TuneupExperimentOptions | None = None,
+    *,
+    echo: bool = False,
+    refocus_qop: str = "y180",
 ) -> Experiment:
     """Creates a Ramsey Experiment where the phase of the second pulse is swept.
 
@@ -233,6 +309,7 @@ def create_experiment(
     opts = TuneupExperimentOptions() if options is None else options
     qubits, delays = validation.validate_and_convert_qubits_sweeps(qubits, delays)
     detunings = validate_and_convert_detunings(qubits, detunings)
+    _maybe_log_ignored_detunings(echo=echo, detunings=detunings)
     if (
         opts.use_cal_traces
         and AveragingMode(opts.averaging_mode) == AveragingMode.SEQUENTIAL
@@ -244,27 +321,28 @@ def create_experiment(
         )
 
     swp_delays = []
-    swp_phases = []
+    phase_values = []
     for i, q in enumerate(qubits):
-        q_delays = delays[i]
+        q_delays = np.asarray(delays[i], dtype=float)
         swp_delays += [
             SweepParameter(
                 uid=f"wait_time_{q.uid}",
                 values=q_delays,
             ),
         ]
-        swp_phases += [
-            SweepParameter(
+        if echo:
+            phase_values.append(0.0)
+        else:
+            qubit_phases = _compute_phase_values_for_mode(
+                q_delays,
+                detunings[i],
+                echo=False,
+            )
+            swp_phases = SweepParameter(
                 uid=f"x90_phases_{q.uid}",
-                values=np.array(
-                    [
-                        ((wait_time - q_delays[0]) * detunings[i] * 2 * np.pi)
-                        % (2 * np.pi)
-                        for wait_time in q_delays
-                    ]
-                ),
-            ),
-        ]
+                values=qubit_phases,
+            )
+            phase_values.append(swp_phases)
 
     # We will fix the length of the measure section to the longest section among
     # the qubits to allow the qubits to have different readout and/or
@@ -281,7 +359,7 @@ def create_experiment(
     ):
         with dsl.sweep(
             name="ramsey_sweep",
-            parameter=swp_delays + swp_phases,
+            parameter=swp_delays if echo else swp_delays + phase_values,
         ):
             if opts.active_reset:
                 qop.active_reset(
@@ -292,14 +370,22 @@ def create_experiment(
                 )
             with dsl.section(name="main", alignment=SectionAlignment.RIGHT):
                 with dsl.section(name="main_drive", alignment=SectionAlignment.RIGHT):
-                    for q, wait_time, phase in zip(qubits, swp_delays, swp_phases):
+                    for q, wait_time, phase in zip(qubits, swp_delays, phase_values):
                         qop.prepare_state.omit_section(q, opts.transition[0])
+                        ramsey_kwargs = _ramsey_qop_kwargs(
+                            transition=opts.transition,
+                            echo=echo,
+                            refocus_qop=refocus_qop,
+                        )
                         qop.ramsey.omit_section(
-                            q, wait_time, phase, transition=opts.transition
+                            q,
+                            wait_time,
+                            phase,
+                            **ramsey_kwargs,
                         )
                 with dsl.section(name="main_measure", alignment=SectionAlignment.LEFT):
                     for q in qubits:
-                        sec = qop.measure(q, dsl.handles.result_handle(q.uid))
+                        qop.measure(q, dsl.handles.result_handle(q.uid))
                         # Fix the length of the measure section
                         #sec.length = max_measure_section_length
                         qop.passive_reset(q)

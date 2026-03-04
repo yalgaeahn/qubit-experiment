@@ -25,8 +25,7 @@ import uncertainties as unc
 from laboneq import workflow
 
 from laboneq_applications.analysis.calibration_traces_rotation import (
-    calculate_qubit_population_2d,
-    calculate_qubit_population
+    calculate_qubit_population,
 )
 from laboneq_applications.analysis.fitting_helpers import cosine_oscillatory_decay_fit
 from laboneq_applications.analysis.options import (
@@ -55,7 +54,17 @@ if TYPE_CHECKING:
 class FitDataRamseyOptions:
     """Options for the `fit_data` task of the Ramsey analysis.
 
-   
+    See [FitDataOptions] for additional accepted options.
+
+    Attributes:
+        do_pca:
+            Whether to perform principal component analysis on the raw data independent
+            of whether there were calibration traces in the experiment.
+            Default: `False`.
+        transition:
+            Transition to perform the experiment on. May be any
+            transition supported by the quantum operations.
+            Default: `"ge"` (i.e. ground to first excited state).
     """
 
     do_pca: bool = workflow.option_field(
@@ -119,7 +128,6 @@ def analysis_workflow(
     result: RunExperimentResults,
     qubits: QuantumElements,
     delays: QubitSweepPoints,
-    frequencies: QubitSweepPoints,
     detunings: float | Sequence[float] | None = None,
     options: TuneUpAnalysisWorkflowOptions | None = None,
 ) -> None:
@@ -172,9 +180,9 @@ def analysis_workflow(
         ).run()
         ```
     """
-    processed_data_dict = calculate_qubit_population_2d(qubits=qubits, result=result, sweep_points_1d=delays, sweep_points_2d=frequencies)
+    processed_data_dict = calculate_qubit_population(qubits, result, delays)
     fit_results = fit_data(qubits, processed_data_dict)
-    #qubit_parameters = extract_qubit_parameters(qubits, fit_results, detunings)
+    qubit_parameters = extract_qubit_parameters(qubits, fit_results, detunings)
     with workflow.if_(options.do_plotting):
         with workflow.if_(options.do_raw_data_plotting):
             plot_raw_complex_data_1d(

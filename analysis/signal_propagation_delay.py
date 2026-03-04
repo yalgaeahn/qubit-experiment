@@ -28,6 +28,7 @@ from laboneq_applications.analysis.options import (
     DoFittingOption,
     TuneUpAnalysisWorkflowOptions,
 )
+from analysis.plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import matplotlib as mpl
@@ -174,6 +175,7 @@ def extract_qubit_parameters(
 
 
 @task
+@with_plot_theme
 def plot_data(
     qubit: Qubit,
     result: RunExperimentResults,

@@ -29,8 +29,9 @@ from laboneq_applications.analysis.options import (
     BasePlottingOptions,
     DoFittingOption,
 )
-from laboneq_applications.analysis.plotting_helpers import timestamped_title
+from analysis.plotting_helpers import timestamped_title
 from laboneq_applications.core.validation import validate_and_convert_qubits_sweeps
+from analysis.plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -502,6 +503,7 @@ def extract_qubit_parameters(
 
 
 @workflow.task
+@with_plot_theme
 def plot_time_traces(
     qubits: QuantumElements,
     states: Sequence[str],
@@ -573,6 +575,7 @@ def plot_time_traces(
 
 
 @workflow.task
+@with_plot_theme
 def plot_kernels_traces(
     qubits: QuantumElements,
     discrimination_thresholds: dict[str, list],
@@ -675,6 +678,7 @@ def plot_kernels_traces(
 
 
 @workflow.task
+@with_plot_theme
 def plot_kernels_fft(
     qubits: QuantumElements,
     discrimination_thresholds: dict[str, list],
