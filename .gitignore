@@ -1,4 +1,7 @@
 .venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
 **/__pycache__/
 # Ignore all generated artifacts under laboneq_output, but keep .gitkeep
 examples/laboneq_output/log/*

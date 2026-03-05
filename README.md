@@ -1,9 +1,7 @@
 # qubit-experiment
 
-Reusable LabOne Q experiment/analysis package with a clean split between:
-
-- canonical reusable package code (`qubit_experiment/...`)
-- project-specific exploratory work (`projects/<project>/...`)
+Reusable LabOne Q experiment/analysis package focused on reusable code.
+Project-specific notebooks and assets are maintained in separate project repositories.
 
 ## Installation
 
@@ -53,9 +51,8 @@ helper_functions/         # Legacy compatibility package
 helper.py                 # Legacy compatibility module
 operations.py             # Legacy compatibility module
 custom_pulse_library.py   # Legacy compatibility module
-projects/                 # Project-specific workspaces (not package API)
-projects/kaist/notebooks/ # KAIST-specific exploratory notebooks
-examples/                 # Curated/public examples (selectiveRIP moved out)
+example_helpers/          # Shared helper utilities for examples
+examples/                 # Descriptor files + moved-project pointers
 tests/                    # Automated tests
 ```
 
@@ -68,15 +65,13 @@ tests/                    # Automated tests
   - tag `v0.1.0-package-foundation`
   - commit `a4496b2`
 
-## Project-Specific Code Policy
+## Project Repository Policy
 
-Use `projects/<project>/...` for:
-
-- ad-hoc notebooks
-- local calibration scripts
-- intermediate artifacts
-
-Keep reusable workflows and helpers in `qubit_experiment/`.
+- Keep reusable workflows and helpers in `qubit_experiment/`.
+- Keep project/lab-specific notebooks, calibration data, and exploratory scripts in
+  separate project repositories.
+- Use those project repositories with `qubit-experiment` as a dependency (editable or
+  Git URL install).
 
 ## Development Checks
 
@@ -90,6 +85,6 @@ pytest -q
 ## Publication Readiness Checklist
 
 - Reusable logic is under `qubit_experiment/`
-- Project/lab specific notebooks are under `projects/`
+- Project/lab specific assets live in separate project repositories
 - New code uses `qubit_experiment.*` imports
 - Legacy imports still work for existing notebooks
