@@ -21,6 +21,17 @@ projects/<workspace>/
   artifacts/
 ```
 
+Notebook example:
+
+```python
+from qubit_experiment.devpaths import workspace_path
+
+descriptor_path = workspace_path(
+    "configs/descriptors/1port.yaml",
+    workspace="selectiveRIP-dev",
+)
+```
+
 Rules:
 
 - nothing under `projects/*` is meant to be committed

@@ -9,7 +9,7 @@ from __future__ import annotations
 from importlib import import_module
 from types import ModuleType
 
-__all__ = ["analysis", "experiments", "qpu_types", "helper_functions"]
+__all__ = ["analysis", "experiments", "qpu_types", "helper_functions", "devpaths"]
 
 
 def __getattr__(name: str) -> ModuleType:
