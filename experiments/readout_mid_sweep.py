@@ -282,6 +282,40 @@ def _coalesce_payload(payload: dict | None, analysis_result) -> dict | None:
     return flattened
 
 
+@workflow.task(save=False)
+def _has_new_parameter_values(analysis_payload: dict | None, analysis_result) -> bool:
+    """Return whether updateable parameter values are present."""
+    if isinstance(analysis_payload, dict):
+        new_values = analysis_payload.get("new_parameter_values")
+        if isinstance(new_values, dict):
+            return True
+
+    fallback = getattr(analysis_result, "output", None)
+    if isinstance(fallback, dict):
+        new_values = fallback.get("new_parameter_values")
+        if isinstance(new_values, dict):
+            return True
+
+    return False
+
+
+@workflow.task(save=False)
+def _extract_new_parameter_values(analysis_payload: dict | None, analysis_result) -> dict:
+    """Extract updateable parameter values from analysis outputs."""
+    if isinstance(analysis_payload, dict):
+        new_values = analysis_payload.get("new_parameter_values")
+        if isinstance(new_values, dict):
+            return new_values
+
+    fallback = getattr(analysis_result, "output", None)
+    if isinstance(fallback, dict):
+        new_values = fallback.get("new_parameter_values")
+        if isinstance(new_values, dict):
+            return new_values
+
+    return {}
+
+
 @workflow.workflow(name="readout_mid_sweep")
 def experiment_workflow(
     session: Session,
@@ -354,12 +388,13 @@ def experiment_workflow(
         )
         analysis_payload = _materialize_analysis_output(analysis_result)
         with workflow.if_(options.update):
-            if isinstance(analysis_payload, dict) and "new_parameter_values" in analysis_payload:
-                update_qpu(qpu, analysis_payload["new_parameter_values"])
-            else:
-                fallback = getattr(analysis_result, "output", None)
-                if isinstance(fallback, dict) and "new_parameter_values" in fallback:
-                    update_qpu(qpu, fallback["new_parameter_values"])
+            has_new_values = _has_new_parameter_values(analysis_payload, analysis_result)
+            with workflow.if_(has_new_values):
+                update_values = _extract_new_parameter_values(
+                    analysis_payload,
+                    analysis_result,
+                )
+                update_qpu(qpu, update_values)
 
     final_output = _coalesce_payload(analysis_payload, analysis_result)
     workflow.return_(final_output)

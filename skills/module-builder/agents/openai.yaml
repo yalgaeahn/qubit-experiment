@@ -1,4 +1,4 @@
 interface:
-  display_name: "LabOne Q New Module Builder"
+  display_name: "Module Builder"
   short_description: "Build new modules from installed package contracts"
   default_prompt: "Create new LabOne Q experiment and analysis modules from scratch in this repository. Before coding, run the .venv laboneq_applications snapshot and map the request to nearest template modules, then implement paired experiment+analysis contracts with safe update and acquisition guards."

@@ -2,7 +2,7 @@
 
 - generated: `2026-03-04T00:43:59.926680+00:00`
 - scope: `experiments/*.py`, `analysis/*.py`
-- basis: `skills/laboneq-new-module-builder/SKILL.md` Contract Rules + Validation Checklist
+- basis: `skills/module-builder/SKILL.md` Contract Rules + Validation Checklist
 
 ## Summary
 - total files reviewed: `90`

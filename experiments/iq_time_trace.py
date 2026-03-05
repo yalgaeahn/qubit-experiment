@@ -88,6 +88,19 @@ def _apply_find_flat_window_capture_policy(qubits: QuantumElements) -> None:
         q.parameters.readout_integration_length = _FIND_FLAT_WINDOW_INTEGRATION_LENGTH_S
 
 
+@workflow.task(save=False)
+def _validate_flat_window_workflow_options(
+    find_flat_window: bool,
+    do_analysis: bool,
+) -> None:
+    """Validate option combinations that require analysis outputs."""
+    if find_flat_window and not do_analysis:
+        raise ValueError(
+            "find_flat_window=True requires do_analysis=True because flat-window "
+            "detection is performed in analysis_workflow."
+        )
+
+
 @workflow.workflow(name="iq_time_trace")
 def experiment_workflow(
     session: Session,
@@ -100,11 +113,10 @@ def experiment_workflow(
 ) -> None:
     """Run IQ time-trace experiment and optional analysis."""
     opts = IQTimeTraceExperimentWorkflowOptions() if options is None else options
-    if opts.find_flat_window and not opts.do_analysis:
-        raise ValueError(
-            "find_flat_window=True requires do_analysis=True because flat-window "
-            "detection is performed in analysis_workflow."
-        )
+    _validate_flat_window_workflow_options(
+        find_flat_window=opts.find_flat_window,
+        do_analysis=opts.do_analysis,
+    )
 
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
     qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)

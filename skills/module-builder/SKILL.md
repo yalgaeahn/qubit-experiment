@@ -1,9 +1,9 @@
 ---
-name: laboneq-new-module-builder
+name: module-builder
 description: Create new LabOne Q experiment/analysis modules in this repository by grounding design against the installed `.venv` `laboneq_applications` contracts before coding. Use when the user asks to add a new workflow/module from scratch, add a new tune-up experiment type, or perform a major interface redesign under `experiments/` and `analysis/`.
 ---
 
-# LabOne Q New Module Builder
+# Module Builder (LabOne Q)
 
 ## Scope
 
@@ -18,8 +18,8 @@ Run this before writing any code:
 
 ```bash
 MPLCONFIGDIR=/tmp/mplconfig \
-.venv/bin/python skills/laboneq-new-module-builder/scripts/snapshot_laboneq_applications.py \
-  --output skills/laboneq-new-module-builder/references/laboneq-applications-venv-snapshot.md
+.venv/bin/python skills/module-builder/scripts/snapshot_laboneq_applications.py \
+  --output skills/module-builder/references/laboneq-applications-venv-snapshot.md
 ```
 
 Do not start implementation unless this succeeds.

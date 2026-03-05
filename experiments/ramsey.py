@@ -80,7 +80,6 @@ def _analysis_workflow_for_mode(*, echo: bool):
     """Return the analysis workflow function for the selected mode."""
     return echo_analysis_workflow if echo else ramsey_analysis_workflow
 
-
 def _has_nonzero_detunings(detunings: Sequence[float]) -> bool:
     """Return True when at least one detuning value is non-zero."""
     return bool(np.any(np.abs(np.asarray(detunings, dtype=float)) > 0.0))
@@ -195,7 +194,6 @@ def experiment_workflow(
         ).run()
         ```
     """
-    opts = RamseyWorkflowOptions() if options is None else options
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
     qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)
     exp = create_experiment(
@@ -203,15 +201,16 @@ def experiment_workflow(
         qubits,
         delays=delays,
         detunings=detunings,
-        echo=opts.echo,
-        refocus_qop=opts.refocus_qop,
+        echo=options.echo,
+        refocus_qop=options.refocus_qop,
     )
     compiled_exp = compile_experiment(session, exp)
     result = run_experiment(session, compiled_exp)
-    with workflow.if_(opts.do_analysis):
-        analysis_results = None
-        with workflow.if_(opts.echo):
+    with workflow.if_(options.do_analysis):
+        with workflow.if_(options.echo):
             analysis_results = echo_analysis_workflow(result, qubits, delays)
+            with workflow.if_(options.update):
+                update_qpu(qpu, analysis_results.output["new_parameter_values"])
         with workflow.else_():
             analysis_results = ramsey_analysis_workflow(
                 result,
@@ -219,9 +218,8 @@ def experiment_workflow(
                 delays,
                 detunings,
             )
-        qubit_parameters = analysis_results.output
-        with workflow.if_(opts.update):
-            update_qpu(qpu, qubit_parameters["new_parameter_values"])
+            with workflow.if_(options.update):
+                update_qpu(qpu, analysis_results.output["new_parameter_values"])
     workflow.return_(result)
 
 

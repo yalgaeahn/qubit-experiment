@@ -141,6 +141,16 @@ def _normalize_single_qubit_sweeps(
     return q_scalings
 
 
+@workflow.task(save=False)
+def _validate_sequence_set(sequence_set: str) -> Literal["xy3", "allxy21"]:
+    """Validate and return supported sequence-set identifiers."""
+    if sequence_set not in ("xy3", "allxy21"):
+        raise ValueError(
+            f"Unsupported sequence_set: {sequence_set}. Choose xy3 or allxy21."
+        )
+    return sequence_set
+
+
 @workflow.workflow
 def analysis_workflow(
     result: RunExperimentResults,
@@ -194,23 +204,21 @@ def analysis_workflow(
         ).run()
         ```
     """
+    sequence_set = _validate_sequence_set(sequence_set)
     q_scalings = _normalize_single_qubit_sweeps(qubits, q_scalings)
     processed_data_dict = calculate_qubit_population_for_pulse_ids(
         qubits, result, q_scalings
     )
     fit_results = {}
     allxy_beta_results = {}
-    if sequence_set == "xy3":
+    qubit_parameters = {}
+    with workflow.if_(sequence_set == "xy3"):
         fit_results = fit_data(qubits, processed_data_dict)
         qubit_parameters = extract_qubit_parameters(qubits, fit_results)
-    elif sequence_set == "allxy21":
+    with workflow.elif_(sequence_set == "allxy21"):
         allxy_beta_results = estimate_beta_from_allxy_scores(qubits, processed_data_dict)
         qubit_parameters = extract_qubit_parameters_from_allxy(
             qubits, allxy_beta_results
-        )
-    else:
-        raise ValueError(
-            f"Unsupported sequence_set: {sequence_set}. Choose xy3 or allxy21."
         )
     with workflow.if_(options.do_plotting):
         with workflow.if_(options.do_raw_data_plotting):
@@ -227,7 +235,7 @@ def analysis_workflow(
                 fit_results,
                 qubit_parameters,
             )
-            if sequence_set == "allxy21":
+            with workflow.if_(sequence_set == "allxy21"):
                 plot_allxy_scores(qubits, allxy_beta_results, qubit_parameters)
     workflow.return_(qubit_parameters)
 

@@ -21,8 +21,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import uncertainties as unc
 from laboneq import workflow
-
-from analysis import plotting_helpers as plt_hlp
 from laboneq_applications.analysis.calibration_traces_rotation import (
     calculate_qubit_population,
 )
@@ -37,6 +35,8 @@ from laboneq_applications.core.validation import (
     validate_and_convert_qubits_sweeps,
     validate_result,
 )
+
+from analysis import plotting_helpers as plt_hlp
 from analysis.plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
@@ -44,9 +44,16 @@ if TYPE_CHECKING:
     import matplotlib as mpl
     from laboneq.simple import Results
     from laboneq.workflow.tasks.run_experiment import RunExperimentResults
+    from laboneq_applications.typing import QuantumElements, QubitSweepPoints
     from numpy.typing import ArrayLike
 
-    from laboneq_applications.typing import QuantumElements, QubitSweepPoints
+
+def _resolve_transition(options: object, default: str = "ge") -> str:
+    """Resolve transition option with a safe default for mixed option classes."""
+    transition = getattr(options, "transition", default)
+    if transition is None:
+        return default
+    return str(transition)
 
 
 @workflow.task_options(base_class=FitDataOptions)
@@ -190,6 +197,7 @@ def fit_data(
         dict with qubit UIDs as keys and the fit results for each qubit as values.
     """
     opts = FitDataEchoOptions() if options is None else options
+    transition = _resolve_transition(opts)
     qubits = validate_and_convert_qubits_sweeps(qubits)
     fit_results = {}
     if not opts.do_fitting:
@@ -198,7 +206,7 @@ def fit_data(
     for q in qubits:
         echo_pulse_length = (
             q.parameters.ef_drive_length
-            if "f" in opts.transition
+            if "f" in transition
             else (
                 q.parameters.ge_drive_length_pi
                 if q.parameters.ge_drive_length_pi is not None
@@ -207,10 +215,11 @@ def fit_data(
         )
         swpts_fit = processed_data_dict[q.uid]["sweep_points"] + echo_pulse_length
         data_to_fit = processed_data_dict[q.uid]["population"]
+        use_cal_traces = getattr(opts, "use_cal_traces", True)
 
         param_hints = {
             "amplitude": {"value": 0.5},
-            "offset": {"value": 0.5, "vary": opts.do_pca or not opts.use_cal_traces},
+            "offset": {"value": 0.5, "vary": opts.do_pca or not use_cal_traces},
         }
         param_hints_user = opts.fit_parameters_hints
         if param_hints_user is None:
@@ -269,6 +278,7 @@ def extract_qubit_parameters(
         that qubit is left empty.
     """
     opts = ExtractQubitParametersTransitionOptions() if options is None else options
+    transition = _resolve_transition(opts)
     qubits = validate_and_convert_qubits_sweeps(qubits)
     qubit_parameters = {
         "old_parameter_values": {q.uid: {} for q in qubits},
@@ -277,9 +287,9 @@ def extract_qubit_parameters(
 
     for q in qubits:
         # Store the old T1 value
-        old_t2 = q.parameters.ef_T2 if "f" in opts.transition else q.parameters.ge_T2
+        old_t2 = q.parameters.ef_T2 if "f" in transition else q.parameters.ge_T2
         qubit_parameters["old_parameter_values"][q.uid] = {
-            f"{opts.transition}_T2": old_t2,
+            f"{transition}_T2": old_t2,
         }
 
         if opts.do_fitting and q.uid in fit_results:
@@ -291,7 +301,7 @@ def extract_qubit_parameters(
             t2 = 1 / dec_rt
 
             qubit_parameters["new_parameter_values"][q.uid] = {
-                f"{opts.transition}_T2": t2,
+                f"{transition}_T2": t2,
             }
 
     return qubit_parameters
@@ -331,6 +341,7 @@ def plot_raw_complex_data_1d(
         dict with qubit UIDs as keys and the figures for each qubit as values.
     """
     opts = PlotRawDataEchoOptions() if options is None else options
+    transition = _resolve_transition(opts)
     validate_result(result)
     qubits, delays = validate_and_convert_qubits_sweeps(qubits, delays)
 
@@ -338,7 +349,7 @@ def plot_raw_complex_data_1d(
     for q, qubit_delays in zip(qubits, delays):
         echo_pulse_length = (
             q.parameters.ef_drive_length
-            if "f" in opts.transition
+            if "f" in transition
             else (
                 q.parameters.ge_drive_length_pi
                 if q.parameters.ge_drive_length_pi is not None
@@ -393,12 +404,13 @@ def plot_population(
         extracted qubit parameters are not plotted.
     """
     opts = PlotPopulationOptions() if options is None else options
+    transition = _resolve_transition(opts)
     qubits = validate_and_convert_qubits_sweeps(qubits)
     figures = {}
     for q in qubits:
         echo_pulse_length = (
             q.parameters.ef_drive_length
-            if "f" in opts.transition
+            if "f" in transition
             else (
                 q.parameters.ge_drive_length_pi
                 if q.parameters.ge_drive_length_pi is not None
@@ -449,10 +461,10 @@ def plot_population(
             # Add textbox
             if len(qubit_parameters["new_parameter_values"][q.uid]) > 0:
                 old_t2 = qubit_parameters["old_parameter_values"][q.uid][
-                    f"{opts.transition}_T2"
+                    f"{transition}_T2"
                 ]
                 new_t2 = qubit_parameters["new_parameter_values"][q.uid][
-                    f"{opts.transition}_T2"
+                    f"{transition}_T2"
                 ]
                 textstr = (
                     "$T_2$: "
