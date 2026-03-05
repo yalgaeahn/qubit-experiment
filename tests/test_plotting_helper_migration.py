@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+from importlib import import_module
 from pathlib import Path
 
-
-ANALYSIS_DIR = Path(__file__).resolve().parents[1] / "analysis"
+ANALYSIS_DIR = Path(import_module("qubit_experiment.analysis").__file__).resolve().parent
 
 
 def test_analysis_no_external_plotting_helper_imports() -> None:

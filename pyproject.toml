@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Custom LabOne Q experiments and analysis"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
 authors = [
   { name = "Y. Ahn" }
 ]
@@ -19,8 +19,8 @@ dependencies = [
   "matplotlib>=3.7",
   "uncertainties>=3.1",
   "lmfit>=1.2",
-  "laboneq>=2.20.0",           # core SDK
-  "laboneq-applications>=0.7.0" # application workflows (adjust if needed)
+  "laboneq>=25.10,<26",                # core SDK (validated in local .venv)
+  "laboneq-applications>=25.10,<26"    # workflow/analysis contracts
 ]
 
 [project.optional-dependencies]
@@ -37,14 +37,25 @@ dev = [
 include-package-data = true
 zip-safe = false
 
-# Explicitly list installable packages and top-level modules
-packages = [
-  "analysis",
-  "experiments",
-  "qpu_types",
-  "helper_functions",
-]
 py-modules = ["helper", "operations", "custom_pulse_library"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+  "qubit_experiment*",
+  "analysis*",
+  "experiments*",
+  "qpu_types*",
+  "helper_functions*",
+]
+exclude = [
+  "tests*",
+  "examples*",
+  "projects*",
+  "tmp*",
+  "skills*",
+  "example_helpers*",
+]
 
 [tool.setuptools.package-data]
 # Include any static artifacts produced/saved by workflows if needed
@@ -83,3 +94,7 @@ target-version = ["py310"]
 python_version = "3.10"
 ignore_missing_imports = true
 pretty = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

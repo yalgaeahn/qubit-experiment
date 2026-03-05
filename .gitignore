@@ -17,3 +17,13 @@ qubit_parameters/
 # Ignore VS Code workspace files but keep the folder placeholder
 .vscode/*
 !.vscode/.gitkeep
+
+# Project-local exploratory outputs
+projects/*/artifacts/
+projects/*/outputs/
+projects/*/notebooks/.ipynb_checkpoints/
+
+# Packaging/build artifacts
+build/
+dist/
+*.egg-info/

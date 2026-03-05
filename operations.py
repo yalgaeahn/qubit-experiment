@@ -1,10 +1,6 @@
-"""Compatibility shim for operations.
+"""Legacy compatibility shim for operations imports.
 
-Re-exports Transmon operations from qpu_types so notebooks using
-`from operations import TransmonOperations` continue to work.
+Canonical module path is `qubit_experiment.operations`.
 """
 
-from qpu_types.Transmon.operations import TransmonOperations, create_pulse  # noqa: F401
-
-__all__ = ["TransmonOperations", "create_pulse"]
-
+from qubit_experiment.operations import *  # noqa: F401,F403

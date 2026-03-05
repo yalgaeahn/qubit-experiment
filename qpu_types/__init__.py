@@ -1,11 +1,15 @@
-"""QPU types package initializer.
+"""Legacy compatibility package for `qpu_types` imports.
 
-Provides stable import paths for Transmon-related classes.
-
-Note: Avoid importing optional subpackages here to prevent circular or
-runtime import errors in environments where those extras are not needed.
+Canonical package path is `qubit_experiment.qpu_types`.
 """
 
-# from .Transmon.transmon import TransmonQubit, TransmonQubitParameters  # noqa: F401
+from __future__ import annotations
 
-# __all__ = ["TransmonQubit", "TransmonQubitParameters"]
+from importlib import import_module
+
+_pkg = import_module("qubit_experiment.qpu_types")
+__path__ = _pkg.__path__
+__all__ = getattr(_pkg, "__all__", [])
+
+for _name in __all__:
+    globals()[_name] = getattr(_pkg, _name)
