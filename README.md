@@ -54,6 +54,7 @@ custom_pulse_library.py   # Legacy compatibility module
 example_helpers/          # Shared helper utilities for examples
 examples/                 # Descriptor files + moved-project pointers
 tests/                    # Automated tests
+projects/                 # Local-only scratch workspaces for real-data development
 ```
 
 ## Examples Split
@@ -70,6 +71,8 @@ tests/                    # Automated tests
 - Keep reusable workflows and helpers in `qubit_experiment/`.
 - Keep project/lab-specific notebooks, calibration data, and exploratory scripts in
   separate project repositories.
+- For temporary local validation inside this repo, use `projects/<workspace>/`; this
+  area is ignored so private data and scratch notebooks stay out of the public repo.
 - Use those project repositories with `qubit-experiment` as a dependency (editable or
   Git URL install).
 

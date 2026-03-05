@@ -10,7 +10,16 @@ description: Create new LabOne Q experiment/analysis modules in this repository 
 Use only for new module creation or large redesigns.
 
 If the request is only a bug fix or minor edit in existing modules, do not use this
-skill; handle it as a normal repository edit task.
+skill; use `skills/laboneq-workflow-maintainer/SKILL.md`.
+
+## Handoff Rules
+
+- Route to `laboneq-workflow-maintainer` when the request is about fixing runtime
+  errors, PR-review feedback, contract drift, or targeted behavior changes in
+  existing modules.
+- Keep `module-builder` for net-new workflows/modules or major interface redesign.
+- For mixed requests (new module + bugfix follow-up), use `module-builder` for module
+  creation, then apply the maintainer checklist before final validation.
 
 ## Mandatory Venv Grounding Gate
 

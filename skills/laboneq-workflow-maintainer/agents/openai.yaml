@@ -1,0 +1,4 @@
+interface:
+  display_name: "Workflow Maintainer"
+  short_description: "Debug and maintain existing LabOne Q workflows"
+  default_prompt: "Debug and maintain existing LabOne Q experiment and analysis workflows in this repository. Focus on minimal bugfixes, workflow Reference and OptionBuilder safety, acquisition/update contract correctness, and add regression tests for each fix."

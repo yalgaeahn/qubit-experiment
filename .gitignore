@@ -21,10 +21,9 @@ qubit_parameters/
 .vscode/*
 !.vscode/.gitkeep
 
-# Project-local exploratory outputs
-projects/*/artifacts/
-projects/*/outputs/
-projects/*/notebooks/.ipynb_checkpoints/
+# Project-local exploratory workspaces
+projects/*
+!projects/README.md
 
 # Packaging/build artifacts
 build/
