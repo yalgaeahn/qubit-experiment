@@ -1,9 +1,9 @@
 # laboneq_applications venv snapshot
 
-- generated_utc: `2026-03-04 23:50:37Z`
-- python: `/Users/yalgaeahn/Research/03_Code/qubit-experiment/.venv/bin/python`
+- generated_utc: `2026-03-05 02:08:22Z`
+- python: `/Users/yalgaeahn/Research/20_Projects/qubit-experiment/.venv/bin/python`
 - package_version: `25.10.0`
-- package_path: `/Users/yalgaeahn/Research/03_Code/qubit-experiment/.venv/lib/python3.12/site-packages/laboneq_applications`
+- package_path: `/Users/yalgaeahn/Research/20_Projects/qubit-experiment/.venv/lib/python3.12/site-packages/laboneq_applications`
 
 ## Inventory
 - experiments modules: `14`

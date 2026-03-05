@@ -78,6 +78,14 @@ Use `references/new-module-precode-template.md` for the exact format.
   (`@workflow.task(save=False)`), not direct Python mutation in workflow body.
 - Initialize branch-dependent outputs before `workflow.if_` blocks and only return/use
   values guaranteed to be resolved on every execution path.
+- Do not read or forward values created inside `workflow.if_/elif_/else_` outside
+  that conditional chain unless assigned on every path.
+- When routing analysis by branch, perform `analysis_workflow(...)` and
+  `update_qpu(...)` inside each branch.
+- If a shared post-branch value is required, compute it via a helper task executed on
+  all paths with a stable schema.
+- Avoid cross-branch aliasing (for example assigning `analysis_results` in separate
+  branches, then reading `analysis_results.output` after the chain).
 - Use `==` for comparisons with references; do not use identity checks (`is`).
 - Set options only with `OptionBuilder` call style (`opt.field(value[, selector])`);
   never assign with `opt.field = value`.
@@ -85,6 +93,31 @@ Use `references/new-module-precode-template.md` for the exact format.
   `workflow.save_artifact(...)` only inside `@workflow.task`.
 - Enforce acquisition/averaging contract in `create_experiment(...)` with explicit
   `ValueError`.
+
+### Branch-Safe Pattern
+
+- Forbidden pattern:
+
+```python
+with workflow.if_(cond):
+    analysis_results = analysis_a(...)
+with workflow.else_():
+    analysis_results = analysis_b(...)
+update_qpu(qpu, analysis_results.output["new_parameter_values"])
+```
+
+- Required pattern:
+
+```python
+with workflow.if_(cond):
+    analysis_results = analysis_a(...)
+    with workflow.if_(options.update):
+        update_qpu(qpu, analysis_results.output["new_parameter_values"])
+with workflow.else_():
+    analysis_results = analysis_b(...)
+    with workflow.if_(options.update):
+        update_qpu(qpu, analysis_results.output["new_parameter_values"])
+```
 
 ## Validation Checklist
 
@@ -99,6 +132,11 @@ Use `references/new-module-precode-template.md` for the exact format.
   option writes.
 - Smoke run or tests execute without `Reference`/`OptionBuilder` type errors.
 - Report includes template-module mapping and validation evidence.
+- No variable first created in a branch is consumed outside the conditional chain
+  unless guaranteed on all paths.
+- Each conditional route is smoke-tested at least once (for example `echo=True` and
+  `echo=False`) to catch unresolved references.
+- When `do_analysis=False`, no analysis-derived output is accessed.
 
 ## Reference Error Triage
 
@@ -108,8 +146,17 @@ Use `references/new-module-precode-template.md` for the exact format.
 - Error: `Result for '...' is not resolved.`
   Action: ensure every branched value is initialized before conditionals and assigned
   on all paths; avoid Python control flow in workflow body.
+  If the value is branch-specific, move its consumption (including `update_qpu`) into
+  the same branch rather than sharing a post-branch variable.
 - Error: `Setting options by assignment is not allowed.`
   Action: replace assignment (`opt.x = ...`) with call style (`opt.x(...)`).
+
+## Quick Branch-Safety Review
+
+- Any branch-local variable used after branch end?
+- Any `analysis_results.output[...]` consumed outside its producing branch?
+- Any analysis output accessed when analysis may be disabled?
+- Any task input sourced from a branch that may not execute?
 
 ## References
 
