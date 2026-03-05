@@ -55,9 +55,18 @@ operations.py             # Legacy compatibility module
 custom_pulse_library.py   # Legacy compatibility module
 projects/                 # Project-specific workspaces (not package API)
 projects/kaist/notebooks/ # KAIST-specific exploratory notebooks
-examples/                 # Curated/public examples (cleanup can be done separately)
+examples/                 # Curated/public examples (selectiveRIP moved out)
 tests/                    # Automated tests
 ```
+
+## Examples Split
+
+- `examples/selectiveRIP` now contains a pointer only.
+- Full selectiveRIP notebooks/configs/scripts are in:
+  - https://github.com/yalgaeahn/2026_selectiveRIP
+- Split baseline:
+  - tag `v0.1.0-package-foundation`
+  - commit `a4496b2`
 
 ## Project-Specific Code Policy
 
