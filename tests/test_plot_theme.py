@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pytest
 from matplotlib.colors import to_hex
 
-from analysis.plot_theme import (
+from qubit_experiment.analysis.plot_theme import (
     DEFAULT_PLOT_THEME,
     ENV_THEME_VAR,
     get_default_plot_theme,

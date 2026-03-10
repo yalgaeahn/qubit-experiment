@@ -1,10 +1,6 @@
-"""Compatibility shim for helper functions.
+"""Public helper exports."""
 
-This module re-exports functions from helper_functions.helper so that existing
-notebooks and scripts importing `helper` continue to work.
-"""
-
-from qubit_experiment.helper_functions.helper import (
+from .helper_functions.helper import (
     load_qubit_parameters,
     save_qubit_parameters,
     adjust_amplitude_for_output_range,

@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 # numpy for mathematics
 import numpy as np
 
-from analysis.plot_theme import plot_theme_context
+from qubit_experiment.analysis.plot_theme import plot_theme_context
 from laboneq.core.types.compiled_experiment import CompiledExperiment
 from laboneq.simulator.output_simulator import OutputSimulator
 

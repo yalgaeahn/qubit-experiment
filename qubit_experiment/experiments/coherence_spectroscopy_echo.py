@@ -24,7 +24,7 @@ from laboneq.workflow.tasks import (
     run_experiment,
 )
 
-from analysis import coherence_spectroscopy_echo as analysis_coherence
+from qubit_experiment.analysis import coherence_spectroscopy_echo as analysis_coherence
 from laboneq_applications.analysis.ramsey import (
     validate_and_convert_detunings,
 )

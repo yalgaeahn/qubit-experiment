@@ -24,7 +24,7 @@ from laboneq.workflow.tasks import (
     run_experiment,
 )
 
-from analysis.rip import (
+from qubit_experiment.analysis.rip import (
     analysis_workflow,
 )
 from laboneq_applications.core.validation import (

@@ -16,11 +16,11 @@ from laboneq_applications.tasks.parameter_updating import (
     temporary_quantum_elements_from_qpu,
 )
 
-from analysis.three_qubit_state_tomography import analysis_workflow
-from experiments.three_qubit_readout_calibration import (
+from qubit_experiment.analysis.three_qubit_state_tomography import analysis_workflow
+from .three_qubit_readout_calibration import (
     create_experiment as create_readout_calibration_experiment,
 )
-from experiments.three_qubit_tomography_common import (
+from .three_qubit_tomography_common import (
     TOMOGRAPHY_SETTINGS,
     canonical_three_qubit_state_label,
     state_token_for_section_name,

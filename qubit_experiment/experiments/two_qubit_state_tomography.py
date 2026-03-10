@@ -16,15 +16,15 @@ from laboneq_applications.tasks.parameter_updating import (
     temporary_quantum_elements_from_qpu,
 )
 
-from analysis.two_qubit_state_tomography import (
+from qubit_experiment.analysis.two_qubit_state_tomography import (
     TwoQStateTomographyAnalysisOptions,
     analysis_workflow,
     summarize_statistical_convergence,
 )
-from experiments.two_qubit_readout_calibration import (
+from .two_qubit_readout_calibration import (
     create_experiment as create_readout_calibration_experiment,
 )
-from experiments.two_qubit_tomography_common import (
+from .two_qubit_tomography_common import (
     TOMOGRAPHY_SETTINGS,
     canonical_two_qubit_state_label,
     state_token_for_section_name,

@@ -15,7 +15,7 @@ from laboneq_applications.tasks.parameter_updating import (
     temporary_quantum_elements_from_qpu,
 )
 
-from experiments.three_qubit_tomography_common import (
+from .three_qubit_tomography_common import (
     READOUT_CALIBRATION_STATES,
     readout_calibration_handle,
 )

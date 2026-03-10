@@ -8,13 +8,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 from laboneq import workflow
 
-from analysis.readout_sweep_common import (
+from .readout_sweep_common import (
     calibration_shots_by_state_and_sweep,
     evaluate_iq_binary,
     unwrap_result_like,
 )
 from laboneq_applications.core.validation import validate_result
-from analysis.plot_theme import with_plot_theme
+from .plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

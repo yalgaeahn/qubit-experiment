@@ -15,15 +15,15 @@ import uncertainties as unc
 from laboneq import workflow
 from laboneq.simple import dsl
 
-from analysis.fitting_helpers import cosine_oscillatory_decay_fit
+from .fitting_helpers import cosine_oscillatory_decay_fit
 from laboneq_applications.analysis.calibration_traces_rotation import calculate_population_1d
 from laboneq_applications.analysis.options import TuneUpAnalysisWorkflowOptions
-from analysis.plotting_helpers import timestamped_title
+from .plotting_helpers import timestamped_title
 from laboneq_applications.core.validation import (
     validate_and_convert_qubits_sweeps,
     validate_result,
 )
-from analysis.plot_theme import get_semantic_color, get_state_color, with_plot_theme
+from .plot_theme import get_semantic_color, get_state_color, with_plot_theme
 
 if TYPE_CHECKING:
     import lmfit

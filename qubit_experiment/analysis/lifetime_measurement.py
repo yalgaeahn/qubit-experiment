@@ -16,8 +16,8 @@ from typing import TYPE_CHECKING
 import matplotlib.pyplot as plt
 import numpy as np
 import uncertainties as unc
-from analysis.plot_theme import with_plot_theme
-from analysis.plotting_helpers import (
+from .plot_theme import with_plot_theme
+from .plotting_helpers import (
     plot_raw_complex_data_1d,
     timestamped_title,
 )

@@ -18,7 +18,7 @@ from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING
 
-from analysis.coherence_tracking import (
+from qubit_experiment.analysis.coherence_tracking import (
     CoherenceTrackingAnalysisWorkflowOptions,
     load_tracking_history,
     plot_tracking_history,
@@ -37,7 +37,7 @@ from laboneq_applications.tasks.parameter_updating import (
     update_qpu,
 )
 
-from experiments import lifetime_measurement, ramsey
+from . import lifetime_measurement, ramsey
 
 if TYPE_CHECKING:
     from laboneq.dsl.quantum import QuantumParameters

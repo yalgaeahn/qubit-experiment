@@ -5,8 +5,8 @@ from dataclasses import dataclass
 import numpy as np
 import pytest
 
-from analysis.fitting_helpers import cosine_oscillatory_decay
-from analysis.residual_zz_echo import (
+from qubit_experiment.analysis.fitting_helpers import cosine_oscillatory_decay
+from qubit_experiment.analysis.residual_zz_echo import (
     _build_pair_plan_entries,
     _fit_pair,
     _split_state_axis,

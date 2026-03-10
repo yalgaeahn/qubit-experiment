@@ -20,7 +20,7 @@ from example_helpers.workflow.handles import calibration_trace_2q_handle
 
 from .qubit_types import FixedTransmonQubit
 
-import custom_pulse_library
+from qubit_experiment import custom_pulse_library
 from laboneq.dsl.experiment import builtins
 
 # TODO: Implement multistate 0-1-2 measurement operation

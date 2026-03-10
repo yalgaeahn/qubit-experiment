@@ -14,7 +14,7 @@ import numpy as np
 # scipy optimize for curve fitting
 import scipy.optimize as opt
 
-from analysis.plot_theme import plot_theme_context
+from qubit_experiment.analysis.plot_theme import plot_theme_context
 
 warnings.warn(
     "The laboneq.contrib.example_helpers.data_analysis package was"

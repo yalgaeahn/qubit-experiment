@@ -16,8 +16,8 @@ pytest.importorskip("uncertainties")
 
 from laboneq import workflow
 
-from analysis import coherence_tracking as tracking_analysis
-from experiments import coherence_tracking as tracking
+from qubit_experiment.analysis import coherence_tracking as tracking_analysis
+from qubit_experiment.experiments import coherence_tracking as tracking
 
 
 @dataclass

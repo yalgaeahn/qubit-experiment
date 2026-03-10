@@ -37,16 +37,10 @@ dev = [
 include-package-data = true
 zip-safe = false
 
-py-modules = ["helper", "operations", "custom_pulse_library"]
-
 [tool.setuptools.packages.find]
 where = ["."]
 include = [
   "qubit_experiment*",
-  "analysis*",
-  "experiments*",
-  "qpu_types*",
-  "helper_functions*",
 ]
 exclude = [
   "tests*",

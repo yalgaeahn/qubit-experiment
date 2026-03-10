@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from laboneq import workflow
 
-from experiments.two_qubit_tomography_common import (
+from qubit_experiment.experiments.two_qubit_tomography_common import (
     OUTCOME_LABELS,
     READOUT_CALIBRATION_STATES,
     TOMOGRAPHY_SETTINGS,
@@ -17,7 +17,7 @@ from experiments.two_qubit_tomography_common import (
     tomography_handle,
 )
 from laboneq_applications.core.validation import validate_result
-from analysis.plot_theme import with_plot_theme
+from .plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import matplotlib as mpl

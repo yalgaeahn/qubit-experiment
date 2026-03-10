@@ -8,13 +8,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 from laboneq import workflow
 
-from analysis.readout_sweep_common import (
+from .readout_sweep_common import (
     calibration_shots_by_state,
     evaluate_iq_binary,
     select_best_index,
     unwrap_result_like,
 )
-from analysis.iq_cloud import (
+from .iq_cloud import (
     bootstrap_metrics,
     calculate_confusion_and_fidelity,
     calculate_separation_metrics,
@@ -25,7 +25,7 @@ from analysis.iq_cloud import (
     select_confusion_matrices,
 )
 from laboneq_applications.core.validation import validate_result
-from analysis.plot_theme import with_plot_theme
+from .plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from experiments.iq_cloud_common import (
+from qubit_experiment.experiments.iq_cloud_common import (
     JOINT_LABELS_2Q,
     joint_labels_for_num_qubits,
     prepared_labels_for_num_qubits,

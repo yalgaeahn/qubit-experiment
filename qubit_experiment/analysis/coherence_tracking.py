@@ -20,11 +20,11 @@ from typing import TYPE_CHECKING, Any
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
-from analysis.echo import analysis_workflow as echo_analysis_workflow
-from analysis.lifetime_measurement import analysis_workflow as lifetime_analysis_workflow
-from analysis.plot_theme import with_plot_theme
-from analysis.plotting_helpers import timestamped_title
-from analysis.ramsey import analysis_workflow as ramsey_analysis_workflow
+from .echo import analysis_workflow as echo_analysis_workflow
+from .lifetime_measurement import analysis_workflow as lifetime_analysis_workflow
+from .plot_theme import with_plot_theme
+from .plotting_helpers import timestamped_title
+from .ramsey import analysis_workflow as ramsey_analysis_workflow
 from laboneq import workflow
 from laboneq_applications.analysis.calibration_traces_rotation import (
     calculate_qubit_population,
@@ -35,9 +35,9 @@ from laboneq_applications.analysis.options import (
 )
 from laboneq_applications.core.validation import validate_and_convert_qubits_sweeps
 
-from analysis import echo as echo_analysis_module
-from analysis import lifetime_measurement as lifetime_analysis_module
-from analysis import ramsey as ramsey_analysis_module
+from . import echo as echo_analysis_module
+from . import lifetime_measurement as lifetime_analysis_module
+from . import ramsey as ramsey_analysis_module
 
 if TYPE_CHECKING:
     import matplotlib as mpl

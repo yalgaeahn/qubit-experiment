@@ -26,7 +26,7 @@ from laboneq.workflow.tasks import (
     run_experiment,
 )
 
-from analysis.amplitude_rabi_chevron import (
+from qubit_experiment.analysis.amplitude_rabi_chevron import (
     analysis_workflow,
 )
 from laboneq_applications.core.validation import validate_and_convert_qubits_sweeps

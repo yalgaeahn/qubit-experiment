@@ -1,4 +1,4 @@
-"""QPU type exports with stable legacy aliases."""
+"""QPU type exports."""
 
 from .transmon import TransmonQubit, TransmonQubitParameters
 

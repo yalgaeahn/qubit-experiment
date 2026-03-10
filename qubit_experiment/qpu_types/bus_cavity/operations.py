@@ -19,7 +19,7 @@ from laboneq_applications.typing import QuantumElements
 # from .qubit_types import FixedTransmonQubit
 from .bus_types import BusCavity
 
-import custom_pulse_library
+from qubit_experiment import custom_pulse_library
 from laboneq.dsl.experiment import builtins
 
 # TODO: Implement multistate 0-1-2 measurement operation

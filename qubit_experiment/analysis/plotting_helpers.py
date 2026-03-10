@@ -11,7 +11,7 @@ import numpy as np
 from laboneq import workflow
 from laboneq.simple import dsl
 
-from analysis.plot_theme import with_plot_theme
+from .plot_theme import with_plot_theme
 from laboneq_applications.analysis.options import BasePlottingOptions
 from laboneq_applications.core.validation import (
     validate_and_convert_qubits_sweeps,

@@ -23,9 +23,9 @@ from laboneq_applications.analysis.options import (
     BasePlottingOptions,
     TuneUpAnalysisWorkflowOptions,
 )
-from analysis.plotting_helpers import timestamped_title
+from .plotting_helpers import timestamped_title
 from laboneq_applications.core import validation
-from analysis.plot_theme import with_plot_theme
+from .plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import matplotlib as mpl

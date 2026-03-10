@@ -7,7 +7,7 @@ pytest.importorskip("laboneq")
 pytest.importorskip("laboneq_applications")
 pytest.importorskip("uncertainties")
 
-from experiments import ramsey
+from qubit_experiment.experiments import ramsey
 
 
 def test_workflow_options_default_echo_false() -> None:

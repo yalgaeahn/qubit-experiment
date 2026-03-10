@@ -29,12 +29,12 @@ from laboneq_applications.analysis.fitting_helpers import (
     )
                                                            
 from laboneq_applications.analysis.options import BasePlottingOptions
-from analysis.plotting_helpers import (
+from .plotting_helpers import (
     plot_raw_complex_data_1d,
     timestamped_title,
 )
 from laboneq_applications.core import validation
-from analysis.plot_theme import with_plot_theme
+from .plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import lmfit
@@ -326,7 +326,7 @@ def fit_data(
         swpts_fit = np.asarray(processed_data_dict["sweep_points"], dtype=float).ravel()
         raw_data = np.asarray(processed_data_dict["data_raw"], dtype=np.complex128).ravel()
         try:
-            from analysis.scresonators_adapter import fit_with_scresonators
+            from .scresonators_adapter import fit_with_scresonators
 
             fit_res = fit_with_scresonators(swpts_fit, raw_data, method=opts.scresonators_method)
             fit_result = fit_res

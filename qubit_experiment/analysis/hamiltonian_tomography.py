@@ -26,7 +26,7 @@ from laboneq_applications.analysis.options import (
     FitDataOptions,
     PlotPopulationOptions
 )
-from analysis.fitting_helpers import blochtrajectory_fit, find_oscillation_frequency_and_phase
+from .fitting_helpers import blochtrajectory_fit, find_oscillation_frequency_and_phase
 #     plot_raw_complex_data_2d,
 #     plot_signal_magnitude_and_phase_2d,
 # )
@@ -34,7 +34,7 @@ from laboneq_applications.core.validation import (
     validate_and_convert_single_qubit_sweeps,
     validate_result,
 )
-from analysis.plot_theme import get_semantic_color, get_state_color, with_plot_theme
+from .plot_theme import get_semantic_color, get_state_color, with_plot_theme
 
 
 if TYPE_CHECKING:

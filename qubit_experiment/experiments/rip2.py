@@ -27,7 +27,7 @@ from laboneq.workflow.tasks import (
     run_experiment,
 )
 
-from analysis.rip import (
+from qubit_experiment.analysis.rip import (
     validate_and_convert_detunings,
 )
 from laboneq_applications.core import validation

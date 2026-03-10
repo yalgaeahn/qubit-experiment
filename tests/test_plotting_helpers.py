@@ -17,7 +17,7 @@ pytest.importorskip("laboneq_applications")
 
 from laboneq.simple import dsl
 
-import analysis.plotting_helpers as ph
+import qubit_experiment.analysis.plotting_helpers as ph
 
 
 @dataclass

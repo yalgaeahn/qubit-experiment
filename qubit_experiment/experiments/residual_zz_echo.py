@@ -29,7 +29,7 @@ from laboneq.workflow.tasks import (
     run_experiment,
 )
 
-from analysis.residual_zz_echo import (
+from qubit_experiment.analysis.residual_zz_echo import (
     analysis_workflow,
     build_pair_plan,
     validate_and_convert_detunings,

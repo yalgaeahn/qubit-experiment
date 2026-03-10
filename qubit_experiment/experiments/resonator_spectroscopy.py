@@ -27,7 +27,7 @@ from laboneq.workflow.tasks import (
 )
 
 #from laboneq_applications.analysis.resonator_spectroscopy import analysis_workflow
-from analysis.resonator_spectroscopy import analysis_workflow
+from qubit_experiment.analysis.resonator_spectroscopy import analysis_workflow
 from laboneq_applications.core import validation
 from laboneq_applications.experiments.options import (
     ResonatorSpectroscopyExperimentOptions,

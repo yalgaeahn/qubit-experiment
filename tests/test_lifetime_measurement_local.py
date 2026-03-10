@@ -13,8 +13,8 @@ pytest.importorskip("laboneq")
 pytest.importorskip("laboneq_applications")
 pytest.importorskip("uncertainties")
 
-from analysis import lifetime_measurement as lifetime_analysis
-from experiments import lifetime_measurement as lifetime
+from qubit_experiment.analysis import lifetime_measurement as lifetime_analysis
+from qubit_experiment.experiments import lifetime_measurement as lifetime
 
 
 @dataclass

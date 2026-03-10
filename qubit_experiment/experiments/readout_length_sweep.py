@@ -8,14 +8,14 @@ from typing import TYPE_CHECKING
 import numpy as np
 from laboneq import workflow
 
-from analysis import iq_time_trace as analysis_iq_time_trace
-from analysis.readout_length_sweep import calculate_metrics, plot_metrics
-from analysis.readout_sweep_common import (
+from qubit_experiment.analysis import iq_time_trace as analysis_iq_time_trace
+from qubit_experiment.analysis.readout_length_sweep import calculate_metrics, plot_metrics
+from qubit_experiment.analysis.readout_sweep_common import (
     calibration_shots_by_state,
     evaluate_iq_binary,
     unwrap_result_like,
 )
-from experiments import iq_cloud, iq_time_trace
+from . import iq_cloud, iq_time_trace
 from laboneq_applications.core import validation
 from laboneq_applications.tasks.parameter_updating import (
     temporary_qpu,

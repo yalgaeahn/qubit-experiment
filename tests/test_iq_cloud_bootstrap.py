@@ -5,8 +5,8 @@ from typing import Any
 
 import numpy as np
 
-import analysis.iq_cloud as iq_cloud
-from experiments.iq_cloud_common import prepared_labels_for_num_qubits
+import qubit_experiment.analysis.iq_cloud as iq_cloud
+from qubit_experiment.experiments.iq_cloud_common import prepared_labels_for_num_qubits
 
 
 @dataclass

@@ -50,7 +50,7 @@ from laboneq.workflow.tasks import (
     run_experiment,
 )
 
-from analysis.drag_q_scaling import analysis_workflow
+from qubit_experiment.analysis.drag_q_scaling import analysis_workflow
 from laboneq_applications.core import validation
 from laboneq_applications.experiments.options import (
     TuneupExperimentOptions,

@@ -1,15 +1,20 @@
-"""Public package namespace for reusable qubit experiment components.
-
-This namespace provides canonical imports for reusable modules while preserving
-backward compatibility with legacy top-level imports in this repository.
-"""
+"""Public package namespace for reusable qubit experiment components."""
 
 from __future__ import annotations
 
 from importlib import import_module
 from types import ModuleType
 
-__all__ = ["analysis", "experiments", "qpu_types", "helper_functions", "devpaths"]
+__all__ = [
+    "analysis",
+    "experiments",
+    "qpu_types",
+    "helper_functions",
+    "helper",
+    "operations",
+    "custom_pulse_library",
+    "devpaths",
+]
 
 
 def __getattr__(name: str) -> ModuleType:

@@ -28,8 +28,8 @@ from laboneq.workflow.tasks import (
 )
 
 
-from analysis.new_rip_echo import analysis_workflow
-from analysis.rip import (
+from qubit_experiment.analysis.new_rip_echo import analysis_workflow
+from qubit_experiment.analysis.rip import (
     validate_and_convert_detunings,
 )
 

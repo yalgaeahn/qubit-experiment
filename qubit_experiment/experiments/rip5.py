@@ -29,7 +29,7 @@ from laboneq.workflow.tasks import (
 
 
 from laboneq_applications.analysis.ramsey import analysis_workflow
-from analysis.rip import (
+from qubit_experiment.analysis.rip import (
     validate_and_convert_detunings,
 )
 

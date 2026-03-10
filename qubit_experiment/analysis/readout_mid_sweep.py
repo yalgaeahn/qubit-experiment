@@ -9,15 +9,15 @@ import numpy as np
 from laboneq import workflow
 from laboneq.simple import dsl
 
-from analysis.fitting_helpers import exponential_decay_fit
-from analysis.readout_sweep_common import (
+from .fitting_helpers import exponential_decay_fit
+from .readout_sweep_common import (
     as_1d_complex,
     calibration_shots_by_state,
     extract_sweep_shots,
     unwrap_result_like,
 )
 from laboneq_applications.core.validation import validate_result
-from analysis.plot_theme import with_plot_theme
+from .plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import matplotlib as mpl

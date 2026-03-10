@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from analysis.lifetime_measurement import analysis_workflow
+from qubit_experiment.analysis.lifetime_measurement import analysis_workflow
 from laboneq import workflow
 from laboneq.simple import (
     AveragingMode,

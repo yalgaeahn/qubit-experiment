@@ -31,7 +31,7 @@ from laboneq_applications.analysis.spectroscopy_two_dimensional_plotting import 
 )
 from laboneq_applications.core.validation import validate_and_convert_qubits_sweeps
 from laboneq_applications.experiments.options import TuneUpWorkflowOptions
-from experiments.options import QubitSpectroscopyExperimentOptions
+from .options import QubitSpectroscopyExperimentOptions
 
 from laboneq_applications.tasks.parameter_updating import (
     temporary_qpu,

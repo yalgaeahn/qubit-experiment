@@ -1,10 +1,6 @@
-"""Compatibility shim for operations.
+"""Public operation exports."""
 
-Re-exports fixed-transmon operations under the legacy `TransmonOperations`
-name so existing notebooks continue to work.
-"""
-
-from qubit_experiment.qpu_types.fixed_transmon.operations import (
+from .qpu_types.fixed_transmon.operations import (
     FixedTransmonOperations,
     create_pulse,
 )

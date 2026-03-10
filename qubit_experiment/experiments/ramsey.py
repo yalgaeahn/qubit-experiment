@@ -47,9 +47,9 @@ from laboneq_applications.tasks.parameter_updating import (
     update_qpu,
 )
 
-from analysis.echo import analysis_workflow as echo_analysis_workflow
-from analysis.ramsey import analysis_workflow as ramsey_analysis_workflow
-from analysis.ramsey import validate_and_convert_detunings
+from qubit_experiment.analysis.echo import analysis_workflow as echo_analysis_workflow
+from qubit_experiment.analysis.ramsey import analysis_workflow as ramsey_analysis_workflow
+from qubit_experiment.analysis.ramsey import validate_and_convert_detunings
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

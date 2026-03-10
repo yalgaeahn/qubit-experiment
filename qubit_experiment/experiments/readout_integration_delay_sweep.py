@@ -10,7 +10,7 @@ from laboneq.dsl.enums import AcquisitionType, AveragingMode
 from laboneq.simple import Experiment, SweepParameter, dsl
 from laboneq.workflow.tasks import compile_experiment, run_experiment
 
-from analysis.readout_integration_delay_sweep import analysis_workflow
+from qubit_experiment.analysis.readout_integration_delay_sweep import analysis_workflow
 from laboneq_applications.core import validation
 from laboneq_applications.experiments.options import BaseExperimentOptions
 from laboneq_applications.tasks.parameter_updating import (

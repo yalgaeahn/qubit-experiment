@@ -35,12 +35,12 @@ from laboneq_applications.analysis.options import (
     PlotPopulationOptions,
     TuneUpAnalysisWorkflowOptions,
 )
-from analysis.plotting_helpers import (
+from .plotting_helpers import (
     plot_raw_complex_data_1d,
     timestamped_title,
 )
 from laboneq_applications.core.validation import validate_and_convert_qubits_sweeps
-from analysis.plot_theme import with_plot_theme
+from .plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import lmfit

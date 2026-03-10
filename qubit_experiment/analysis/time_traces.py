@@ -29,9 +29,9 @@ from laboneq_applications.analysis.options import (
     BasePlottingOptions,
     DoFittingOption,
 )
-from analysis.plotting_helpers import timestamped_title
+from .plotting_helpers import timestamped_title
 from laboneq_applications.core.validation import validate_and_convert_qubits_sweeps
-from analysis.plot_theme import with_plot_theme
+from .plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

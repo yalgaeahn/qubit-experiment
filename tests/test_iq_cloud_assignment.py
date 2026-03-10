@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from analysis.iq_cloud import _assignment_core
-from experiments.iq_cloud_common import prepared_labels_for_num_qubits
+from qubit_experiment.analysis.iq_cloud import _assignment_core
+from qubit_experiment.experiments.iq_cloud_common import prepared_labels_for_num_qubits
 
 
 def _bit_to_shots(bit: int, count: int) -> np.ndarray:

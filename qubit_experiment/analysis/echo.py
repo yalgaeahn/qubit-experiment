@@ -36,8 +36,8 @@ from laboneq_applications.core.validation import (
     validate_result,
 )
 
-from analysis import plotting_helpers as plt_hlp
-from analysis.plot_theme import with_plot_theme
+from . import plotting_helpers as plt_hlp
+from .plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import lmfit

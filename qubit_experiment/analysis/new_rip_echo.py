@@ -18,9 +18,9 @@ from laboneq_applications.analysis.calibration_traces_rotation import (
     calculate_qubit_population_2d,
 )
 from laboneq_applications.analysis.options import TuneUpAnalysisWorkflowOptions
-from analysis.plotting_helpers import timestamped_title
+from .plotting_helpers import timestamped_title
 from laboneq_applications.core.validation import validate_and_convert_qubits_sweeps
-from analysis.plot_theme import with_plot_theme
+from .plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import matplotlib as mpl

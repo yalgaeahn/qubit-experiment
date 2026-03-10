@@ -21,7 +21,7 @@ from laboneq import workflow
 from laboneq_applications.analysis.calibration_traces_rotation import (
     calculate_qubit_population_2d,
 )
-from analysis.fitting_helpers import (
+from .fitting_helpers import (
     coherent_spec_fit,
     coherent_spec_photon_numbers,
     cosine_oscillatory_decay_fit,
@@ -32,9 +32,9 @@ from laboneq_applications.analysis.options import (
     PlotPopulationOptions,
     TuneUpAnalysisWorkflowOptions,
 )
-from analysis.plotting_helpers import timestamped_title
+from .plotting_helpers import timestamped_title
 from laboneq_applications.core.validation import validate_and_convert_qubits_sweeps
-from analysis.plot_theme import with_plot_theme
+from .plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import lmfit

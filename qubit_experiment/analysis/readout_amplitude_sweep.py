@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from laboneq import workflow
 
-from analysis.readout_sweep_common import (
+from .readout_sweep_common import (
     calibration_shots_by_state_and_sweep,
     evaluate_iq_binary,
     unwrap_result_like,
@@ -17,7 +17,7 @@ from laboneq_applications.core.validation import (
     validate_and_convert_single_qubit_sweeps,
     validate_result,
 )
-from analysis.plot_theme import with_plot_theme
+from .plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import matplotlib as mpl

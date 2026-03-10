@@ -13,13 +13,13 @@ from matplotlib.colors import to_hex
 
 pytest.importorskip("laboneq")
 
-import analysis.iq_cloud as iq_cloud
-from analysis.plot_theme import (
+import qubit_experiment.analysis.iq_cloud as iq_cloud
+from qubit_experiment.analysis.plot_theme import (
     get_plot_theme_rc_params,
     get_semantic_color,
     get_state_color,
 )
-from experiments.iq_cloud_common import prepared_labels_for_num_qubits
+from qubit_experiment.experiments.iq_cloud_common import prepared_labels_for_num_qubits
 
 
 @dataclass

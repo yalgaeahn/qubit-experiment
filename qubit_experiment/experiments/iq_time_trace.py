@@ -11,7 +11,7 @@ from laboneq import workflow
 from laboneq.simple import AcquisitionType, AveragingMode, Experiment, dsl
 from laboneq.workflow.tasks import compile_experiment, run_experiment
 
-from analysis.iq_time_trace import analysis_workflow
+from qubit_experiment.analysis.iq_time_trace import analysis_workflow
 from laboneq_applications.core import validation
 from laboneq_applications.experiments.options import BaseExperimentOptions
 from laboneq_applications.tasks.parameter_updating import (

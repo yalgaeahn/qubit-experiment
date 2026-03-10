@@ -28,7 +28,7 @@ from laboneq_applications.analysis.options import (
     DoFittingOption,
     TuneUpAnalysisWorkflowOptions,
 )
-from analysis.plot_theme import with_plot_theme
+from .plot_theme import with_plot_theme
 
 if TYPE_CHECKING:
     import matplotlib as mpl
