@@ -3,23 +3,98 @@
 Reusable LabOne Q experiment/analysis package focused on reusable code.
 Project-specific notebooks and assets are maintained in separate project repositories.
 
-## Installation
+## Environment Setup
 
 Requirements:
 
 - Python 3.10+
 - Access to Zurich Instruments LabOne Q packages
 
-Install for use:
+Create and activate a virtual environment:
 
 ```bash
-pip install .
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
 ```
 
-Install for development:
+Package naming note:
+
+- Install name in `pip`: `qubit-experiment`
+- Import name in Python: `qubit_experiment`
+
+### Install
+
+Use a regular install when you want a stable copy of the package inside the
+environment and do not need source edits in this repository to take effect
+immediately.
+
+Install the package:
 
 ```bash
-pip install -e .[dev]
+python -m pip install .
+```
+
+What this does:
+
+- Builds the package from the current repository state
+- Installs a copy into `.venv/lib/python*/site-packages`
+- Requires re-running `pip install .` after local source changes
+
+Useful checks:
+
+```bash
+python -m pip show qubit-experiment
+python -c "import qubit_experiment; print(qubit_experiment.__file__)"
+```
+
+### Editable Install
+
+Use an editable install for development in this repository. This is the
+recommended setup when editing code, running tests repeatedly, or using local
+notebooks against in-progress changes.
+
+Install the package in editable mode with development tools:
+
+```bash
+python -m pip install -e .[dev]
+```
+
+What this does:
+
+- Installs package metadata into `site-packages`
+- Points the environment back to this working tree instead of copying files
+- Makes source edits under `qubit_experiment/` visible immediately
+
+Useful checks:
+
+```bash
+python -m pip list | rg 'qubit-experiment'
+python -m pip show qubit-experiment
+python -c "import qubit_experiment; print(qubit_experiment.__file__)"
+```
+
+In editable mode, it is normal not to see a full `site-packages/qubit_experiment/`
+directory. You will usually see files such as:
+
+- `__editable__.qubit_experiment-0.1.0.pth`
+- `__editable___qubit_experiment_0_1_0_finder.py`
+- `qubit_experiment-0.1.0.dist-info/`
+
+### Switching Between Install Modes
+
+Switch from editable install to regular install:
+
+```bash
+python -m pip uninstall qubit-experiment
+python -m pip install .
+```
+
+Switch from regular install to editable install:
+
+```bash
+python -m pip uninstall qubit-experiment
+python -m pip install -e .[dev]
 ```
 
 ## Canonical Imports

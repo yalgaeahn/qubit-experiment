@@ -1,6 +1,6 @@
 # laboneq_applications venv snapshot
 
-- generated_utc: `2026-03-06 02:05:38Z`
+- generated_utc: `2026-03-10 17:53:16Z`
 - python: `/Users/yalgaeahn/Research/20_Projects/qubit-experiment/.venv/bin/python`
 - package_version: `25.10.0`
 - package_path: `/Users/yalgaeahn/Research/20_Projects/qubit-experiment/.venv/lib/python3.12/site-packages/laboneq_applications`

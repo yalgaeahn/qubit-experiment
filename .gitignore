@@ -22,8 +22,8 @@ qubit_parameters/
 !.vscode/.gitkeep
 
 # Project-local exploratory workspaces
-projects/*
-!projects/README.md
+# projects/*
+# !projects/README.md
 
 # Packaging/build artifacts
 build/
