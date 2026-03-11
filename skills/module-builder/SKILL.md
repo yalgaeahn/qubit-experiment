@@ -83,6 +83,11 @@ Use `references/new-module-precode-template.md` for the exact format.
 - Build compound conditions as nested `workflow.if_` blocks. If real Python logic is
   needed, move it to a helper `@workflow.task(save=False)` and branch on that task
   output.
+- Do not inspect regular workflow inputs with Python type/value logic in the workflow
+  body when they may arrive as unresolved workflow values during graph construction
+  (for example calling `int(...)`, `bool(...)`, `isinstance(...)`, attribute-based
+  branching, or `x is None` on optional workflow inputs). Resolve such values in a
+  helper `@workflow.task(save=False)` first.
 - For list/dict accumulation inside workflow-level loops, use helper tasks
   (`@workflow.task(save=False)`), not direct Python mutation in workflow body.
 - Initialize branch-dependent outputs before `workflow.if_` blocks and only return/use
@@ -98,6 +103,15 @@ Use `references/new-module-precode-template.md` for the exact format.
 - Use `==` for comparisons with references; do not use identity checks (`is`).
 - Set options only with `OptionBuilder` call style (`opt.field(value[, selector])`);
   never assign with `opt.field = value`.
+- If a notebook-facing bundle is required, prefer a plain Python helper that runs the
+  split workflows and assembles the final nested dict outside the workflow graph.
+- Do not return nested dict/list literals from workflow bodies when any nested value
+  comes from a task or sub-workflow output. LabOne Q does not recursively materialize
+  such payloads; keep workflow returns top-level, or assemble the nested payload in a
+  helper task that receives each field as a top-level argument.
+- When a public helper accepts either a plain options object or an
+  `OptionBuilder`, normalize it explicitly at the Python API boundary (for example by
+  unwrapping `builder._base`) before reading fields.
 - Call `workflow.comment(...)`, `workflow.log(...)`, and
   `workflow.save_artifact(...)` only inside `@workflow.task`.
 - Enforce acquisition/averaging contract in `create_experiment(...)` with explicit
@@ -146,6 +160,8 @@ with workflow.else_():
 - Each conditional route is smoke-tested at least once (for example `echo=True` and
   `echo=False`) to catch unresolved references.
 - When `do_analysis=False`, no analysis-derived output is accessed.
+- For notebook-facing outputs, tests recursively confirm that no nested value is a
+  `laboneq.workflow.reference.Reference`.
 
 ## Reference Error Triage
 
@@ -159,6 +175,15 @@ with workflow.else_():
   the same branch rather than sharing a post-branch variable.
 - Error: `Setting options by assignment is not allowed.`
   Action: replace assignment (`opt.x = ...`) with call style (`opt.x(...)`).
+- Symptom: notebook output contains serializer warnings about unsupported
+  `Reference` values inside a dict/list payload.
+  Action: stop assembling nested workflow outputs inline. Return top-level workflow
+  fields only, or move the nested payload assembly to a helper task or plain Python
+  wrapper outside the workflow.
+- Error: `TypeError` from `int(...)`/`bool(...)`/attribute access on workflow inputs
+  during `.options()` or workflow construction.
+  Action: treat the input as workflow-resolved, not plain Python. Resolve it in a
+  helper `@workflow.task(save=False)` or normalize it outside the workflow.
 
 ## Quick Branch-Safety Review
 

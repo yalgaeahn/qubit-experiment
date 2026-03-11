@@ -158,6 +158,100 @@ def _materialize_list(items: list) -> list:
 
 
 @workflow.task(save=False)
+def _bundle_readout_calibration_result(result) -> dict[str, object]:
+    """Wrap optional calibration outputs for stable conditional branching."""
+    return {"readout_calibration_result": result}
+
+
+@workflow.task(save=False)
+def _materialize_readout_calibration_bundle(
+    bundle: dict[str, object],
+) -> dict[str, object]:
+    """Copy branch-local calibration bundles into a stable runtime value."""
+    return dict(bundle)
+
+
+@workflow.task(save=False)
+def _extract_readout_calibration_result(bundle: dict[str, object]):
+    """Extract the concrete calibration result from a stable bundle."""
+    return dict(bundle).get("readout_calibration_result")
+
+
+@workflow.task(save=False)
+def _copy_optional_dict(payload) -> dict[str, object] | None:
+    """Copy an optional mapping into a concrete plain dict payload."""
+    return dict(payload) if isinstance(payload, dict) else None
+
+
+@workflow.task(save=False)
+def _assemble_convergence_report(
+    suite_states,
+    repeats_per_state: int,
+    main_run_optimization_convergence,
+    statistical_convergence,
+    raw_run_records,
+) -> dict[str, object]:
+    """Assemble a concrete convergence report payload."""
+    return {
+        "suite_states": suite_states,
+        "repeats_per_state": int(repeats_per_state),
+        "main_run_optimization_convergence": main_run_optimization_convergence,
+        "statistical_convergence": statistical_convergence,
+        "raw_run_records": raw_run_records,
+    }
+
+
+@workflow.task(save=False)
+def _assemble_shot_sweep_report(
+    suite_states,
+    shot_log2_values,
+    shot_counts,
+    repeats_per_point: int,
+    raw_run_records,
+    failed_runs,
+    validation_checks,
+    aggregated_stats,
+    final_summary,
+) -> dict[str, object]:
+    """Assemble a concrete shot-sweep report payload."""
+    return {
+        "suite_states": suite_states,
+        "shot_log2_values": shot_log2_values,
+        "shot_counts": shot_counts,
+        "repeats_per_point": int(repeats_per_point),
+        "raw_run_records": raw_run_records,
+        "failed_runs": failed_runs,
+        "validation_checks": validation_checks,
+        "aggregated_stats": aggregated_stats,
+        "final_summary": final_summary,
+    }
+
+
+@workflow.task(save=False)
+def _assemble_workflow_output(
+    tomography_result,
+    readout_calibration_result,
+    analysis_result,
+    convergence_report,
+    shot_sweep_report,
+    initial_state: str,
+    target_state_effective,
+    custom_prep: bool,
+) -> dict[str, object]:
+    """Assemble a notebook-friendly top-level workflow payload."""
+    return {
+        "tomography_result": tomography_result,
+        "readout_calibration_result": readout_calibration_result,
+        "analysis_result": analysis_result,
+        "convergence_report": convergence_report,
+        "shot_sweep_report": shot_sweep_report,
+        "initial_state": initial_state,
+        "target_state_effective": target_state_effective,
+        "custom_prep": bool(custom_prep),
+    }
+
+
+@workflow.task(save=False)
 def _select_qubit_for_analysis(
     qubits: QuantumElements,
     index: int,
@@ -361,6 +455,15 @@ def resolve_shot_sweep_suite_states(
     return tuple(normalized)
 
 
+@workflow.task(save=False)
+def should_run_readout_calibration(
+    do_readout_calibration: bool,
+    readout_calibration_result,
+) -> bool:
+    """Resolve whether the workflow should acquire a fresh readout calibration."""
+    return bool(do_readout_calibration) and readout_calibration_result is None
+
+
 @workflow.workflow(name="two_qubit_qst")
 def experiment_workflow(
     session: Session,
@@ -392,21 +495,34 @@ def experiment_workflow(
     qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)
     _ = bus
 
-    calibration_result = readout_calibration_result
-    with workflow.if_(
-        options.do_readout_calibration and readout_calibration_result is None
-    ):
+    run_readout_calibration = should_run_readout_calibration(
+        do_readout_calibration=options.do_readout_calibration,
+        readout_calibration_result=readout_calibration_result,
+    )
+    calibration_bundle = _bundle_readout_calibration_result(
+        readout_calibration_result
+    )
+    with workflow.if_(run_readout_calibration):
         readout_cal_exp = create_readout_calibration_experiment(
             temp_qpu,
             qubits,
         )
         compiled_readout_cal = compile_experiment(session, readout_cal_exp)
-        calibration_result = run_experiment(session, compiled_readout_cal)
+        calibration_bundle = _bundle_readout_calibration_result(
+            run_experiment(session, compiled_readout_cal)
+        )
+
+    stable_calibration_bundle = _materialize_readout_calibration_bundle(
+        calibration_bundle
+    )
+    stable_calibration_result = _extract_readout_calibration_result(
+        stable_calibration_bundle
+    )
 
     validate_analysis_prerequisites(
         do_analysis=options.do_analysis,
         do_readout_calibration=options.do_readout_calibration,
-        readout_calibration_result=calibration_result,
+        readout_calibration_result=stable_calibration_result,
     )
 
     exp = create_experiment(
@@ -433,166 +549,175 @@ def experiment_workflow(
     )
 
     analysis_result = None
+    convergence_report = None
+    shot_sweep_report = None
     with workflow.if_(options.do_analysis):
-        analysis_result = analysis_workflow(
+        analysis_workflow_result = analysis_workflow(
             tomography_result=tomography_result,
             ctrl=ctrl,
             targ=targ,
-            readout_calibration_result=calibration_result,
+            readout_calibration_result=stable_calibration_result,
             target_state=resolved_config["target_state_effective"],
         )
+        analysis_result = _copy_optional_dict(analysis_workflow_result.output)
 
-    convergence_report = None
-    with workflow.if_(options.do_analysis and options.do_convergence_validation):
-        suite_states = resolve_convergence_suite_states(
-            suite_states=options.convergence_suite_states,
-            repeats_per_state=options.convergence_repeats_per_state,
-        )
-        repeat_indices = resolve_convergence_repeat_indices(
-            repeats_per_state=options.convergence_repeats_per_state,
-        )
-        repeats_per_state = resolve_convergence_repeats_per_state(
-            repeats_per_state=options.convergence_repeats_per_state,
-        )
-        raw_run_records = []
-        analysis_max_iterations = int(TwoQQstAnalysisOptions().max_mle_iterations)
-
-        with workflow.for_(suite_states, lambda state: state) as state_label:
-            with workflow.for_(repeat_indices, lambda idx: idx) as repeat_index:
-                suite_exp = create_experiment(
-                    temp_qpu,
-                    qubits,
-                    bus,
-                    custom_prep=False,
-                    initial_state=state_label,
-                )
-                compiled_suite_exp = compile_experiment(session, suite_exp)
-                suite_tomography_result = run_experiment(session, compiled_suite_exp)
-                suite_analysis_result = analyze_tomography_run(
-                    tomography_result=suite_tomography_result,
-                    ctrl_uid=ctrl.uid,
-                    targ_uid=targ.uid,
-                    readout_calibration_result=calibration_result,
-                    target_state=state_label,
-                    max_iterations=analysis_max_iterations,
-                )
-                record = collect_convergence_run_record(
-                    state_label=state_label,
-                    repeat_index=repeat_index,
-                    analysis_result=suite_analysis_result,
-                )
-                _append_item(raw_run_records, record)
-
-        raw_run_records = _materialize_list(raw_run_records)
-        statistical_convergence = summarize_statistical_convergence(raw_run_records)
-        main_run_convergence = extract_main_run_optimization_convergence(
-            analysis_result=analysis_result
-        )
-        with workflow.if_(options.convergence_do_plotting):
-            plot_convergence_suite_fidelity(
-                statistical_convergence=statistical_convergence
+        with workflow.if_(options.do_convergence_validation):
+            suite_states = resolve_convergence_suite_states(
+                suite_states=options.convergence_suite_states,
+                repeats_per_state=options.convergence_repeats_per_state,
             )
-        convergence_report = {
-            "suite_states": suite_states,
-            "repeats_per_state": repeats_per_state,
-            "main_run_optimization_convergence": main_run_convergence,
-            "statistical_convergence": statistical_convergence,
-            "raw_run_records": raw_run_records,
-        }
+            repeat_indices = resolve_convergence_repeat_indices(
+                repeats_per_state=options.convergence_repeats_per_state,
+            )
+            repeats_per_state = resolve_convergence_repeats_per_state(
+                repeats_per_state=options.convergence_repeats_per_state,
+            )
+            raw_run_records = []
+            analysis_max_iterations = int(TwoQQstAnalysisOptions().max_mle_iterations)
 
-    shot_sweep_report = None
-    with workflow.if_(options.do_analysis and options.do_shot_sweep_convergence):
-        suite_states = resolve_shot_sweep_suite_states(
-            suite_states=options.shot_sweep_suite_states,
-            repeats_per_point=options.shot_sweep_repeats_per_point,
-        )
-        shot_log2_values = resolve_shot_sweep_log2_values(
-            shot_log2_values=options.shot_sweep_log2_values
-        )
-        shot_counts = resolve_shot_sweep_counts(shot_log2_values)
-        repeats_per_point = resolve_shot_sweep_repeats_per_point(
-            repeats_per_point=options.shot_sweep_repeats_per_point
-        )
-        repeat_indices = resolve_shot_sweep_repeat_indices(
-            repeats_per_point=options.shot_sweep_repeats_per_point
-        )
-        raw_run_records = []
-        failed_runs = []
-        analysis_max_iterations = int(TwoQQstAnalysisOptions().max_mle_iterations)
-
-        with workflow.for_(suite_states, lambda state: state) as state_label:
-            with workflow.for_(shot_log2_values, lambda value: value) as log2_shots:
-                shots = shot_count_from_log2(log2_shots)
+            with workflow.for_(suite_states, lambda state: state) as state_label:
                 with workflow.for_(repeat_indices, lambda idx: idx) as repeat_index:
-                    sweep_exp = create_experiment(
+                    suite_exp = create_experiment(
                         temp_qpu,
                         qubits,
                         bus,
                         custom_prep=False,
                         initial_state=state_label,
-                        count_override=shots,
                     )
-                    compiled_sweep_exp = compile_experiment(session, sweep_exp)
-                    sweep_tomography_result = run_experiment(session, compiled_sweep_exp)
-                    sweep_record = collect_shot_sweep_run_record(
-                        state_label=state_label,
-                        log2_shots=log2_shots,
-                        shots=shots,
-                        repeat=repeat_index,
-                        tomography_result=sweep_tomography_result,
+                    compiled_suite_exp = compile_experiment(session, suite_exp)
+                    suite_tomography_result = run_experiment(session, compiled_suite_exp)
+                    suite_analysis_result = analyze_tomography_run(
+                        tomography_result=suite_tomography_result,
                         ctrl_uid=ctrl.uid,
                         targ_uid=targ.uid,
-                        readout_calibration_result=calibration_result,
+                        readout_calibration_result=stable_calibration_result,
                         target_state=state_label,
                         max_iterations=analysis_max_iterations,
-                        eps=SHOT_SWEEP_EPS,
                     )
-                    _append_item(raw_run_records, sweep_record["record"])
-                    _append_item_if_present(failed_runs, sweep_record["failure"])
+                    record = collect_convergence_run_record(
+                        state_label=state_label,
+                        repeat_index=repeat_index,
+                        analysis_result=suite_analysis_result,
+                    )
+                    _append_item(raw_run_records, record)
 
-        raw_run_records = _materialize_list(raw_run_records)
-        failed_runs = _materialize_list(failed_runs)
-        validation_checks = validate_shot_sweep_run_records(
-            run_records=raw_run_records,
-            suite_states=suite_states,
-            shot_log2_values=shot_log2_values,
-            repeats_per_point=repeats_per_point,
-            eps=SHOT_SWEEP_EPS,
-            infid_tol=SHOT_SWEEP_INFID_TOL,
-        )
-        aggregated_stats = aggregate_shot_sweep_statistics(raw_run_records)
-        final_summary = summarize_final_shot_sweep(
-            aggregated_stats=aggregated_stats,
-            shot_log2_values=shot_log2_values,
-        )
-        with workflow.if_(options.shot_sweep_do_plotting):
-            plot_shot_sweep_summary(
-                aggregated_stats=aggregated_stats,
-                suite_states=suite_states,
+            raw_run_records = _materialize_list(raw_run_records)
+            statistical_convergence = summarize_statistical_convergence(
+                raw_run_records
             )
-        shot_sweep_report = {
-            "suite_states": suite_states,
-            "shot_log2_values": shot_log2_values,
-            "shot_counts": shot_counts,
-            "repeats_per_point": repeats_per_point,
-            "raw_run_records": raw_run_records,
-            "failed_runs": failed_runs,
-            "validation_checks": validation_checks,
-            "aggregated_stats": aggregated_stats,
-            "final_summary": final_summary,
-        }
+            main_run_convergence = extract_main_run_optimization_convergence(
+                analysis_result=analysis_result
+            )
+            with workflow.if_(options.convergence_do_plotting):
+                plot_convergence_suite_fidelity(
+                    statistical_convergence=statistical_convergence
+                )
+            convergence_report = _assemble_convergence_report(
+                suite_states=suite_states,
+                repeats_per_state=repeats_per_state,
+                main_run_optimization_convergence=main_run_convergence,
+                statistical_convergence=statistical_convergence,
+                raw_run_records=raw_run_records,
+            )
+
+        with workflow.if_(options.do_shot_sweep_convergence):
+            suite_states = resolve_shot_sweep_suite_states(
+                suite_states=options.shot_sweep_suite_states,
+                repeats_per_point=options.shot_sweep_repeats_per_point,
+            )
+            shot_log2_values = resolve_shot_sweep_log2_values(
+                shot_log2_values=options.shot_sweep_log2_values
+            )
+            shot_counts = resolve_shot_sweep_counts(shot_log2_values)
+            repeats_per_point = resolve_shot_sweep_repeats_per_point(
+                repeats_per_point=options.shot_sweep_repeats_per_point
+            )
+            repeat_indices = resolve_shot_sweep_repeat_indices(
+                repeats_per_point=options.shot_sweep_repeats_per_point
+            )
+            raw_run_records = []
+            failed_runs = []
+            analysis_max_iterations = int(TwoQQstAnalysisOptions().max_mle_iterations)
+
+            with workflow.for_(suite_states, lambda state: state) as state_label:
+                with workflow.for_(
+                    shot_log2_values, lambda value: value
+                ) as log2_shots:
+                    shots = shot_count_from_log2(log2_shots)
+                    with workflow.for_(repeat_indices, lambda idx: idx) as repeat_index:
+                        sweep_exp = create_experiment(
+                            temp_qpu,
+                            qubits,
+                            bus,
+                            custom_prep=False,
+                            initial_state=state_label,
+                            count_override=shots,
+                        )
+                        compiled_sweep_exp = compile_experiment(session, sweep_exp)
+                        sweep_tomography_result = run_experiment(
+                            session, compiled_sweep_exp
+                        )
+                        sweep_record = collect_shot_sweep_run_record(
+                            state_label=state_label,
+                            log2_shots=log2_shots,
+                            shots=shots,
+                            repeat=repeat_index,
+                            tomography_result=sweep_tomography_result,
+                            ctrl_uid=ctrl.uid,
+                            targ_uid=targ.uid,
+                            readout_calibration_result=stable_calibration_result,
+                            target_state=state_label,
+                            max_iterations=analysis_max_iterations,
+                            eps=SHOT_SWEEP_EPS,
+                        )
+                        _append_item(raw_run_records, sweep_record["record"])
+                        _append_item_if_present(
+                            failed_runs, sweep_record["failure"]
+                        )
+
+            raw_run_records = _materialize_list(raw_run_records)
+            failed_runs = _materialize_list(failed_runs)
+            validation_checks = validate_shot_sweep_run_records(
+                run_records=raw_run_records,
+                suite_states=suite_states,
+                shot_log2_values=shot_log2_values,
+                repeats_per_point=repeats_per_point,
+                eps=SHOT_SWEEP_EPS,
+                infid_tol=SHOT_SWEEP_INFID_TOL,
+            )
+            aggregated_stats = aggregate_shot_sweep_statistics(raw_run_records)
+            final_summary = summarize_final_shot_sweep(
+                aggregated_stats=aggregated_stats,
+                shot_log2_values=shot_log2_values,
+            )
+            with workflow.if_(options.shot_sweep_do_plotting):
+                plot_shot_sweep_summary(
+                    aggregated_stats=aggregated_stats,
+                    suite_states=suite_states,
+                )
+            shot_sweep_report = _assemble_shot_sweep_report(
+                suite_states=suite_states,
+                shot_log2_values=shot_log2_values,
+                shot_counts=shot_counts,
+                repeats_per_point=repeats_per_point,
+                raw_run_records=raw_run_records,
+                failed_runs=failed_runs,
+                validation_checks=validation_checks,
+                aggregated_stats=aggregated_stats,
+                final_summary=final_summary,
+            )
 
     workflow.return_(
-        {
-            "tomography_result": tomography_result,
-            "readout_calibration_result": calibration_result,
-            "analysis_result": analysis_result,
-            "convergence_report": convergence_report,
-            "shot_sweep_report": shot_sweep_report,
-            "initial_state": resolved_config["initial_state"],
-            "target_state_effective": resolved_config["target_state_effective"],
-            "custom_prep": resolved_config["custom_prep"],
-        }
+        _assemble_workflow_output(
+            tomography_result=tomography_result,
+            readout_calibration_result=stable_calibration_result,
+            analysis_result=analysis_result,
+            convergence_report=convergence_report,
+            shot_sweep_report=shot_sweep_report,
+            initial_state=resolved_config["initial_state"],
+            target_state_effective=resolved_config["target_state_effective"],
+            custom_prep=resolved_config["custom_prep"],
+        )
     )
 
 

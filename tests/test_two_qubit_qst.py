@@ -12,8 +12,21 @@ pytest.importorskip("laboneq")
 pytest.importorskip("laboneq_applications")
 pytest.importorskip("scipy")
 
+from laboneq.workflow.reference import Reference
+
 from qubit_experiment.analysis import two_qubit_qst as qst_analysis
 from qubit_experiment.experiments import two_qubit_qst as qst
+
+
+def _assert_no_reference(value) -> None:
+    if isinstance(value, Reference):
+        pytest.fail(f"Unexpected Reference payload: {value!r}")
+    if isinstance(value, dict):
+        for item in value.values():
+            _assert_no_reference(item)
+    elif isinstance(value, (list, tuple)):
+        for item in value:
+            _assert_no_reference(item)
 
 
 def test_workflow_options_expose_qst_and_nested_analysis_fields() -> None:
@@ -330,3 +343,404 @@ def test_summarize_final_shot_sweep_selects_largest_log2() -> None:
             "log10_infid_ci95": 0.08,
         }
     ]
+
+
+def test_experiment_workflow_materializes_auto_readout_calibration_for_analysis(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+
+    @qst.workflow.task(save=False)
+    def _compile(session, exp):  # noqa: ARG001
+        return exp
+
+    @qst.workflow.task(save=False)
+    def _run(session, compiled):  # noqa: ARG001
+        calls.append(compiled)
+        if compiled == "readout-cal-exp":
+            return {"kind": "calibration"}
+        return {"kind": "tomography"}
+
+    @qst.workflow.task(save=False)
+    def _capture_calibration(readout_calibration_result):
+        if readout_calibration_result is None:
+            raise ValueError("calibration missing in analysis stub")
+        return {"seen": readout_calibration_result}
+
+    @qst.workflow.workflow(name="analysis_stub")
+    def _analysis_stub(
+        tomography_result,  # noqa: ARG001
+        ctrl,  # noqa: ARG001
+        targ,  # noqa: ARG001
+        readout_calibration_result=None,
+        target_state=None,  # noqa: ARG001
+    ) -> None:
+        qst.workflow.return_(_capture_calibration(readout_calibration_result))
+
+    monkeypatch.setattr(qst, "temporary_qpu", lambda qpu, temporary_parameters: qpu)
+    monkeypatch.setattr(
+        qst, "temporary_quantum_elements_from_qpu", lambda qpu, elements: elements
+    )
+    monkeypatch.setattr(
+        qst,
+        "resolve_target_configuration",
+        lambda custom_prep, initial_state, target_state: {
+            "custom_prep": False,
+            "initial_state": "00",
+            "target_state_effective": "00",
+        },
+    )
+    monkeypatch.setattr(qst, "validate_workflow_configuration", lambda **kwargs: None)
+    monkeypatch.setattr(qst, "validate_analysis_prerequisites", lambda **kwargs: None)
+    monkeypatch.setattr(
+        qst, "create_readout_calibration_experiment", lambda temp_qpu, qubits: "readout-cal-exp"
+    )
+    monkeypatch.setattr(qst, "create_experiment", lambda *args, **kwargs: "tomography-exp")
+    monkeypatch.setattr(qst, "compile_experiment", _compile)
+    monkeypatch.setattr(qst, "run_experiment", _run)
+    monkeypatch.setattr(
+        qst,
+        "_select_qubit_for_analysis",
+        lambda qubits, index, expected_len, caller: qubits[index],
+    )
+    monkeypatch.setattr(qst, "analysis_workflow", _analysis_stub)
+
+    options = qst.experiment_workflow.options()
+    options.do_analysis(True)
+    options.do_readout_calibration(True)
+    options.do_convergence_validation(False)
+    options.do_shot_sweep_convergence(False)
+
+    result = qst.experiment_workflow(
+        session=SimpleNamespace(),
+        qpu=SimpleNamespace(),
+        qubits=[SimpleNamespace(uid="q0"), SimpleNamespace(uid="q1")],
+        bus=SimpleNamespace(uid="b0"),
+        options=options,
+    ).run()
+
+    assert calls == ["readout-cal-exp", "tomography-exp"]
+    assert result.output["readout_calibration_result"]["kind"] == "calibration"
+
+
+def test_experiment_workflow_returns_materialized_analysis_payload(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    @qst.workflow.task(save=False)
+    def _compile(session, exp):  # noqa: ARG001
+        return exp
+
+    @qst.workflow.task(save=False)
+    def _run(session, compiled):  # noqa: ARG001
+        return {"kind": compiled}
+
+    @qst.workflow.task(save=False)
+    def _analysis_payload():
+        return {
+            "metrics": {"fidelity_to_target": 0.99},
+            "optimization_convergence": {"nll_finite": True},
+        }
+
+    @qst.workflow.workflow(name="analysis_payload_stub")
+    def _analysis_stub(
+        tomography_result,  # noqa: ARG001
+        ctrl,  # noqa: ARG001
+        targ,  # noqa: ARG001
+        readout_calibration_result=None,  # noqa: ARG001
+        target_state=None,  # noqa: ARG001
+    ) -> None:
+        qst.workflow.return_(_analysis_payload())
+
+    monkeypatch.setattr(qst, "temporary_qpu", lambda qpu, temporary_parameters: qpu)
+    monkeypatch.setattr(
+        qst, "temporary_quantum_elements_from_qpu", lambda qpu, elements: elements
+    )
+    monkeypatch.setattr(
+        qst,
+        "resolve_target_configuration",
+        lambda custom_prep, initial_state, target_state: {
+            "custom_prep": False,
+            "initial_state": "00",
+            "target_state_effective": "00",
+        },
+    )
+    monkeypatch.setattr(qst, "validate_workflow_configuration", lambda **kwargs: None)
+    monkeypatch.setattr(qst, "validate_analysis_prerequisites", lambda **kwargs: None)
+    monkeypatch.setattr(qst, "create_experiment", lambda *args, **kwargs: "tomography-exp")
+    monkeypatch.setattr(qst, "compile_experiment", _compile)
+    monkeypatch.setattr(qst, "run_experiment", _run)
+    monkeypatch.setattr(
+        qst,
+        "_select_qubit_for_analysis",
+        lambda qubits, index, expected_len, caller: qubits[index],
+    )
+    monkeypatch.setattr(qst, "analysis_workflow", _analysis_stub)
+
+    options = qst.experiment_workflow.options()
+    options.do_analysis(True)
+    options.do_readout_calibration(False)
+    options.do_convergence_validation(False)
+    options.do_shot_sweep_convergence(False)
+
+    result = qst.experiment_workflow(
+        session=SimpleNamespace(),
+        qpu=SimpleNamespace(),
+        qubits=[SimpleNamespace(uid="q0"), SimpleNamespace(uid="q1")],
+        bus=SimpleNamespace(uid="b0"),
+        options=options,
+    ).run()
+
+    assert result.output["analysis_result"]["metrics"]["fidelity_to_target"] == pytest.approx(
+        0.99
+    )
+
+
+def test_experiment_workflow_materializes_convergence_report_payload(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    @qst.workflow.task(save=False)
+    def _compile(session, exp):  # noqa: ARG001
+        return exp
+
+    @qst.workflow.task(save=False)
+    def _run(session, compiled):  # noqa: ARG001
+        if compiled == "readout-cal-exp":
+            return {"kind": "calibration"}
+        return {"kind": compiled}
+
+    @qst.workflow.task(save=False)
+    def _analysis_payload():
+        return {
+            "metrics": {"fidelity_to_target": 0.99},
+            "optimization_convergence": {"nll_finite": True},
+        }
+
+    @qst.workflow.workflow(name="analysis_payload_stub")
+    def _analysis_stub(
+        tomography_result,  # noqa: ARG001
+        ctrl,  # noqa: ARG001
+        targ,  # noqa: ARG001
+        readout_calibration_result=None,  # noqa: ARG001
+        target_state=None,  # noqa: ARG001
+    ) -> None:
+        qst.workflow.return_(_analysis_payload())
+
+    @qst.workflow.task(save=False)
+    def _suite_analysis_result(**kwargs):  # noqa: ARG001
+        return {
+            "metrics": {"fidelity_to_target": 0.98, "min_eigenvalue": 0.0},
+            "optimization_convergence": {
+                "nll_finite": True,
+                "negative_log_likelihood": 1.2,
+                "optimizer_success": True,
+            },
+            "negative_log_likelihood": 1.2,
+            "optimizer_success": True,
+        }
+
+    monkeypatch.setattr(qst, "temporary_qpu", lambda qpu, temporary_parameters: qpu)
+    monkeypatch.setattr(
+        qst, "temporary_quantum_elements_from_qpu", lambda qpu, elements: elements
+    )
+    monkeypatch.setattr(
+        qst,
+        "resolve_target_configuration",
+        lambda custom_prep, initial_state, target_state: {
+            "custom_prep": False,
+            "initial_state": "00",
+            "target_state_effective": "00",
+        },
+    )
+    monkeypatch.setattr(qst, "validate_workflow_configuration", lambda **kwargs: None)
+    monkeypatch.setattr(qst, "validate_analysis_prerequisites", lambda **kwargs: None)
+    monkeypatch.setattr(
+        qst,
+        "create_readout_calibration_experiment",
+        lambda temp_qpu, qubits: "readout-cal-exp",
+    )
+    monkeypatch.setattr(qst, "create_experiment", lambda *args, **kwargs: "tomography-exp")
+    monkeypatch.setattr(qst, "compile_experiment", _compile)
+    monkeypatch.setattr(qst, "run_experiment", _run)
+    monkeypatch.setattr(
+        qst,
+        "_select_qubit_for_analysis",
+        lambda qubits, index, expected_len, caller: qubits[index],
+    )
+    monkeypatch.setattr(qst, "analysis_workflow", _analysis_stub)
+    monkeypatch.setattr(qst, "analyze_tomography_run", _suite_analysis_result)
+
+    options = qst.experiment_workflow.options()
+    options.do_analysis(True)
+    options.do_readout_calibration(True)
+    options.do_convergence_validation(True)
+    options.convergence_repeats_per_state(1)
+    options.convergence_suite_states(("00",))
+    options.convergence_do_plotting(False)
+    options.do_shot_sweep_convergence(False)
+
+    result = qst.experiment_workflow(
+        session=SimpleNamespace(),
+        qpu=SimpleNamespace(),
+        qubits=[SimpleNamespace(uid="q0"), SimpleNamespace(uid="q1")],
+        bus=SimpleNamespace(uid="b0"),
+        options=options,
+    ).run()
+
+    report = result.output["convergence_report"]
+    assert report["main_run_optimization_convergence"]["nll_finite"] is True
+    assert report["raw_run_records"] == [
+        {
+            "state_label": "00",
+            "repeat_index": 0,
+            "fidelity_to_target": pytest.approx(0.98),
+            "optimizer_success": True,
+            "negative_log_likelihood": pytest.approx(1.2),
+            "rho_min_eigenvalue": pytest.approx(0.0),
+            "nll_finite": True,
+            "nll_per_shot": None,
+            "mae_counts": None,
+            "max_abs_counts_error": None,
+            "normalized_mae_counts": None,
+        }
+    ]
+    _assert_no_reference(report)
+
+
+def test_experiment_workflow_materializes_shot_sweep_report_payload(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    @qst.workflow.task(save=False)
+    def _compile(session, exp):  # noqa: ARG001
+        return exp
+
+    @qst.workflow.task(save=False)
+    def _run(session, compiled):  # noqa: ARG001
+        if compiled == "readout-cal-exp":
+            return {"kind": "calibration"}
+        return {"kind": compiled}
+
+    @qst.workflow.task(save=False)
+    def _analysis_payload():
+        return {
+            "metrics": {"fidelity_to_target": 0.99},
+            "optimization_convergence": {"nll_finite": True},
+        }
+
+    @qst.workflow.workflow(name="analysis_payload_stub")
+    def _analysis_stub(
+        tomography_result,  # noqa: ARG001
+        ctrl,  # noqa: ARG001
+        targ,  # noqa: ARG001
+        readout_calibration_result=None,  # noqa: ARG001
+        target_state=None,  # noqa: ARG001
+    ) -> None:
+        qst.workflow.return_(_analysis_payload())
+
+    @qst.workflow.task(save=False)
+    def _collect_shot_record(**kwargs):  # noqa: ARG001
+        return {
+            "record": {
+                "state": "00",
+                "log2_shots": 3,
+                "shots": 8,
+                "repeat": 0,
+                "fidelity": 0.97,
+                "infidelity": 0.03,
+                "log10_infidelity": np.log10(0.03),
+                "nll": 1.0,
+                "min_eig": 0.0,
+            },
+            "failure": None,
+        }
+
+    @qst.workflow.task(save=False)
+    def _validate_records(**kwargs):  # noqa: ARG001
+        return {"ok": True}
+
+    @qst.workflow.task(save=False)
+    def _aggregate_stats(run_records):  # noqa: ARG001
+        return [
+            {
+                "state": "00",
+                "log2_shots": 3,
+                "shots": 8,
+                "n_total": 1,
+                "n_valid_infidelity": 1,
+                "infid_mean": 0.03,
+                "infid_ci95": 0.0,
+                "log10_infid_mean": np.log10(0.03),
+                "log10_infid_ci95": 0.0,
+            }
+        ]
+
+    @qst.workflow.task(save=False)
+    def _final_summary(**kwargs):  # noqa: ARG001
+        return [
+            {
+                "state": "00",
+                "n_total": 1,
+                "n_valid_infidelity": 1,
+                "infid_mean": 0.03,
+                "infid_ci95": 0.0,
+                "log10_infid_mean": np.log10(0.03),
+                "log10_infid_ci95": 0.0,
+            }
+        ]
+
+    monkeypatch.setattr(qst, "temporary_qpu", lambda qpu, temporary_parameters: qpu)
+    monkeypatch.setattr(
+        qst, "temporary_quantum_elements_from_qpu", lambda qpu, elements: elements
+    )
+    monkeypatch.setattr(
+        qst,
+        "resolve_target_configuration",
+        lambda custom_prep, initial_state, target_state: {
+            "custom_prep": False,
+            "initial_state": "00",
+            "target_state_effective": "00",
+        },
+    )
+    monkeypatch.setattr(qst, "validate_workflow_configuration", lambda **kwargs: None)
+    monkeypatch.setattr(qst, "validate_analysis_prerequisites", lambda **kwargs: None)
+    monkeypatch.setattr(
+        qst,
+        "create_readout_calibration_experiment",
+        lambda temp_qpu, qubits: "readout-cal-exp",
+    )
+    monkeypatch.setattr(qst, "create_experiment", lambda *args, **kwargs: "tomography-exp")
+    monkeypatch.setattr(qst, "compile_experiment", _compile)
+    monkeypatch.setattr(qst, "run_experiment", _run)
+    monkeypatch.setattr(
+        qst,
+        "_select_qubit_for_analysis",
+        lambda qubits, index, expected_len, caller: qubits[index],
+    )
+    monkeypatch.setattr(qst, "analysis_workflow", _analysis_stub)
+    monkeypatch.setattr(qst, "collect_shot_sweep_run_record", _collect_shot_record)
+    monkeypatch.setattr(qst, "validate_shot_sweep_run_records", _validate_records)
+    monkeypatch.setattr(qst, "aggregate_shot_sweep_statistics", _aggregate_stats)
+    monkeypatch.setattr(qst, "summarize_final_shot_sweep", _final_summary)
+
+    options = qst.experiment_workflow.options()
+    options.do_analysis(True)
+    options.do_readout_calibration(True)
+    options.do_convergence_validation(False)
+    options.do_shot_sweep_convergence(True)
+    options.shot_sweep_log2_values((3,))
+    options.shot_sweep_suite_states(("00",))
+    options.shot_sweep_repeats_per_point(1)
+    options.shot_sweep_do_plotting(False)
+
+    result = qst.experiment_workflow(
+        session=SimpleNamespace(),
+        qpu=SimpleNamespace(),
+        qubits=[SimpleNamespace(uid="q0"), SimpleNamespace(uid="q1")],
+        bus=SimpleNamespace(uid="b0"),
+        options=options,
+    ).run()
+
+    report = result.output["shot_sweep_report"]
+    assert report["validation_checks"] == {"ok": True}
+    assert report["aggregated_stats"][0]["shots"] == 8
+    assert report["final_summary"][0]["state"] == "00"
+    _assert_no_reference(report)

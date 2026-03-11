@@ -1,9 +1,12 @@
-# selectiveRIP Content Moved
+# selectiveRIP Workspace
 
-The selectiveRIP notebooks and project-specific assets were moved to a standalone repository:
+The active selectiveRIP notebooks and project-specific assets now live in:
 
-- Repository: https://github.com/yalgaeahn/2026_selectiveRIP
-- Baseline split tag in this repo: `v0.1.0-package-foundation`
-- Baseline split commit in this repo: `a4496b2`
+- `projects/2026_selectiveRIP/`
 
-This `qubit-experiment` repository now keeps reusable package code only.
+This `examples/selectiveRIP/` directory remains a lightweight pointer only.
+
+Historical split baseline:
+
+- tag `v0.1.0-package-foundation`
+- commit `a4496b2`

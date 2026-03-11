@@ -1,7 +1,9 @@
 # qubit-experiment
 
 Reusable LabOne Q experiment/analysis package focused on reusable code.
-Project-specific notebooks and assets are maintained in separate project repositories.
+Project-specific notebooks and assets currently live under `projects/`, with
+`projects/2026_selectiveRIP/` restored for active module development and
+validation.
 
 ## Environment Setup
 
@@ -112,29 +114,30 @@ from qubit_experiment.helper import load_qubit_parameters
 ```text
 qubit_experiment/         # Canonical reusable package source
 example_helpers/          # Shared helper utilities for examples
-examples/                 # Descriptor files + moved-project pointers
+examples/                 # Lightweight pointers and example entrypoints
 tests/                    # Automated tests
-projects/                 # Local-only scratch workspaces for real-data development
+projects/                 # Project workspaces; selectiveRIP lives here today
 ```
 
-## Examples Split
+## SelectiveRIP Workspace
 
-- `examples/selectiveRIP` now contains a pointer only.
-- Full selectiveRIP notebooks/configs/scripts are in:
-  - https://github.com/yalgaeahn/2026_selectiveRIP
-- Split baseline:
+- Active selectiveRIP notebooks, configs, scripts, and project-local helpers are in
+  `projects/2026_selectiveRIP/`.
+- `examples/selectiveRIP/` remains a pointer README only.
+- Historical split baseline:
   - tag `v0.1.0-package-foundation`
   - commit `a4496b2`
 
-## Project Repository Policy
+## Project Workspace Policy
 
 - Keep reusable workflows and helpers in `qubit_experiment/`.
-- Keep project/lab-specific notebooks, calibration data, and exploratory scripts in
-  separate project repositories.
-- For temporary local validation inside this repo, use `projects/<workspace>/`; this
-  area is ignored so private data and scratch notebooks stay out of the public repo.
-- Use those project repositories with `qubit-experiment` as a dependency (editable or
-  Git URL install).
+- Keep project/lab-specific notebooks, calibration data, exploratory scripts, and
+  project-only wrappers under `projects/<workspace>/`.
+- `projects/2026_selectiveRIP/` is the current shared workspace used to validate
+  reusable module changes against real project assets.
+- Promote anything reusable from `projects/<workspace>/` into
+  `qubit_experiment/` and `tests/`.
+- Keep raw data and transient outputs out of the tracked package surface.
 
 ## Development Checks
 
@@ -148,6 +151,6 @@ pytest -q
 ## Publication Readiness Checklist
 
 - Reusable logic is under `qubit_experiment/`
-- Project/lab specific assets live in separate project repositories
+- Project/lab specific assets stay isolated under `projects/<workspace>/`
 - New code uses `qubit_experiment.*` imports
 - No top-level compatibility packages are required

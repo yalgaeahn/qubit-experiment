@@ -36,8 +36,17 @@ Do not use for brand-new module creation or major redesigns. For those, use
   `workflow.for_`), not Python `if/for/while`.
 - Treat workflow outputs as `Reference`; avoid Python truthiness and container
   methods on unresolved values.
+- Treat optional workflow inputs and workflow-parameter objects as potentially
+  unresolved during graph construction; do not run `int(...)`, `bool(...)`,
+  `isinstance(...)`, `x is None`, or attribute-based branching on them in the
+  workflow body. Resolve them in helper tasks first.
 - Set options with call style only (`opt.field(value)`), never assignment
   (`opt.field = value`).
+- Do not assemble notebook-facing nested dict/list payloads inline in workflow
+  returns when nested fields come from tasks or sub-workflows. Keep returns
+  top-level, or assemble nested bundles in helper tasks or plain Python wrappers.
+- When public maintenance code accepts both plain option objects and
+  `OptionBuilder`s, normalize them explicitly before reading fields.
 - Call `workflow.comment(...)`, `workflow.log(...)`, and
   `workflow.save_artifact(...)` only inside `@workflow.task`.
 - Enforce acquisition/averaging constraints in `create_experiment(...)` with
@@ -56,6 +65,8 @@ Do not use for brand-new module creation or major redesigns. For those, use
    required for compatibility.
 3. Update paired experiment/analysis modules if interfaces or outputs changed.
 4. Add or adjust regression tests targeting the failure mode.
+   For notebook-facing payloads, include a recursive assertion that no nested value is
+   a `laboneq.workflow.reference.Reference`.
 5. Run fast checks:
 
 ```bash
@@ -68,8 +79,12 @@ pytest -q
 ## Quick PR Review Checklist
 
 - Any workflow `Reference` consumed via Python control flow?
+- Any workflow input or options object being cast/inspected directly in the workflow
+  body?
 - Any branch-local value read after a conditional chain?
 - Any `OptionBuilder` field written by assignment?
+- Any nested workflow return payload likely to leak `Reference` values into notebook
+  output?
 - Any analysis-derived output used when `do_analysis=False`?
 - Any persistent update path missing `new_parameter_values` keys?
 - Did the fix include a test that fails before and passes after?
