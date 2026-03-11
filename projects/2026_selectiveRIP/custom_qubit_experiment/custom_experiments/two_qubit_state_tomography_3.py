@@ -10,8 +10,8 @@ from laboneq.dsl.enums import AcquisitionType, AveragingMode
 from laboneq.simple import Experiment, SectionAlignment, dsl
 from laboneq.workflow.tasks import compile_experiment, run_experiment
 
-from qubit_experiment.analysis.two_qubit_state_tomography import (
-    TwoQStateTomographyAnalysisOptions,
+from qubit_experiment.analysis.twoq_qst import (
+    TwoQQstAnalysisOptions,
     analysis_workflow,
     summarize_statistical_convergence,
 )
@@ -245,7 +245,7 @@ def experiment_workflow(
         repeats_per_state = resolve_convergence_repeats_per_state(
             repeats_per_state=options.convergence_repeats_per_state
         )
-        conv_analysis_options = TwoQStateTomographyAnalysisOptions()
+        conv_analysis_options = TwoQQstAnalysisOptions()
         conv_analysis_options.do_plotting = bool(options.convergence_do_plotting)
         raw_run_records = []
 

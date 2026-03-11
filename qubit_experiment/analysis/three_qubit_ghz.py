@@ -13,8 +13,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from laboneq import workflow
 
+from qubit_experiment.experiments.three_qubit_tomography_common import OUTCOME_LABELS
+
 from .plot_theme import with_plot_theme
-from .three_qubit_state_tomography import OUTCOME_LABELS
 from .threeq_qst import (
     _build_analysis_payload_impl,
     collect_convergence_run_record,

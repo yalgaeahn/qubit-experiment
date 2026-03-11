@@ -691,6 +691,25 @@ def test_run_bundle_accepts_supplied_readout_calibration_result(
     )
 
 
+@pytest.mark.parametrize("axis", ["X", "Y", "Z"])
+def test_single_qubit_prerotation_unitary_supports_all_tomography_axes(
+    axis: str,
+) -> None:
+    unitary = qst_analysis._single_qubit_prerotation_unitary(axis)
+
+    assert unitary.shape == (2, 2)
+    assert np.iscomplexobj(unitary)
+    assert np.all(np.isfinite(unitary))
+
+
+def test_build_noisy_povm_supports_identity_assignment_matrix() -> None:
+    noisy_povm = qst_analysis._build_noisy_povm(np.eye(8, dtype=float))
+
+    assert noisy_povm.shape == (len(qst_analysis.TOMOGRAPHY_SETTINGS), 8, 8, 8)
+    assert np.iscomplexobj(noisy_povm)
+    assert np.all(np.isfinite(noisy_povm))
+
+
 def test_threeq_qst_notebook_uses_run_bundle_and_removes_reference_helpers() -> None:
     notebook = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
     source = "\n".join(
@@ -714,6 +733,24 @@ def test_threeq_qst_notebook_uses_run_bundle_and_removes_reference_helpers() -> 
     assert "validation_mode(" not in source
     assert "use_rip(" not in source
     assert "enforce_target_match(" not in source
+
+
+def test_threeq_qst_source_is_self_contained() -> None:
+    experiment_source = (
+        Path(__file__).resolve().parents[1]
+        / "qubit_experiment"
+        / "experiments"
+        / "threeq_qst.py"
+    ).read_text(encoding="utf-8")
+    analysis_source = (
+        Path(__file__).resolve().parents[1]
+        / "qubit_experiment"
+        / "analysis"
+        / "threeq_qst.py"
+    ).read_text(encoding="utf-8")
+
+    assert "three_qubit_state_tomography" not in experiment_source
+    assert "from .three_qubit_state_tomography import" not in analysis_source
 
 
 def test_state_tomography_notebook_uses_built_in_threeq_reports() -> None:
