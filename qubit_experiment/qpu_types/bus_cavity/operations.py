@@ -5,22 +5,23 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Literal, ClassVar, TYPE_CHECKING
+from numbers import Number
+from typing import TYPE_CHECKING, ClassVar, Literal
 
 import numpy as np
 from laboneq.dsl.calibration import Calibration, Oscillator
 from laboneq.dsl.enums import ModulationType
-from laboneq.dsl.parameter import SweepParameter
-from laboneq.simple import SectionAlignment, dsl
+from laboneq.dsl.experiment import builtins
+from laboneq.dsl.parameter import Parameter, SweepParameter
+from laboneq.simple import dsl
 
-from laboneq_applications.typing import QuantumElements
+from qubit_experiment import custom_pulse_library
 
 # from .qubit_types import FixedTransmonQubit
 from .bus_types import BusCavity
 
-from qubit_experiment import custom_pulse_library
-from laboneq.dsl.experiment import builtins
+if TYPE_CHECKING:
+    from laboneq.dsl.experiment.pulse import Pulse
 
 # TODO: Implement multistate 0-1-2 measurement operation
 
@@ -90,16 +91,19 @@ class BusCavityOperations(dsl.QuantumOperations):
         )
 
     @dsl.quantum_operation
-    def rip(self, 
-            b: BusCavity,
-            amplitude: float | None = None,
-            phase: float = _PI_BY_2,
-            increment_oscillator_phase: float | SweepParameter | None = None,
-            length: float | None = None,
-            pulse: dict | None = None,
-        ) -> None:
+    def rip(
+        self,
+        b: BusCavity,
+        amplitude: float | None = None,
+        phase: float = _PI_BY_2,
+        increment_oscillator_phase: float | SweepParameter | None = None,
+        length: float | None = None,
+        pulse: dict | None = None,
+        *,
+        line: Literal["drive", "drive_p"] = "drive",
+    ) -> None:
 
-        rip_line, params = b.rip_parameters()
+        rip_line, params = b.rip_parameters(line=line)
         rip_amplitude = params["amplitude"] if amplitude is None else amplitude
         rip_length = params["length"] if length is None else length
 
@@ -113,7 +117,7 @@ class BusCavityOperations(dsl.QuantumOperations):
             phase=phase,
             length=rip_length,
             pulse=rip_pulse,
-            increment_oscillator_phase=increment_oscillator_phase
+            increment_oscillator_phase=increment_oscillator_phase,
         )
 
     @dsl.quantum_operation
@@ -133,7 +137,13 @@ class BusCavityOperations(dsl.QuantumOperations):
         """
 
     @dsl.quantum_operation
-    def bus_delay(self, b: BusCavity, time: float) -> None:
+    def bus_delay(
+        self,
+        b: BusCavity,
+        time: float,
+        *,
+        line: Literal["drive", "drive_p"] = "drive",
+    ) -> None:
         """Add a delay on the qubit drive signal.
 
         Arguments:
@@ -144,7 +154,7 @@ class BusCavityOperations(dsl.QuantumOperations):
         """
         # Delaying on a single line is sufficient since the operation
         # section automatically reserves all lines.
-        signal_line, _ = b.rip_parameters()
+        signal_line, _ = b.rip_parameters(line=line)
         dsl.delay(b.signals[signal_line], time=time)
 
     @dsl.quantum_operation
@@ -153,6 +163,7 @@ class BusCavityOperations(dsl.QuantumOperations):
         b: BusCavity,
         frequency: float | SweepParameter,
         *,
+        line: Literal["drive", "drive_p"] = "drive",
         readout: bool = False,
         rf: bool = True,
         calibration: Calibration | None = None,
@@ -205,9 +216,12 @@ class BusCavityOperations(dsl.QuantumOperations):
 
             This will be improved in a future release.
         """
-   
-        signal_line, _ = b.rip_parameters()
-        lo_frequency = b.parameters.drive_lo_frequency
+        signal_line, _ = b.rip_parameters(line=line)
+        lo_frequency = (
+            b.parameters.drive_lo_frequency
+            if line == "drive"
+            else b.parameters.drive_p_lo_frequency
+        )
 
         if rf:
             # This subtraction works for both numbers and SweepParameters
@@ -313,12 +327,11 @@ def create_pulse(
     name: str | None = None,
 ) -> Pulse:
     """Create a pulse from the given parameters and parameter overrides.
-    
-    Note) JSAHN 2025-08-04 
-        Originaly function is from dsl.quantum, I had to redefine function and override 
+
+    Note) JSAHN 2025-08-04
+        Originaly function is from dsl.quantum, I had to redefine function and override
         original in order to use pulse from custom pulse library.
-         
-     
+
     The parameters are dictionary that contains:
 
       - a key `"function"` that specifies which function from the LabOne Q
@@ -361,9 +374,9 @@ def create_pulse(
     else:
         try:
             pulse_function = custom_pulse_library.pulse_factory(function)
-        except KeyError as err:
+        except KeyError:
             pulse_function = custom_pulse_library.pulse_factory(function)
-            #raise ValueError(f"Unsupported pulse function {function!r}.") from err
+            # raise ValueError(f"Unsupported pulse function {function!r}.")
 
     if name is None:
         name = "unnamed"
@@ -375,4 +388,3 @@ def create_pulse(
         pulse_cache.store(pulse, name, function, parameters)
 
     return pulse
-
