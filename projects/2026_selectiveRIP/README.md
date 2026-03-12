@@ -11,6 +11,7 @@ and validation inside `qubit-experiment`.
 
 ```text
 2026_selectiveRIP/
+├── docs/                 # Project-specific notebook/import conventions
 ├── notebooks/            # Analysis and visualization notebooks
 ├── noteforTG/            # Shared notes / transfer notebooks
 ├── custom_qubit_experiment/
@@ -42,6 +43,8 @@ sibling `../qubit-experiment` checkout.
 - Preferred import path: `qubit_experiment.*`
 - Project-local import path: `custom_qubit_experiment.*`
 - Compatibility path (legacy notebooks): `experiments.*`, `analysis.*`
+- Notebook bootstrap standard:
+  [`docs/notebook-import-standard.md`](/Users/yalgaeahn/Research/20_Projects/qubit-experiment/projects/2026_selectiveRIP/docs/notebook-import-standard.md)
 
 ## Project-Local Custom Modules
 
@@ -62,7 +65,7 @@ from custom_qubit_experiment.custom_analysis import (
 )
 ```
 
-From notebooks under `notebooks/`, initialize imports with:
+From notebooks under `notebooks/` or `noteforTG/`, initialize imports with:
 
 ```python
 %run ../scripts/bootstrap_notebook.py
@@ -74,6 +77,10 @@ That bootstrap adds:
 - the surrounding `qubit-experiment` repo root when this workspace lives under
   `projects/`
 - a sibling `qubit-experiment` checkout if the project is split again later
+
+See
+[`docs/notebook-import-standard.md`](/Users/yalgaeahn/Research/20_Projects/qubit-experiment/projects/2026_selectiveRIP/docs/notebook-import-standard.md)
+for the full notebook convention, required first-cell pattern, and anti-patterns.
 
 ## Data Policy
 - `data/` is intentionally ignored for local/large raw data.

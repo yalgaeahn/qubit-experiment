@@ -3,11 +3,29 @@
 This module creates a fixed GHZ+ preparation circuit followed by 3Q tomography.
 It supports only `INTEGRATION + SINGLE_SHOT`, expects ordered
 `qubits=[q0, q1, q2]` and `bus=[b0, b1, b2]`, and uses `drive`/`drive_p`
-RIP sections for the two CZ blocks.
+RIP sections for the two entangling blocks.
+
+Circuit sketch for each tomography setting::
+
+    step: q0_ry90 -> q1_ry90 -> RIP(all buses, line="drive")
+          -> q1_ry(-90) -> q2_ry90 -> RIP(all buses, line="drive_p")
+          -> q2_ry(-90) -> Rz(q0, q1, q2) -> U_tomo(q0, q1, q2)
+          -> measure(q0, q1, q2)
+
+    q0: --Ry(pi/2)-------------------------------Rz(phi0)---U_tomo(q0_axis)---M
+    q1: -----------Ry(pi/2)---Ry(-pi/2)---------Rz(phi1)---U_tomo(q1_axis)---M
+    q2: -------------------------------Ry(pi/2)---Ry(-pi/2)---Rz(phi2)---U_tomo(q2_axis)---M
+    b0: ----------------------RIP(line="drive")-----RIP(line="drive_p")
+    b1: ----------------------RIP(line="drive")-----RIP(line="drive_p")
+    b2: ----------------------RIP(line="drive")-----RIP(line="drive_p")
+
+Here `U_tomo(qi_axis)` denotes the tomography prerotation chosen from
+`TOMOGRAPHY_SETTINGS` before simultaneous 3Q readout.
 """
 
 from __future__ import annotations
 
+from numbers import Real
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
@@ -79,6 +97,10 @@ class ThreeQGhzWorkflowOptions:
     ghz_prep: bool = workflow.option_field(
         True,
         description="Whether to run the fixed internal GHZ preparation block.",
+    )
+    final_virtual_z_phases: tuple[float, float, float] = workflow.option_field(
+        (0.0, 0.0, 0.0),
+        description="Virtual-Z phases (q0, q1, q2) in radians after GHZ prep.",
     )
     do_convergence_validation: bool = workflow.option_field(
         False,
@@ -196,12 +218,44 @@ def _resolve_bus_rf_frequency(
     return float(resonance + detuning)
 
 
+def _normalize_final_virtual_z_phases(phases) -> tuple[float, float, float]:
+    """Validate and normalize the final GHZ virtual-Z phase tuple."""
+    if isinstance(phases, (str, bytes)):
+        raise ValueError(
+            "final_virtual_z_phases must be an iterable of exactly 3 numeric values."
+        )
+
+    try:
+        values = tuple(phases)
+    except TypeError as exc:
+        raise ValueError(
+            "final_virtual_z_phases must be an iterable of exactly 3 numeric values."
+        ) from exc
+
+    if len(values) != 3:
+        raise ValueError(
+            "final_virtual_z_phases must contain exactly 3 values for (q0, q1, q2)."
+            f" Received {len(values)}."
+        )
+
+    normalized: list[float] = []
+    for index, value in enumerate(values):
+        if isinstance(value, bool) or not isinstance(value, Real):
+            raise ValueError(
+                "final_virtual_z_phases entries must be numeric."
+                f" Received index {index}: {value!r}."
+            )
+        normalized.append(float(value))
+    return tuple(normalized)  # type: ignore[return-value]
+
+
 def _validate_tomography_qop_contract(qop) -> None:
     """Ensure required GHZ tomography qop methods exist on the operation set."""
     required_methods = (
         "apply_tomography_prerotation",
         "measure_section_length",
         "rip",
+        "rz",
         "ry",
         "set_bus_frequency",
     )
@@ -331,6 +385,7 @@ def _create_experiment_impl(
     qubits: QuantumElements,
     bus: QuantumElements,
     ghz_prep: bool = True,
+    final_virtual_z_phases: tuple[float, float, float] = (0.0, 0.0, 0.0),
     options: ThreeQGhzExperimentOptions | None = None,
 ) -> Experiment:
     opts = ThreeQGhzExperimentOptions() if options is None else options
@@ -359,6 +414,7 @@ def _create_experiment_impl(
 
     q0, q1, q2 = _normalize_three_qubits(qubits)
     buses = _normalize_three_buses(bus)
+    final_virtual_z_phases = _normalize_final_virtual_z_phases(final_virtual_z_phases)
 
     qop = qpu.quantum_operations
     _validate_tomography_qop_contract(qop)
@@ -407,7 +463,7 @@ def _create_experiment_impl(
                 if prep_play_after is not None:
                     prep_section_kwargs["play_after"] = prep_play_after
 
-                with dsl.section(**prep_section_kwargs) as prep_sec:
+                with dsl.section(**prep_section_kwargs):
                     with dsl.section(
                         name=f"ghz_q0_ry90_{setting_label}",
                         alignment=SectionAlignment.LEFT,
@@ -455,13 +511,25 @@ def _create_experiment_impl(
                         name=f"ghz_q2_ry_minus_90_{setting_label}",
                         alignment=SectionAlignment.LEFT,
                         play_after=cz2.uid,
-                    ):
+                    ) as prep_q2_post:
                         qop.ry(q2, angle=-np.pi / 2)
+
+                    prep_tail_uid = prep_q2_post.uid
+                    if any(phase != 0.0 for phase in final_virtual_z_phases):
+                        with dsl.section(
+                            name=f"ghz_final_virtual_z_{setting_label}",
+                            alignment=SectionAlignment.LEFT,
+                            play_after=prep_q2_post.uid,
+                        ) as final_virtual_z_sec:
+                            qop.rz(q0, angle=final_virtual_z_phases[0])
+                            qop.rz(q1, angle=final_virtual_z_phases[1])
+                            qop.rz(q2, angle=final_virtual_z_phases[2])
+                        prep_tail_uid = final_virtual_z_sec.uid
 
                 with dsl.section(
                     name=f"basis_{setting_label}",
                     alignment=SectionAlignment.LEFT,
-                    play_after=prep_sec.uid,
+                    play_after=prep_tail_uid,
                 ) as basis_sec:
                     with dsl.section(
                         name=f"basis_q0_{setting_label}",
@@ -515,6 +583,7 @@ def create_experiment(
     qubits: QuantumElements,
     bus: QuantumElements,
     ghz_prep: bool = True,
+    final_virtual_z_phases: tuple[float, float, float] = (0.0, 0.0, 0.0),
     options: ThreeQGhzExperimentOptions | None = None,
 ) -> Experiment:
     """Create a GHZ-specific 3Q tomography experiment."""
@@ -523,6 +592,7 @@ def create_experiment(
         qubits=qubits,
         bus=bus,
         ghz_prep=ghz_prep,
+        final_virtual_z_phases=final_virtual_z_phases,
         options=options,
     )
 
@@ -575,6 +645,7 @@ def experiment_workflow(
         qubits,
         bus,
         ghz_prep=opts.ghz_prep,
+        final_virtual_z_phases=opts.final_virtual_z_phases,
     )
     compiled_exp = compile_experiment(session, exp)
     tomography_result = run_experiment(session, compiled_exp)
@@ -655,6 +726,7 @@ def convergence_validation_workflow(
             qubits,
             bus,
             ghz_prep=opts.ghz_prep,
+            final_virtual_z_phases=opts.final_virtual_z_phases,
         )
         compiled_ghz_exp = compile_experiment(session, ghz_exp)
         ghz_tomography_result = run_experiment(session, compiled_ghz_exp)

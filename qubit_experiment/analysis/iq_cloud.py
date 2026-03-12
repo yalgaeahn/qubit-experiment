@@ -14,13 +14,14 @@ from laboneq_applications.core.validation import (
 )
 from matplotlib.patches import Ellipse
 
-from example_helpers.workflow.handles import calibration_trace_2q_handle
 from qubit_experiment.experiments.iq_cloud_common import (
     iq_cloud_handle,
     joint_labels_for_num_qubits,
     prepared_labels_for_num_qubits,
     validate_supported_num_qubits,
 )
+from qubit_experiment.workflow.handles import calibration_trace_2q_handle
+
 from .plot_theme import get_semantic_color, get_state_color, with_plot_theme
 
 if TYPE_CHECKING:

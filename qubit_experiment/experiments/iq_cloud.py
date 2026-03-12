@@ -22,7 +22,8 @@ from qubit_experiment.analysis.iq_cloud import (
     extract_qubit_parameters_for_discrimination,
     fit_decision_models,
 )
-from example_helpers.workflow.handles import calibration_trace_2q_handle
+from qubit_experiment.workflow.handles import calibration_trace_2q_handle
+
 from .iq_cloud_common import (
     prepared_labels_for_num_qubits,
     validate_supported_num_qubits,

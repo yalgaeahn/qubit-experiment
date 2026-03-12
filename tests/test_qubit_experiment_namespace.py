@@ -26,6 +26,7 @@ SMOKE_MODULES = [
     "qubit_experiment.experiments.iq_cloud_common",
     "qubit_experiment.helper",
     "qubit_experiment.custom_pulse_library",
+    "qubit_experiment.workflow.handles",
 ]
 REMOVED_MODULES = [
     "analysis.plot_theme",
@@ -70,6 +71,29 @@ def test_no_top_level_legacy_imports_remain() -> None:
 
     for path in _python_files():
         bad_imports = _legacy_imports(path)
+        if bad_imports:
+            offenders.append((str(path.relative_to(REPO_ROOT)), bad_imports))
+
+    assert offenders == []
+
+
+def test_packaged_modules_do_not_depend_on_example_helpers() -> None:
+    offenders: list[tuple[str, list[str]]] = []
+
+    for path in sorted((REPO_ROOT / "qubit_experiment").rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        bad_imports: list[str] = []
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    if alias.name.split(".", 1)[0] == "example_helpers":
+                        bad_imports.append(alias.name)
+            elif isinstance(node, ast.ImportFrom):
+                if node.level == 0 and node.module is not None:
+                    if node.module.split(".", 1)[0] == "example_helpers":
+                        bad_imports.append(node.module)
+
         if bad_imports:
             offenders.append((str(path.relative_to(REPO_ROOT)), bad_imports))
 

@@ -12,7 +12,7 @@ from typing import Any, TypeVar
 import matplotlib
 
 ENV_THEME_VAR = "QUBIT_EXPERIMENT_PLOT_THEME"
-DEFAULT_PLOT_THEME = "high_contrast_publication_dark"
+DEFAULT_PLOT_THEME = "high_contrast_publication_light"
 
 _DARK_PROP_CYCLE = [
     "#4FC3F7",

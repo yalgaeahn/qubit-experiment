@@ -15,8 +15,8 @@ pytest.importorskip("laboneq")
 pytest.importorskip("laboneq_applications")
 pytest.importorskip("scipy")
 
-from qubit_experiment.analysis import threeq_qst as qst_analysis
-from qubit_experiment.experiments import threeq_qst as qst
+from qubit_experiment.analysis import three_qubit_state_tomography as qst_analysis
+from qubit_experiment.experiments import three_qubit_state_tomography as qst
 
 NOTEBOOK = (
     Path(__file__).resolve().parents[1]
@@ -710,7 +710,7 @@ def test_build_noisy_povm_supports_identity_assignment_matrix() -> None:
     assert np.all(np.isfinite(noisy_povm))
 
 
-def test_threeq_qst_notebook_uses_run_bundle_and_removes_reference_helpers() -> None:
+def test_three_qubit_state_tomography_notebook_uses_run_bundle_and_removes_reference_helpers() -> None:
     notebook = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
     source = "\n".join(
         "".join(cell.get("source", []))
@@ -719,38 +719,53 @@ def test_threeq_qst_notebook_uses_run_bundle_and_removes_reference_helpers() -> 
     )
 
     assert (
-        "from qubit_experiment.experiments import three_qubit_readout_calibration, threeq_qst"
+        "from qubit_experiment.experiments import three_qubit_readout_calibration, three_qubit_state_tomography"
         in source
     )
     assert (
-        "from qubit_experiment.analysis import threeq_qst as threeq_qst_analysis"
+        "from qubit_experiment.analysis import three_qubit_state_tomography as threeq_analysis"
         in source
     )
-    assert "threeq_qst.run_bundle(" in source
-    assert "analysis_options = threeq_qst_analysis.analysis_workflow.options()" in source
+    assert "three_qubit_state_tomography.run_bundle(" in source
+    assert "analysis_options = threeq_analysis.analysis_workflow.options()" in source
     assert "extract_analysis_output" not in source
-    assert "three_qubit_state_tomography" not in source
+    assert "threeq_qst" not in source
     assert "validation_mode(" not in source
     assert "use_rip(" not in source
     assert "enforce_target_match(" not in source
 
 
-def test_threeq_qst_source_is_self_contained() -> None:
+def test_three_qubit_state_tomography_source_is_canonical_and_alias_is_thin() -> None:
     experiment_source = (
+        Path(__file__).resolve().parents[1]
+        / "qubit_experiment"
+        / "experiments"
+        / "three_qubit_state_tomography.py"
+    ).read_text(encoding="utf-8")
+    analysis_source = (
+        Path(__file__).resolve().parents[1]
+        / "qubit_experiment"
+        / "analysis"
+        / "three_qubit_state_tomography.py"
+    ).read_text(encoding="utf-8")
+    experiment_alias_source = (
         Path(__file__).resolve().parents[1]
         / "qubit_experiment"
         / "experiments"
         / "threeq_qst.py"
     ).read_text(encoding="utf-8")
-    analysis_source = (
+    analysis_alias_source = (
         Path(__file__).resolve().parents[1]
         / "qubit_experiment"
         / "analysis"
         / "threeq_qst.py"
     ).read_text(encoding="utf-8")
 
-    assert "three_qubit_state_tomography" not in experiment_source
-    assert "from .three_qubit_state_tomography import" not in analysis_source
+    assert "from qubit_experiment.analysis.three_qubit_state_tomography import" in experiment_source
+    assert 'name="three_qubit_state_tomography"' in experiment_source
+    assert 'name="analysis_three_qubit_state_tomography"' in analysis_source
+    assert "from .three_qubit_state_tomography import *" in analysis_alias_source
+    assert "from .three_qubit_state_tomography import *" in experiment_alias_source
 
 
 def test_state_tomography_notebook_uses_built_in_threeq_reports() -> None:
@@ -761,12 +776,12 @@ def test_state_tomography_notebook_uses_built_in_threeq_reports() -> None:
         if cell.get("cell_type") == "code"
     )
 
-    assert "from qubit_experiment.analysis import threeq_qst as threeq_qst_analysis" in source
-    assert "from qubit_experiment.experiments import threeq_qst" in source
-    assert "threeq_qst.run_bundle(" in source
-    assert "threeq_qst_options.do_convergence_validation(" in source
-    assert "threeq_qst_options.do_shot_sweep_convergence(" in source
-    assert 'threeq_qst_options.initial_state("+++")' in source
-    assert "threeq_qst_options.custom_prep(False)" in source
+    assert "from qubit_experiment.analysis import three_qubit_state_tomography as threeq_analysis" in source
+    assert "from qubit_experiment.experiments import three_qubit_state_tomography" in source
+    assert "three_qubit_state_tomography.run_bundle(" in source
+    assert "three_qubit_state_tomography_options.do_convergence_validation(" in source
+    assert "three_qubit_state_tomography_options.do_shot_sweep_convergence(" in source
+    assert 'three_qubit_state_tomography_options.initial_state("+++")' in source
+    assert "three_qubit_state_tomography_options.custom_prep(False)" in source
     assert "for state in PRODUCT_STATE_SUITE_STATES" not in source
     assert "shot_sweep_df" not in source

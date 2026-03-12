@@ -868,3 +868,4 @@ def test_twoq_qst_notebooks_use_canonical_modules() -> None:
 
     assert "from qubit_experiment.experiments import twoq_qst" in tg_source
     assert "from qubit_experiment.experiments import two_qubit_state_tomography" not in tg_source
+    assert "%run ../scripts/bootstrap_notebook.py" in tg_source

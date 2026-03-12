@@ -16,7 +16,7 @@ from laboneq import workflow
 from qubit_experiment.experiments.three_qubit_tomography_common import OUTCOME_LABELS
 
 from .plot_theme import with_plot_theme
-from .threeq_qst import (
+from .three_qubit_state_tomography import (
     _build_analysis_payload_impl,
     collect_convergence_run_record,
     extract_main_run_optimization_convergence,

@@ -6,7 +6,7 @@ from itertools import product
 
 from laboneq.simple import dsl
 
-from example_helpers.workflow.handles import calibration_trace_2q_handle as _cal_trace_2q
+from qubit_experiment.workflow.handles import calibration_trace_2q_handle as _cal_trace_2q
 
 PREPARED_LABELS_1Q: tuple[str, ...] = ("g", "e")
 PREPARED_LABELS_2Q: tuple[str, ...] = ("gg", "ge", "eg", "ee")

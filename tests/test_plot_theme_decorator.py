@@ -56,8 +56,8 @@ def test_decorator_applies_theme_and_restores_rcparams() -> None:
     fig_face, ax_face = _capture_facecolors()
     after = to_hex(plt.rcParams["figure.facecolor"])
 
-    assert fig_face == "#111111"
-    assert ax_face == "#151515"
+    assert fig_face == "#ffffff"
+    assert ax_face == "#ffffff"
     assert after == before
 
 
@@ -84,7 +84,7 @@ def test_options_rc_overrides_are_applied() -> None:
     fig_face, ax_face = _capture_facecolors(
         _Options(plot_theme_overrides={"axes.facecolor": target_axes_face})
     )
-    assert fig_face == "#111111"
+    assert fig_face == "#ffffff"
     assert ax_face == target_axes_face
 
 
@@ -99,4 +99,4 @@ def test_semantic_color_visible_under_decorator() -> None:
     def _boundary_color(options=None):
         return get_semantic_color("boundary")
 
-    assert _boundary_color() == "#E8E8E8"
+    assert _boundary_color() == "#1D1D1D"

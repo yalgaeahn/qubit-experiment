@@ -4,6 +4,7 @@ import pytest
 
 from qubit_experiment.experiments.iq_cloud_common import (
     JOINT_LABELS_2Q,
+    iq_cloud_2q_cal_trace_handle,
     joint_labels_for_num_qubits,
     prepared_labels_for_num_qubits,
     validate_supported_num_qubits,
@@ -33,3 +34,6 @@ def test_validate_supported_num_qubits_rejects_non_positive() -> None:
     with pytest.raises(ValueError):
         validate_supported_num_qubits(0)
 
+
+def test_iq_cloud_2q_handle_keeps_calibration_trace_format() -> None:
+    assert iq_cloud_2q_cal_trace_handle("q0", "ge") == "q0/cal_trace_2q/ge"

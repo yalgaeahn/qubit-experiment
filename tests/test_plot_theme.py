@@ -29,6 +29,7 @@ def _reset_theme(monkeypatch):
 
 def test_theme_list_and_default_present() -> None:
     themes = list_plot_themes()
+    assert DEFAULT_PLOT_THEME == "high_contrast_publication_light"
     assert DEFAULT_PLOT_THEME in themes
     assert "high_contrast_publication_light" in themes
     assert "clean_scientific" in themes

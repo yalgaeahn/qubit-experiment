@@ -38,15 +38,18 @@ def _output_to_dict(output) -> dict[str, object]:
 def test_workflow_options_expose_ghz_fields_and_hide_product_state_fields() -> None:
     options = ghz.experiment_workflow.options()
     analysis_options = ghz_analysis.analysis_workflow.options()
+    workflow_defaults = ghz.ThreeQGhzWorkflowOptions()
 
     assert hasattr(options, "do_analysis")
     assert hasattr(options, "do_readout_calibration")
     assert hasattr(options, "ghz_prep")
+    assert hasattr(options, "final_virtual_z_phases")
     assert hasattr(options, "do_convergence_validation")
     assert hasattr(options, "convergence_repeats")
     assert hasattr(options, "count")
     assert hasattr(analysis_options, "do_plotting")
     assert hasattr(analysis_options, "max_mle_iterations")
+    assert workflow_defaults.final_virtual_z_phases == (0.0, 0.0, 0.0)
 
     assert not hasattr(options, "initial_state")
     assert not hasattr(options, "custom_prep")
@@ -192,9 +195,21 @@ def test_create_experiment_rejects_missing_drive_p_signal(
         )
 
 
-def test_create_experiment_uses_expected_ghz_sequence(
+def test_normalize_final_virtual_z_phases_rejects_wrong_length() -> None:
+    with pytest.raises(ValueError, match="exactly 3 values"):
+        ghz._normalize_final_virtual_z_phases((0.1, 0.2))
+
+
+def test_normalize_final_virtual_z_phases_rejects_non_numeric() -> None:
+    with pytest.raises(ValueError, match="must be numeric"):
+        ghz._normalize_final_virtual_z_phases((0.1, "bad", 0.3))
+
+
+def _run_fake_ghz_sequence(
     monkeypatch: pytest.MonkeyPatch,
-) -> None:
+    *,
+    final_virtual_z_phases=(0.0, 0.0, 0.0),
+) -> list[tuple]:
     calls: list[tuple] = []
 
     class _FakeMeasureSection:
@@ -222,6 +237,10 @@ def test_create_experiment_uses_expected_ghz_sequence(
         def ry(self, qubit, angle, **kwargs):
             calls.append(("ry", qubit.uid, float(angle)))
             return SimpleNamespace(uid=f"ry_{qubit.uid}_{len(calls)}")
+
+        def rz(self, qubit, angle, **kwargs):
+            calls.append(("rz", qubit.uid, float(angle)))
+            return SimpleNamespace(uid=f"rz_{qubit.uid}_{len(calls)}")
 
         def rip(self, bus_elem, *, line="drive", **kwargs):
             calls.append(("rip", bus_elem.uid, line))
@@ -313,7 +332,18 @@ def test_create_experiment_uses_expected_ghz_sequence(
         qubits=qubits,
         bus=bus,
         ghz_prep=True,
+        final_virtual_z_phases=final_virtual_z_phases,
         options=options,
+    )
+    return calls
+
+
+def test_create_experiment_uses_expected_ghz_sequence(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = _run_fake_ghz_sequence(
+        monkeypatch,
+        final_virtual_z_phases=(0.1, -0.2, 0.3),
     )
 
     assert calls[:6] == [
@@ -336,6 +366,30 @@ def test_create_experiment_uses_expected_ghz_sequence(
         ("rip", "b1", "drive_p"),
     ]
     assert ("rip", "b2", "drive_p") in calls
+    assert [call for call in calls if call[0] == "rz"] == [
+        ("rz", "q0", pytest.approx(0.1)),
+        ("rz", "q1", pytest.approx(-0.2)),
+        ("rz", "q2", pytest.approx(0.3)),
+    ]
+
+    last_drive_p_rip_index = max(
+        index
+        for index, call in enumerate(calls)
+        if call[0] == "rip" and call[2] == "drive_p"
+    )
+    first_rz_index = next(index for index, call in enumerate(calls) if call[0] == "rz")
+    first_basis_index = next(
+        index for index, call in enumerate(calls) if call[0] == "basis"
+    )
+    assert last_drive_p_rip_index < first_rz_index < first_basis_index
+
+
+def test_create_experiment_skips_final_virtual_z_when_all_phases_zero(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = _run_fake_ghz_sequence(monkeypatch)
+
+    assert all(call[0] != "rz" for call in calls)
 
 
 def test_analysis_workflow_returns_plain_payload(
@@ -375,6 +429,8 @@ def test_experiment_workflow_returns_top_level_raw_outputs(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[str] = []
+    create_experiment_kwargs: dict[str, object] = {}
+    final_virtual_z_phases = (0.4, -0.5, 0.6)
 
     @ghz.workflow.task(save=False)
     def _compile(session, exp):  # noqa: ARG001
@@ -396,17 +452,14 @@ def test_experiment_workflow_returns_top_level_raw_outputs(
         "create_readout_calibration_experiment",
         lambda temp_qpu, qubits: "readout-cal-exp",
     )
-    monkeypatch.setattr(
-        ghz,
-        "create_experiment",
-        lambda *args, **kwargs: "tomography-exp",
-    )
+    monkeypatch.setattr(ghz, "create_experiment", lambda *args, **kwargs: create_experiment_kwargs.update(kwargs) or "tomography-exp")
     monkeypatch.setattr(ghz, "compile_experiment", _compile)
     monkeypatch.setattr(ghz, "run_experiment", _run)
 
     options = ghz.experiment_workflow.options()
     options.do_readout_calibration(True)
     options.ghz_prep(True)
+    options.final_virtual_z_phases(final_virtual_z_phases)
 
     result = ghz.experiment_workflow(
         session=SimpleNamespace(),
@@ -434,12 +487,16 @@ def test_experiment_workflow_returns_top_level_raw_outputs(
     }
     assert output["readout_calibration_result"]["kind"] == "calibration"
     assert output["target_state_effective"] == "ghz"
+    assert create_experiment_kwargs["final_virtual_z_phases"] == final_virtual_z_phases
     _assert_no_reference(output)
 
 
 def test_convergence_validation_workflow_returns_plain_payload(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    create_experiment_calls: list[dict[str, object]] = []
+    final_virtual_z_phases = (0.7, 0.8, -0.9)
+
     @ghz.workflow.task(save=False)
     def _compile(session, exp):  # noqa: ARG001
         return exp
@@ -473,7 +530,11 @@ def test_convergence_validation_workflow_returns_plain_payload(
         "create_readout_calibration_experiment",
         lambda temp_qpu, qubits: "readout-cal-exp",
     )
-    monkeypatch.setattr(ghz, "create_experiment", lambda *args, **kwargs: "tomography-exp")
+    monkeypatch.setattr(
+        ghz,
+        "create_experiment",
+        lambda *args, **kwargs: create_experiment_calls.append(kwargs) or "tomography-exp",
+    )
     monkeypatch.setattr(ghz, "compile_experiment", _compile)
     monkeypatch.setattr(ghz, "run_experiment", _run)
     monkeypatch.setattr(
@@ -487,6 +548,7 @@ def test_convergence_validation_workflow_returns_plain_payload(
     options.do_readout_calibration(True)
     options.convergence_repeats(1)
     options.convergence_do_plotting(False)
+    options.final_virtual_z_phases(final_virtual_z_phases)
 
     analysis_options = ghz_analysis.analysis_workflow.options()
     analysis_options.do_plotting(False)
@@ -514,16 +576,19 @@ def test_convergence_validation_workflow_returns_plain_payload(
     assert output["main_run_optimization_convergence"] == {"nll_finite": True}
     assert output["raw_run_records"][0]["state_label"] == "ghz"
     assert output["statistical_convergence"]["aggregate"]["num_total_runs"] == 1
+    assert create_experiment_calls[0]["final_virtual_z_phases"] == final_virtual_z_phases
     _assert_no_reference(output)
 
 
 def test_run_bundle_reconstructs_ghz_schema(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    final_virtual_z_phases = (0.2, -0.1, 0.05)
     options = ghz.experiment_workflow.options()
     options.do_analysis(True)
     options.do_readout_calibration(True)
     options.do_convergence_validation(True)
+    options.final_virtual_z_phases(final_virtual_z_phases)
 
     analysis_options = ghz_analysis.analysis_workflow.options()
     analysis_options.do_plotting(False)
@@ -536,6 +601,7 @@ def test_run_bundle_reconstructs_ghz_schema(
             return SimpleNamespace(output=self._output)
 
     def _experiment_stub(**kwargs):  # noqa: ARG001
+        assert kwargs["options"].final_virtual_z_phases == final_virtual_z_phases
         return _Runner(
             SimpleNamespace(
                 tomography_result={"kind": "tomography"},
@@ -554,6 +620,7 @@ def test_run_bundle_reconstructs_ghz_schema(
         )
 
     def _convergence_stub(**kwargs):  # noqa: ARG001
+        assert kwargs["options"].final_virtual_z_phases == final_virtual_z_phases
         return _Runner(
             SimpleNamespace(
                 repeats=1,
