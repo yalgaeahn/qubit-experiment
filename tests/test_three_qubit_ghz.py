@@ -209,8 +209,9 @@ def _run_fake_ghz_sequence(
     monkeypatch: pytest.MonkeyPatch,
     *,
     final_virtual_z_phases=(0.0, 0.0, 0.0),
-) -> list[tuple]:
+) -> tuple[list[tuple], list[dict[str, object]]]:
     calls: list[tuple] = []
+    section_calls: list[dict[str, object]] = []
 
     class _FakeMeasureSection:
         def __init__(self, uid: str):
@@ -270,11 +271,19 @@ def _run_fake_ghz_sequence(
         "acquire_loop_rt",
         lambda **kwargs: nullcontext(),
     )
-    monkeypatch.setattr(
-        ghz.dsl,
-        "section",
-        lambda name=None, **kwargs: _FakeSection(name or "section"),
-    )
+
+    def _section_factory(name=None, **kwargs):
+        uid = name or "section"
+        section_calls.append(
+            {
+                "name": uid,
+                "play_after": kwargs.get("play_after"),
+                "alignment": kwargs.get("alignment"),
+            }
+        )
+        return _FakeSection(uid)
+
+    monkeypatch.setattr(ghz.dsl, "section", _section_factory)
     monkeypatch.setattr(ghz, "TOMOGRAPHY_SETTINGS", (("XYZ", ("X", "Y", "Z")),))
 
     qpu = SimpleNamespace(quantum_operations=_FakeQop())
@@ -335,13 +344,13 @@ def _run_fake_ghz_sequence(
         final_virtual_z_phases=final_virtual_z_phases,
         options=options,
     )
-    return calls
+    return calls, section_calls
 
 
 def test_create_experiment_uses_expected_ghz_sequence(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    calls = _run_fake_ghz_sequence(
+    calls, section_calls = _run_fake_ghz_sequence(
         monkeypatch,
         final_virtual_z_phases=(0.1, -0.2, 0.3),
     )
@@ -360,36 +369,116 @@ def test_create_experiment_uses_expected_ghz_sequence(
         ("rip", "b0", "drive"),
         ("rip", "b1", "drive"),
         ("rip", "b2", "drive"),
+        ("rz", "q1", pytest.approx(-0.2)),
         ("ry", "q1", pytest.approx(float(-ghz.np.pi / 2))),
+        ("rz", "q1", pytest.approx(0.2)),
+        ("ry", "q2", pytest.approx(float(ghz.np.pi / 2))),
+    ]
+    assert [call for call in calls if call[0] == "rz"] == [
+        ("rz", "q1", pytest.approx(-0.2)),
+        ("rz", "q1", pytest.approx(0.2)),
+        ("rz", "q2", pytest.approx(0.3)),
+        ("rz", "q2", pytest.approx(-0.3)),
+    ]
+    assert ("rz", "q0", pytest.approx(0.1)) not in calls
+
+    q2_window_start = calls.index(("ry", "q2", pytest.approx(float(ghz.np.pi / 2))))
+    assert calls[q2_window_start : q2_window_start + 7] == [
         ("ry", "q2", pytest.approx(float(ghz.np.pi / 2))),
         ("rip", "b0", "drive_p"),
         ("rip", "b1", "drive_p"),
-    ]
-    assert ("rip", "b2", "drive_p") in calls
-    assert [call for call in calls if call[0] == "rz"] == [
-        ("rz", "q0", pytest.approx(0.1)),
-        ("rz", "q1", pytest.approx(-0.2)),
+        ("rip", "b2", "drive_p"),
         ("rz", "q2", pytest.approx(0.3)),
+        ("ry", "q2", pytest.approx(float(-ghz.np.pi / 2))),
+        ("rz", "q2", pytest.approx(-0.3)),
     ]
 
-    last_drive_p_rip_index = max(
+    q1_restore_index = max(
         index
         for index, call in enumerate(calls)
-        if call[0] == "rip" and call[2] == "drive_p"
+        if call == ("rz", "q1", pytest.approx(0.2))
     )
-    first_rz_index = next(index for index, call in enumerate(calls) if call[0] == "rz")
+    q2_first_ry_index = next(
+        index
+        for index, call in enumerate(calls)
+        if call == ("ry", "q2", pytest.approx(float(ghz.np.pi / 2)))
+    )
+    assert q1_restore_index < q2_first_ry_index
+
+    q2_restore_index = max(
+        index
+        for index, call in enumerate(calls)
+        if call == ("rz", "q2", pytest.approx(-0.3))
+    )
     first_basis_index = next(
         index for index, call in enumerate(calls) if call[0] == "basis"
     )
-    assert last_drive_p_rip_index < first_rz_index < first_basis_index
+    assert q2_restore_index < first_basis_index
+
+    basis_section = next(
+        section for section in section_calls if section["name"] == "basis_XYZ"
+    )
+    assert basis_section["play_after"] == "ghz_prep_XYZ"
+
+    q1_rz_forward_section = next(
+        section
+        for section in section_calls
+        if section["name"] == "ghz_q1_rz_forward_XYZ"
+    )
+    assert q1_rz_forward_section["play_after"] == "ghz_cz1_XYZ"
+
+    q1_rz_restore_section = next(
+        section
+        for section in section_calls
+        if section["name"] == "ghz_q1_rz_restore_XYZ"
+    )
+    assert q1_rz_restore_section["play_after"] == "ghz_q1_ry_minus_90_XYZ"
+
+    q2_rz_forward_section = next(
+        section
+        for section in section_calls
+        if section["name"] == "ghz_q2_rz_forward_XYZ"
+    )
+    assert q2_rz_forward_section["play_after"] == "ghz_cz2_XYZ"
+
+    q2_rz_restore_section = next(
+        section
+        for section in section_calls
+        if section["name"] == "ghz_q2_rz_restore_XYZ"
+    )
+    assert q2_rz_restore_section["play_after"] == "ghz_q2_ry_minus_90_XYZ"
 
 
-def test_create_experiment_skips_final_virtual_z_when_all_phases_zero(
+def test_create_experiment_skips_local_virtual_z_when_q1_q2_phases_zero(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    calls = _run_fake_ghz_sequence(monkeypatch)
+    calls, section_calls = _run_fake_ghz_sequence(
+        monkeypatch,
+        final_virtual_z_phases=(0.6, 0.0, 0.0),
+    )
 
     assert all(call[0] != "rz" for call in calls)
+    assert all(
+        not section["name"].startswith("ghz_q1_rz_")
+        and not section["name"].startswith("ghz_q2_rz_")
+        for section in section_calls
+    )
+
+
+def test_basis_section_depends_on_outer_prep_section(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _, section_calls = _run_fake_ghz_sequence(
+        monkeypatch,
+        final_virtual_z_phases=(0.3, 0.0, -0.1),
+    )
+
+    basis_section = next(
+        section for section in section_calls if section["name"] == "basis_XYZ"
+    )
+    assert basis_section["play_after"] == "ghz_prep_XYZ"
+    assert basis_section["play_after"] != "ghz_q2_ry_minus_90_XYZ"
+    assert basis_section["play_after"] != "ghz_q2_rz_restore_XYZ"
 
 
 def test_analysis_workflow_returns_plain_payload(

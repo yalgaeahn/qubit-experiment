@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="760" viewBox="0 0 1600 760" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1840" height="820" viewBox="0 0 1840 820" role="img" aria-labelledby="title desc">
   <title id="title">three_qubit_ghz per-setting timing diagram</title>
-  <desc id="desc">Timing diagram for the three_qubit_ghz module showing GHZ preparation, final virtual-Z, tomography prerotation, and readout.</desc>
+  <desc id="desc">Timing diagram for the three_qubit_ghz module showing localized q1 and q2 virtual-Z windows, tomography prerotation, and readout.</desc>
   <style>
     .title { font: 700 30px 'Helvetica Neue', Arial, sans-serif; fill: #1d1d1f; }
     .subtitle { font: 400 16px 'Helvetica Neue', Arial, sans-serif; fill: #4f5b66; }
@@ -12,25 +12,28 @@
     .note { font: 400 13px 'Helvetica Neue', Arial, sans-serif; fill: #4f5b66; }
   </style>
 
-  <rect width="1600" height="760" fill="#ffffff"/>
+  <rect width="1840" height="820" fill="#ffffff"/>
   <text x="56" y="54" class="title">three_qubit_ghz: per-setting timing diagram</text>
-  <text x="56" y="84" class="subtitle">Sequence: GHZ prep -> final virtual-Z -> tomography prerotation -> simultaneous readout</text>
+  <text x="56" y="84" class="subtitle">Sequence: GHZ prep with localized q1/q2 virtual-Z windows -&gt; tomography prerotation -&gt; simultaneous readout</text>
 
-  <line x1="180" y1="150" x2="1500" y2="150" stroke="#c6cdd5" stroke-width="2"/>
+  <line x1="190" y1="150" x2="1730" y2="150" stroke="#c6cdd5" stroke-width="2"/>
 
   <g stroke="#e4e8ec" stroke-width="1.5">
-    <line x1="230" y1="118" x2="230" y2="650"/>
-    <line x1="330" y1="118" x2="330" y2="650"/>
-    <line x1="430" y1="118" x2="430" y2="650"/>
-    <line x1="530" y1="118" x2="530" y2="650"/>
-    <line x1="630" y1="118" x2="630" y2="650"/>
-    <line x1="730" y1="118" x2="730" y2="650"/>
-    <line x1="830" y1="118" x2="830" y2="650"/>
-    <line x1="930" y1="118" x2="930" y2="650"/>
-    <line x1="1030" y1="118" x2="1030" y2="650"/>
-    <line x1="1130" y1="118" x2="1130" y2="650"/>
-    <line x1="1230" y1="118" x2="1230" y2="650"/>
-    <line x1="1330" y1="118" x2="1330" y2="650"/>
+    <line x1="230" y1="118" x2="230" y2="700"/>
+    <line x1="330" y1="118" x2="330" y2="700"/>
+    <line x1="430" y1="118" x2="430" y2="700"/>
+    <line x1="530" y1="118" x2="530" y2="700"/>
+    <line x1="630" y1="118" x2="630" y2="700"/>
+    <line x1="730" y1="118" x2="730" y2="700"/>
+    <line x1="830" y1="118" x2="830" y2="700"/>
+    <line x1="930" y1="118" x2="930" y2="700"/>
+    <line x1="1030" y1="118" x2="1030" y2="700"/>
+    <line x1="1130" y1="118" x2="1130" y2="700"/>
+    <line x1="1230" y1="118" x2="1230" y2="700"/>
+    <line x1="1330" y1="118" x2="1330" y2="700"/>
+    <line x1="1430" y1="118" x2="1430" y2="700"/>
+    <line x1="1530" y1="118" x2="1530" y2="700"/>
+    <line x1="1630" y1="118" x2="1630" y2="700"/>
   </g>
 
   <g>
@@ -42,43 +45,49 @@
     <text x="730" y="136" text-anchor="middle" class="tick">t6</text>
     <text x="830" y="136" text-anchor="middle" class="tick">t7</text>
     <text x="930" y="136" text-anchor="middle" class="tick">t8</text>
-    <text x="1030" y="136" text-anchor="middle" class="tick">t9a</text>
-    <text x="1130" y="136" text-anchor="middle" class="tick">t9b</text>
-    <text x="1230" y="136" text-anchor="middle" class="tick">t9c</text>
-    <text x="1330" y="136" text-anchor="middle" class="tick">t10</text>
+    <text x="1030" y="136" text-anchor="middle" class="tick">t9</text>
+    <text x="1130" y="136" text-anchor="middle" class="tick">t10</text>
+    <text x="1230" y="136" text-anchor="middle" class="tick">t11</text>
+    <text x="1330" y="136" text-anchor="middle" class="tick">t12</text>
+    <text x="1430" y="136" text-anchor="middle" class="tick">t13</text>
+    <text x="1530" y="136" text-anchor="middle" class="tick">t14</text>
+    <text x="1630" y="136" text-anchor="middle" class="tick">t15</text>
   </g>
 
   <g>
-    <text x="230" y="686" text-anchor="middle" class="tickdesc">q0 Ry(pi/2)</text>
-    <text x="330" y="686" text-anchor="middle" class="tickdesc">q1 Ry(pi/2)</text>
-    <text x="430" y="686" text-anchor="middle" class="tickdesc">RIP drive</text>
-    <text x="530" y="686" text-anchor="middle" class="tickdesc">q1 Ry(-pi/2)</text>
-    <text x="630" y="686" text-anchor="middle" class="tickdesc">q2 Ry(pi/2)</text>
-    <text x="730" y="686" text-anchor="middle" class="tickdesc">RIP drive_p</text>
-    <text x="830" y="686" text-anchor="middle" class="tickdesc">q2 Ry(-pi/2)</text>
-    <text x="930" y="686" text-anchor="middle" class="tickdesc">final virtual-Z</text>
-    <text x="1030" y="686" text-anchor="middle" class="tickdesc">U_tomo(q0)</text>
-    <text x="1130" y="686" text-anchor="middle" class="tickdesc">U_tomo(q1)</text>
-    <text x="1230" y="686" text-anchor="middle" class="tickdesc">U_tomo(q2)</text>
-    <text x="1330" y="686" text-anchor="middle" class="tickdesc">simultaneous readout</text>
+    <text x="230" y="736" text-anchor="middle" class="tickdesc">q0 Ry(pi/2)</text>
+    <text x="330" y="736" text-anchor="middle" class="tickdesc">q1 Ry(pi/2)</text>
+    <text x="430" y="736" text-anchor="middle" class="tickdesc">RIP drive</text>
+    <text x="530" y="736" text-anchor="middle" class="tickdesc">q1 Rz(+phi1)</text>
+    <text x="630" y="736" text-anchor="middle" class="tickdesc">q1 Ry(-pi/2)</text>
+    <text x="730" y="736" text-anchor="middle" class="tickdesc">q1 Rz(-phi1)</text>
+    <text x="830" y="736" text-anchor="middle" class="tickdesc">q2 Ry(pi/2)</text>
+    <text x="930" y="736" text-anchor="middle" class="tickdesc">RIP drive_p</text>
+    <text x="1030" y="736" text-anchor="middle" class="tickdesc">q2 Rz(+phi2)</text>
+    <text x="1130" y="736" text-anchor="middle" class="tickdesc">q2 Ry(-pi/2)</text>
+    <text x="1230" y="736" text-anchor="middle" class="tickdesc">q2 Rz(-phi2)</text>
+    <text x="1330" y="736" text-anchor="middle" class="tickdesc">U_tomo(q0)</text>
+    <text x="1430" y="736" text-anchor="middle" class="tickdesc">U_tomo(q1)</text>
+    <text x="1530" y="736" text-anchor="middle" class="tickdesc">U_tomo(q2)</text>
+    <text x="1630" y="736" text-anchor="middle" class="tickdesc">simultaneous readout</text>
   </g>
 
   <g stroke="#b8c2cc" stroke-width="2">
-    <line x1="180" y1="190" x2="1460" y2="190"/>
-    <line x1="180" y1="260" x2="1460" y2="260"/>
-    <line x1="180" y1="330" x2="1460" y2="330"/>
-    <line x1="180" y1="410" x2="1460" y2="410"/>
-    <line x1="180" y1="480" x2="1460" y2="480"/>
-    <line x1="180" y1="550" x2="1460" y2="550"/>
+    <line x1="190" y1="190" x2="1760" y2="190"/>
+    <line x1="190" y1="260" x2="1760" y2="260"/>
+    <line x1="190" y1="330" x2="1760" y2="330"/>
+    <line x1="190" y1="410" x2="1760" y2="410"/>
+    <line x1="190" y1="480" x2="1760" y2="480"/>
+    <line x1="190" y1="550" x2="1760" y2="550"/>
   </g>
 
   <g>
-    <text x="156" y="196" text-anchor="end" class="lane">q0</text>
-    <text x="156" y="266" text-anchor="end" class="lane">q1</text>
-    <text x="156" y="336" text-anchor="end" class="lane">q2</text>
-    <text x="156" y="416" text-anchor="end" class="lane">b0</text>
-    <text x="156" y="486" text-anchor="end" class="lane">b1</text>
-    <text x="156" y="556" text-anchor="end" class="lane">b2</text>
+    <text x="166" y="196" text-anchor="end" class="lane">q0</text>
+    <text x="166" y="266" text-anchor="end" class="lane">q1</text>
+    <text x="166" y="336" text-anchor="end" class="lane">q2</text>
+    <text x="166" y="416" text-anchor="end" class="lane">b0</text>
+    <text x="166" y="486" text-anchor="end" class="lane">b1</text>
+    <text x="166" y="556" text-anchor="end" class="lane">b2</text>
   </g>
 
   <g>
@@ -88,41 +97,44 @@
     <rect x="290" y="239" width="80" height="42" rx="9" fill="#2f5ea8"/>
     <text x="330" y="265" text-anchor="middle" class="boxtext">Ry(pi/2)</text>
 
-    <rect x="490" y="239" width="80" height="42" rx="9" fill="#2f5ea8"/>
-    <text x="530" y="265" text-anchor="middle" class="boxtext">Ry(-pi/2)</text>
+    <rect x="490" y="239" width="80" height="42" rx="9" fill="#b65b35"/>
+    <text x="530" y="265" text-anchor="middle" class="boxtext">Rz(+phi1)</text>
 
-    <rect x="590" y="309" width="80" height="42" rx="9" fill="#2f5ea8"/>
-    <text x="630" y="335" text-anchor="middle" class="boxtext">Ry(pi/2)</text>
+    <rect x="590" y="239" width="80" height="42" rx="9" fill="#2f5ea8"/>
+    <text x="630" y="265" text-anchor="middle" class="boxtext">Ry(-pi/2)</text>
+
+    <rect x="690" y="239" width="80" height="42" rx="9" fill="#b65b35"/>
+    <text x="730" y="265" text-anchor="middle" class="boxtext">Rz(-phi1)</text>
 
     <rect x="790" y="309" width="80" height="42" rx="9" fill="#2f5ea8"/>
-    <text x="830" y="335" text-anchor="middle" class="boxtext">Ry(-pi/2)</text>
+    <text x="830" y="335" text-anchor="middle" class="boxtext">Ry(pi/2)</text>
 
-    <rect x="890" y="169" width="80" height="42" rx="9" fill="#b65b35"/>
-    <text x="930" y="195" text-anchor="middle" class="boxtext">Rz(phi0)</text>
+    <rect x="990" y="309" width="80" height="42" rx="9" fill="#b65b35"/>
+    <text x="1030" y="335" text-anchor="middle" class="boxtext">Rz(+phi2)</text>
 
-    <rect x="890" y="239" width="80" height="42" rx="9" fill="#b65b35"/>
-    <text x="930" y="265" text-anchor="middle" class="boxtext">Rz(phi1)</text>
+    <rect x="1090" y="309" width="80" height="42" rx="9" fill="#2f5ea8"/>
+    <text x="1130" y="335" text-anchor="middle" class="boxtext">Ry(-pi/2)</text>
 
-    <rect x="890" y="309" width="80" height="42" rx="9" fill="#b65b35"/>
-    <text x="930" y="335" text-anchor="middle" class="boxtext">Rz(phi2)</text>
+    <rect x="1190" y="309" width="80" height="42" rx="9" fill="#b65b35"/>
+    <text x="1230" y="335" text-anchor="middle" class="boxtext">Rz(-phi2)</text>
 
-    <rect x="990" y="169" width="80" height="42" rx="9" fill="#6d49b7"/>
-    <text x="1030" y="195" text-anchor="middle" class="boxtext">U_tomo</text>
+    <rect x="1290" y="169" width="80" height="42" rx="9" fill="#6d49b7"/>
+    <text x="1330" y="195" text-anchor="middle" class="boxtext">U_tomo</text>
 
-    <rect x="1090" y="239" width="80" height="42" rx="9" fill="#6d49b7"/>
-    <text x="1130" y="265" text-anchor="middle" class="boxtext">U_tomo</text>
+    <rect x="1390" y="239" width="80" height="42" rx="9" fill="#6d49b7"/>
+    <text x="1430" y="265" text-anchor="middle" class="boxtext">U_tomo</text>
 
-    <rect x="1190" y="309" width="80" height="42" rx="9" fill="#6d49b7"/>
-    <text x="1230" y="335" text-anchor="middle" class="boxtext">U_tomo</text>
+    <rect x="1490" y="309" width="80" height="42" rx="9" fill="#6d49b7"/>
+    <text x="1530" y="335" text-anchor="middle" class="boxtext">U_tomo</text>
 
-    <rect x="1290" y="169" width="80" height="42" rx="9" fill="#444444"/>
-    <text x="1330" y="195" text-anchor="middle" class="boxtext">Measure</text>
+    <rect x="1590" y="169" width="80" height="42" rx="9" fill="#444444"/>
+    <text x="1630" y="195" text-anchor="middle" class="boxtext">Measure</text>
 
-    <rect x="1290" y="239" width="80" height="42" rx="9" fill="#444444"/>
-    <text x="1330" y="265" text-anchor="middle" class="boxtext">Measure</text>
+    <rect x="1590" y="239" width="80" height="42" rx="9" fill="#444444"/>
+    <text x="1630" y="265" text-anchor="middle" class="boxtext">Measure</text>
 
-    <rect x="1290" y="309" width="80" height="42" rx="9" fill="#444444"/>
-    <text x="1330" y="335" text-anchor="middle" class="boxtext">Measure</text>
+    <rect x="1590" y="309" width="80" height="42" rx="9" fill="#444444"/>
+    <text x="1630" y="335" text-anchor="middle" class="boxtext">Measure</text>
 
     <rect x="380" y="389" width="100" height="42" rx="9" fill="#1f8a70"/>
     <text x="430" y="415" text-anchor="middle" class="boxtext">RIP(drive)</text>
@@ -133,34 +145,36 @@
     <rect x="380" y="529" width="100" height="42" rx="9" fill="#1f8a70"/>
     <text x="430" y="555" text-anchor="middle" class="boxtext">RIP(drive)</text>
 
-    <rect x="676" y="389" width="108" height="42" rx="9" fill="#1f8a70"/>
-    <text x="730" y="415" text-anchor="middle" class="boxtext">RIP(drive_p)</text>
+    <rect x="876" y="389" width="108" height="42" rx="9" fill="#1f8a70"/>
+    <text x="930" y="415" text-anchor="middle" class="boxtext">RIP(drive_p)</text>
 
-    <rect x="676" y="459" width="108" height="42" rx="9" fill="#1f8a70"/>
-    <text x="730" y="485" text-anchor="middle" class="boxtext">RIP(drive_p)</text>
+    <rect x="876" y="459" width="108" height="42" rx="9" fill="#1f8a70"/>
+    <text x="930" y="485" text-anchor="middle" class="boxtext">RIP(drive_p)</text>
 
-    <rect x="676" y="529" width="108" height="42" rx="9" fill="#1f8a70"/>
-    <text x="730" y="555" text-anchor="middle" class="boxtext">RIP(drive_p)</text>
+    <rect x="876" y="529" width="108" height="42" rx="9" fill="#1f8a70"/>
+    <text x="930" y="555" text-anchor="middle" class="boxtext">RIP(drive_p)</text>
   </g>
 
   <g>
-    <text x="56" y="632" class="note">Optional active reset occurs before t1 when enabled.</text>
+    <text x="56" y="650" class="note">Optional active reset occurs before t1 when enabled.</text>
+    <text x="56" y="672" class="note">The q1/q2 frame shifts are restored at t6 and t11, so tomography pulses at t12-t14 start from the original oscillator phase.</text>
+    <text x="56" y="694" class="note">`phi0` remains in the public tuple for API compatibility but is not used by this sequence.</text>
   </g>
 
   <g>
-    <rect x="1080" y="54" width="18" height="18" rx="4" fill="#2f5ea8"/>
-    <text x="1108" y="68" class="legend">single-qubit GHZ prep</text>
+    <rect x="1170" y="54" width="18" height="18" rx="4" fill="#2f5ea8"/>
+    <text x="1198" y="68" class="legend">single-qubit GHZ prep</text>
 
-    <rect x="1288" y="54" width="18" height="18" rx="4" fill="#1f8a70"/>
-    <text x="1316" y="68" class="legend">RIP entangling window</text>
+    <rect x="1460" y="54" width="18" height="18" rx="4" fill="#1f8a70"/>
+    <text x="1488" y="68" class="legend">RIP entangling window</text>
 
-    <rect x="1080" y="82" width="18" height="18" rx="4" fill="#b65b35"/>
-    <text x="1108" y="96" class="legend">final virtual-Z</text>
+    <rect x="1170" y="82" width="18" height="18" rx="4" fill="#b65b35"/>
+    <text x="1198" y="96" class="legend">localized virtual-Z window</text>
 
-    <rect x="1288" y="82" width="18" height="18" rx="4" fill="#6d49b7"/>
-    <text x="1316" y="96" class="legend">tomography prerotation</text>
+    <rect x="1460" y="82" width="18" height="18" rx="4" fill="#6d49b7"/>
+    <text x="1488" y="96" class="legend">tomography prerotation</text>
 
-    <rect x="1080" y="110" width="18" height="18" rx="4" fill="#444444"/>
-    <text x="1108" y="124" class="legend">readout</text>
+    <rect x="1170" y="110" width="18" height="18" rx="4" fill="#444444"/>
+    <text x="1198" y="124" class="legend">readout</text>
   </g>
 </svg>

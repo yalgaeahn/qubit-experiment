@@ -8,19 +8,23 @@ RIP sections for the two entangling blocks.
 Circuit sketch for each tomography setting::
 
     step: q0_ry90 -> q1_ry90 -> RIP(all buses, line="drive")
-          -> q1_ry(-90) -> q2_ry90 -> RIP(all buses, line="drive_p")
-          -> q2_ry(-90) -> Rz(q0, q1, q2) -> U_tomo(q0, q1, q2)
-          -> measure(q0, q1, q2)
+          -> optional q1_rz(phi1) -> q1_ry(-90) -> optional q1_rz(-phi1)
+          -> q2_ry90 -> RIP(all buses, line="drive_p")
+          -> optional q2_rz(phi2) -> q2_ry(-90) -> optional q2_rz(-phi2)
+          -> U_tomo(q0, q1, q2) -> measure(q0, q1, q2)
 
-    q0: --Ry(pi/2)-------------------------------Rz(phi0)---U_tomo(q0_axis)---M
-    q1: -----------Ry(pi/2)---Ry(-pi/2)---------Rz(phi1)---U_tomo(q1_axis)---M
-    q2: -------------------------------Ry(pi/2)---Ry(-pi/2)---Rz(phi2)---U_tomo(q2_axis)---M
-    b0: ----------------------RIP(line="drive")-----RIP(line="drive_p")
-    b1: ----------------------RIP(line="drive")-----RIP(line="drive_p")
-    b2: ----------------------RIP(line="drive")-----RIP(line="drive_p")
+    q0: --Ry(pi/2)-----------------------------------------------------------U_tomo(q0_axis)---M
+    q1: -----------Ry(pi/2)---RIP(drive)---Rz(phi1)---Ry(-pi/2)---Rz(-phi1)---U_tomo(q1_axis)---M
+    q2: -----------------------------------------------Ry(pi/2)---RIP(drive_p)---Rz(phi2)---Ry(-pi/2)---Rz(-phi2)---U_tomo(q2_axis)---M
+    b0: ----------------------RIP(line="drive")------------------RIP(line="drive_p")
+    b1: ----------------------RIP(line="drive")------------------RIP(line="drive_p")
+    b2: ----------------------RIP(line="drive")------------------RIP(line="drive_p")
 
 Here `U_tomo(qi_axis)` denotes the tomography prerotation chosen from
-`TOMOGRAPHY_SETTINGS` before simultaneous 3Q readout.
+`TOMOGRAPHY_SETTINGS` before simultaneous 3Q readout. The public
+`final_virtual_z_phases=(phi0, phi1, phi2)` tuple is kept for compatibility;
+the `phi0` entry is currently unused while `phi1` and `phi2` are localized to
+the post-RIP windows above.
 """
 
 from __future__ import annotations
@@ -100,7 +104,10 @@ class ThreeQGhzWorkflowOptions:
     )
     final_virtual_z_phases: tuple[float, float, float] = workflow.option_field(
         (0.0, 0.0, 0.0),
-        description="Virtual-Z phases (q0, q1, q2) in radians after GHZ prep.",
+        description=(
+            "Compatibility tuple (q0, q1, q2) in radians. q1/q2 are applied as "
+            "localized post-RIP virtual-Z phases; q0 is currently unused."
+        ),
     )
     do_convergence_validation: bool = workflow.option_field(
         False,
@@ -219,7 +226,7 @@ def _resolve_bus_rf_frequency(
 
 
 def _normalize_final_virtual_z_phases(phases) -> tuple[float, float, float]:
-    """Validate and normalize the final GHZ virtual-Z phase tuple."""
+    """Validate and normalize the GHZ compatibility phase tuple."""
     if isinstance(phases, (str, bytes)):
         raise ValueError(
             "final_virtual_z_phases must be an iterable of exactly 3 numeric values."
@@ -415,6 +422,8 @@ def _create_experiment_impl(
     q0, q1, q2 = _normalize_three_qubits(qubits)
     buses = _normalize_three_buses(bus)
     final_virtual_z_phases = _normalize_final_virtual_z_phases(final_virtual_z_phases)
+    q1_virtual_z_phase = final_virtual_z_phases[1]
+    q2_virtual_z_phase = final_virtual_z_phases[2]
 
     qop = qpu.quantum_operations
     _validate_tomography_qop_contract(qop)
@@ -463,7 +472,7 @@ def _create_experiment_impl(
                 if prep_play_after is not None:
                     prep_section_kwargs["play_after"] = prep_play_after
 
-                with dsl.section(**prep_section_kwargs):
+                with dsl.section(**prep_section_kwargs) as prep_sec:
                     with dsl.section(
                         name=f"ghz_q0_ry90_{setting_label}",
                         alignment=SectionAlignment.LEFT,
@@ -485,17 +494,39 @@ def _create_experiment_impl(
                         for bus_elem in buses:
                             qop.rip(bus_elem, line="drive")
 
+                    # Keep the q1 frame shift local to the post-RIP Ry pulse so
+                    # tomography prerotations start from the original frame.
+                    q1_post_play_after = cz1.uid
+                    if q1_virtual_z_phase != 0.0:
+                        with dsl.section(
+                            name=f"ghz_q1_rz_forward_{setting_label}",
+                            alignment=SectionAlignment.LEFT,
+                            play_after=cz1.uid,
+                        ) as q1_rz_forward:
+                            qop.rz(q1, angle=q1_virtual_z_phase)
+                        q1_post_play_after = q1_rz_forward.uid
+
                     with dsl.section(
                         name=f"ghz_q1_ry_minus_90_{setting_label}",
                         alignment=SectionAlignment.LEFT,
-                        play_after=cz1.uid,
+                        play_after=q1_post_play_after,
                     ) as prep_q1_post:
                         qop.ry(q1, angle=-np.pi / 2)
+
+                    q2_prep_play_after = prep_q1_post.uid
+                    if q1_virtual_z_phase != 0.0:
+                        with dsl.section(
+                            name=f"ghz_q1_rz_restore_{setting_label}",
+                            alignment=SectionAlignment.LEFT,
+                            play_after=prep_q1_post.uid,
+                        ) as q1_rz_restore:
+                            qop.rz(q1, angle=-q1_virtual_z_phase)
+                        q2_prep_play_after = q1_rz_restore.uid
 
                     with dsl.section(
                         name=f"ghz_q2_ry90_{setting_label}",
                         alignment=SectionAlignment.LEFT,
-                        play_after=prep_q1_post.uid,
+                        play_after=q2_prep_play_after,
                     ) as prep_q2:
                         qop.ry(q2, angle=np.pi / 2)
 
@@ -507,29 +538,35 @@ def _create_experiment_impl(
                         for bus_elem in buses:
                             qop.rip(bus_elem, line="drive_p")
 
+                    q2_post_play_after = cz2.uid
+                    if q2_virtual_z_phase != 0.0:
+                        with dsl.section(
+                            name=f"ghz_q2_rz_forward_{setting_label}",
+                            alignment=SectionAlignment.LEFT,
+                            play_after=cz2.uid,
+                        ) as q2_rz_forward:
+                            qop.rz(q2, angle=q2_virtual_z_phase)
+                        q2_post_play_after = q2_rz_forward.uid
+
                     with dsl.section(
                         name=f"ghz_q2_ry_minus_90_{setting_label}",
                         alignment=SectionAlignment.LEFT,
-                        play_after=cz2.uid,
+                        play_after=q2_post_play_after,
                     ) as prep_q2_post:
                         qop.ry(q2, angle=-np.pi / 2)
 
-                    prep_tail_uid = prep_q2_post.uid
-                    if any(phase != 0.0 for phase in final_virtual_z_phases):
+                    if q2_virtual_z_phase != 0.0:
                         with dsl.section(
-                            name=f"ghz_final_virtual_z_{setting_label}",
+                            name=f"ghz_q2_rz_restore_{setting_label}",
                             alignment=SectionAlignment.LEFT,
                             play_after=prep_q2_post.uid,
-                        ) as final_virtual_z_sec:
-                            qop.rz(q0, angle=final_virtual_z_phases[0])
-                            qop.rz(q1, angle=final_virtual_z_phases[1])
-                            qop.rz(q2, angle=final_virtual_z_phases[2])
-                        prep_tail_uid = final_virtual_z_sec.uid
+                        ):
+                            qop.rz(q2, angle=-q2_virtual_z_phase)
 
                 with dsl.section(
                     name=f"basis_{setting_label}",
                     alignment=SectionAlignment.LEFT,
-                    play_after=prep_tail_uid,
+                    play_after=prep_sec.uid,
                 ) as basis_sec:
                     with dsl.section(
                         name=f"basis_q0_{setting_label}",
