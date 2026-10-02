@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
+    qubits: list[str] | str,
     delays: QubitSweepPoints,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,
@@ -95,7 +95,7 @@ def create_experiment(
         SweepParameter(f"delays_{q.uid}", q_delays, axis_name=f"{q.uid}")
         for q, q_delays in zip(qubits, delays)
     ]
-    max_measure_section_length = qpu.measure_section_length(qubits)
+    max_measure_section_length = qpu.quantum_operations.measure_section_length(qubits)
     qop = qpu.quantum_operations
     with dsl.acquire_loop_rt(
         count=opts.count,
@@ -137,4 +137,3 @@ def create_experiment(
                 active_reset_repetitions=opts.active_reset_repetitions,
                 #measure_section_length=max_measure_section_length,
             )
-

@@ -38,7 +38,6 @@ from laboneq_applications.experiments.options import (
 from laboneq_applications.tasks.parameter_updating import (
     temporary_qpu,
     temporary_quantum_elements_from_qpu,
-    update_qubits,
     update_qpu
 )
 
@@ -55,11 +54,11 @@ if TYPE_CHECKING:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    ctrl: QuantumElements,
-    targ: QuantumElements,
-    bus: QuantumElements,
-    bus2: QuantumElements,
-    bus3: QuantumElements,
+    ctrl: list[str] | str,
+    targ: list[str] | str,
+    bus: list[str] | str,
+    bus2: list[str] | str,
+    bus3: list[str] | str,
     bus_frequency: float,
     bus_amplitude: float,
     bus2_frequency: float,
@@ -163,7 +162,7 @@ def create_experiment(
             ),
         ]
 
-    max_measure_section_length = qpu.measure_section_length(targ)
+    max_measure_section_length = qpu.quantum_operations.measure_section_length(targ)
     qop = qpu.quantum_operations
     with dsl.acquire_loop_rt(
         count=opts.count,

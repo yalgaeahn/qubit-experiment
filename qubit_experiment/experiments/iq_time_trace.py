@@ -105,7 +105,7 @@ def _validate_flat_window_workflow_options(
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
+    qubits: list[str] | str,
     states: Sequence[str],
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,

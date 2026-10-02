@@ -52,7 +52,7 @@ class LinearPhaseDelayExperimentOptions:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubit: QuantumElement,
+    qubit: list[str] | str,
     frequencies: ArrayLike,
     state: str = "g",
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]

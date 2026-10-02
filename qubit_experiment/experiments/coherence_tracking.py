@@ -723,7 +723,7 @@ def _perform_tracking_iteration(
     state: dict[str, object],
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
+    qubits: list[str] | str,
     iteration_plan: dict[str, object],
     runtime: dict[str, object],
     tracking_plan: dict[str, object],
@@ -896,7 +896,7 @@ def _finalize_tracking_output(
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
+    qubits: list[str] | str,
     t1_delays: QubitSweepPoints | None = None,
     t2_star_delays: QubitSweepPoints | None = None,
     t2_delays: QubitSweepPoints | None = None,

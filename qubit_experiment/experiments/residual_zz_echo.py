@@ -148,8 +148,8 @@ class ResidualZZEchoWorkflowOptions:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    ctrl: QuantumElements,
-    targ: QuantumElements,
+    ctrl: list[str] | str,
+    targ: list[str] | str,
     delays: QubitSweepPoints,
     detunings: float | Sequence[float] | None = None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]

@@ -134,7 +134,7 @@ class TWPA(QuantumElement):
         if self.parameters.probe_frequency is not None:
             readout_oscillator = Oscillator(
                 uid=f"{self.uid}_readout_acquire_osc",
-                frequency=self.parameters.probe_frequency,
+                frequency=self.parameters.readout_frequency,
                 modulation_type=ModulationType.AUTO,
             )
 

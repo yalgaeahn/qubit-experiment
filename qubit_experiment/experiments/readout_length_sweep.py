@@ -401,7 +401,7 @@ def _ensure_non_empty_successful_points(
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubit: QuantumElement,
+    qubit: list[str] | str,
     readout_lengths: ArrayLike,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,

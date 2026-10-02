@@ -1,12 +1,9 @@
 # Copyright 2024 Zurich Instruments AG
 # SPDX-License-Identifier: Apache-2.0
 
-"""RIP v2 experiment (Ramsey with bus tone).
+"""This module defines the RIP gate experiment.
 
-This variant performs a Ramsey sequence on target qubit(s) while driving a
-bus element concurrently for the duration of the Ramsey delay. It supports
-detuning the second x90 phase based on a provided detuning and setting the
-bus drive frequency and amplitude.
+
 """
 
 from __future__ import annotations
@@ -28,9 +25,11 @@ from laboneq.workflow.tasks import (
 )
 
 from qubit_experiment.analysis.rip import (
-    validate_and_convert_detunings,
+    analysis_workflow,
 )
-from laboneq_applications.core import validation
+from laboneq_applications.core.validation import (
+    validate_and_convert_single_qubit_sweeps,
+)
 from laboneq_applications.experiments.options import (
     TuneupExperimentOptions,
     TuneUpWorkflowOptions,
@@ -38,8 +37,6 @@ from laboneq_applications.experiments.options import (
 from laboneq_applications.tasks.parameter_updating import (
     temporary_qpu,
     temporary_quantum_elements_from_qpu,
-    update_qubits,
-    update_qpu
 )
 
 if TYPE_CHECKING:
@@ -52,21 +49,18 @@ if TYPE_CHECKING:
     from laboneq_applications.typing import QuantumElements, QubitSweepPoints
 
 
-@workflow.workflow(name="rip4")
+@workflow.workflow(name="rip")
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    ctrl: QuantumElements,
-    targ: QuantumElements,
-    bus: QuantumElements,
-    bus2: QuantumElements,
-    bus_frequency: float,
-    bus_amplitude: float,
-    bus2_frequency: float,
-    bus2_amplitude: float,
-    delays: QubitSweepPoints,
-    c_prep: str = "g",
+    ctrl: list[str] | str,
+    targ: list[str] | str,
+    bus: list[str] | str,
+    ctrl_state : str | None = "g",
+    delays: QubitSweepPoints | None = None,
     detunings: float | Sequence[float] | None = None,
+    frequencies: float | Sequence[float] | None = None,
+    amplitude : float |Sequence[float] | None = None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,
     options: TuneUpWorkflowOptions | None = None,
@@ -79,7 +73,7 @@ def experiment_workflow(
     - [compile_experiment]()
     - [run_experiment]()
     - [analysis_workflow]()
-    - [update_qubits]()
+    - [update_qpu]()
 
     Arguments:
         session:
@@ -133,28 +127,27 @@ def experiment_workflow(
         ```
     """
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
+    ctrl = temporary_quantum_elements_from_qpu(temp_qpu, ctrl)
     targ = temporary_quantum_elements_from_qpu(temp_qpu, targ)
     bus = temporary_quantum_elements_from_qpu(temp_qpu, bus)
-    bus2 = temporary_quantum_elements_from_qpu(temp_qpu, bus2)
-    ctrl = temporary_quantum_elements_from_qpu(temp_qpu, ctrl)
-
-
     exp = create_experiment(
-        temp_qpu,
-        targ,
-        ctrl,
-        bus,
-        bus2,
-        bus_frequency,
-        bus_amplitude,
-        bus2_frequency,
-        bus2_amplitude,
+        qpu=temp_qpu,
+        ctrl=ctrl,
+        targ=targ,
+        bus=bus,
+        ctrl_state=ctrl_state,
         delays=delays,
         detunings=detunings,
-        c_prep=c_prep,
+        frequencies=frequencies,
+        amplitude=amplitude,
     )
     compiled_exp = compile_experiment(session, exp)
     result = run_experiment(session, compiled_exp)
+    # with workflow.if_(options.do_analysis):
+    #      analysis_results = analysis_workflow(result, targ, delays, frequencies, detunings)
+    #      qubit_parameters = analysis_results.output
+    #      with workflow.if_(options.update):
+    #          update_qpu(qpu, qubit_parameters["new_parameter_values"])
     workflow.return_(result)
 
 
@@ -162,17 +155,14 @@ def experiment_workflow(
 @dsl.qubit_experiment
 def create_experiment(
     qpu: QPU,
-    targ: QuantumElements,
     ctrl: QuantumElements,
+    targ: QuantumElements,
     bus: QuantumElements,
-    bus2: QuantumElements,
-    bus_frequency: float,
-    bus_amplitude: float,
-    bus2_frequency: float,
-    bus2_amplitude: float,
-    delays: QubitSweepPoints,
-    detunings: float | Sequence[float] | None = None,
-    c_prep: str = "g",
+    ctrl_state : str | None = "g",
+    delays: QubitSweepPoints | None = None,
+    detunings: float | None = None,
+    frequencies: float | Sequence[float] | None = None,
+    amplitude: float | None = None,
     options: TuneupExperimentOptions | None = None,
 ) -> Experiment:
     """Creates a Ramsey Experiment where the phase of the second pulse is swept.
@@ -245,11 +235,34 @@ def create_experiment(
     """
     # Define the custom options for the experiment
     opts = TuneupExperimentOptions() if options is None else options
-    targ, delays = validation.validate_and_convert_qubits_sweeps(targ, delays)
-    bus = validation.validate_and_convert_qubits_sweeps(bus)
-    bus2 = validation.validate_and_convert_qubits_sweeps(bus2)
-    ctrl = validation.validate_and_convert_qubits_sweeps(ctrl)
-    detunings = validate_and_convert_detunings(targ, detunings)
+
+    # Enforce and validate single elements and 1D delays using app validation
+    ctrl = validate_and_convert_single_qubit_sweeps(ctrl)
+    targ, q_delays = validate_and_convert_single_qubit_sweeps(targ, delays)
+    bus = validate_and_convert_single_qubit_sweeps(bus)
+    q_delays = np.asarray(q_delays, dtype=float).ravel()
+
+    # Scalar detuning/frequency/amplitude for single qubit
+    detuning = float(detunings) if detunings is not None else 0.0
+    # frequency may be a scalar or a sweep (1D list/array)
+    swp_frequency = None
+    frequency = None
+    if frequencies is not None:
+        if isinstance(frequencies, (list, tuple, np.ndarray)):
+            freq_values = np.asarray(frequencies, dtype=float).ravel().tolist()
+            swp_frequency = SweepParameter(uid=f"rip_freq_{targ.uid}", values=freq_values)
+        else:
+            frequency = float(frequencies)
+
+  
+    amplitude = None if amplitude is None else float(amplitude)
+
+
+
+
+
+
+
     if (
         opts.use_cal_traces
         and AveragingMode(opts.averaging_mode) == AveragingMode.SEQUENTIAL
@@ -260,34 +273,21 @@ def create_experiment(
             "outside the sweep."
         )
 
-    swp_delays = []
-    swp_phases = []
-    for i, q in enumerate(targ):
-        q_delays = delays[i]
-        swp_delays += [
-            SweepParameter(
-                uid=f"wait_time_{q.uid}",
-                values=q_delays,
-            ),
-        ]
-        swp_phases += [
-            SweepParameter(
-                uid=f"x90_phases_{q.uid}",
-                values=np.array(
-                    [
-                        ((wait_time - q_delays[0]) * detunings[i] * 2 * np.pi)
-                        % (2 * np.pi)
-                        for wait_time in q_delays
-                    ]
-                ),
-            ),
-        ]
+    # Build delay and phase sweeps for the single target
+    swp_delays = SweepParameter(uid=f"wait_time_{targ.uid}", values=q_delays.tolist())
+    print(f"swp_delays: {swp_delays}")
+    phase_values = ((q_delays - q_delays[0]) * detuning * 2 * np.pi) % (2 * np.pi)
+    swp_phases = SweepParameter(uid=f"x90_phases_{targ.uid}", values=phase_values.tolist())
+        
+        
+
+    
 
     # We will fix the length of the measure section to the longest section among
     # the qubits to allow the qubits to have different readout and/or
     # integration lengths.
     qop = qpu.quantum_operations
-    max_measure_section_length = qop.measure_section_length(targ)
+    max_measure_section_length = qop.measure_section_length([targ])
     with dsl.acquire_loop_rt(
         count=opts.count,
         averaging_mode=opts.averaging_mode,
@@ -296,39 +296,39 @@ def create_experiment(
         repetition_time=opts.repetition_time,
         reset_oscillator_phase=opts.reset_oscillator_phase,
     ):
-        with dsl.sweep(
-            name="rip2_sweep",
-            parameter=swp_delays + swp_phases,
-            auto_chunking=True,
-            #chunk_count=1
-        ):
-            if opts.active_reset:
-                qop.active_reset(
-                    targ,
-                    active_reset_states=opts.active_reset_states,
-                    number_resets=opts.active_reset_repetitions,
-                    #measure_section_length=max_measure_section_length,
-                )
-            with dsl.section(name="main", alignment=SectionAlignment.LEFT): 
-                for q_c in ctrl:
-                    prep=qop.prepare_state(q_c, c_prep)
-                with dsl.section(name="main_drive", alignment=SectionAlignment.LEFT, play_after=prep.uid):
-                    for q_t, q_c, q_b,q_b2, wait_time, phase in zip(targ, ctrl, bus, bus2, swp_delays, swp_phases):
-                        qop.delay(q_b, time=64e-9)
-                        qop.delay(q_b2, time=64e-9)
-                        qop.set_frequency(q_b, frequency=bus_frequency)
-                        qop.set_frequency(q_b2, frequency=bus2_frequency)
-                        qop.x180(q_b, amplitude=bus_amplitude, length=wait_time)
-                        qop.x180(q_b2, amplitude=bus2_amplitude, length=wait_time)
-                        qop.ramsey(
-                            q_t, wait_time, phase, transition=opts.transition
+        
+
+        # If frequency is a sweep, create a nested sweep to form a grid:
+        if swp_frequency is not None:
+            with dsl.sweep(name="rip_frequency_sweep", parameter=swp_frequency, auto_chunking=False) as freq:
+                with dsl.sweep(
+                    name="rip_ramsey_delay_sweep",
+                    parameter= swp_delays,#[swp_delays, swp_phases],
+                    auto_chunking=True,
+                ) as length:
+                    ctrl_prep = qop.prepare_state(ctrl, ctrl_state)
+                    with dsl.section(name="main_drive", alignment=SectionAlignment.LEFT, play_after=ctrl_prep.uid):
+                        # Determine static amplitude if not provided
+                        amplitude_i = amplitude if amplitude is not None else getattr(bus.parameters, "cr_drive_amplitude", None)
+                        
+                        
+                        qop.rip(
+                            q=targ,
+                            bus=bus,
+                            delay=length,
+                            ramsey_phase=0.0,
+                            amplitude=amplitude_i,
+                            frequency=freq,
+                            transition=opts.transition,
+                            override_params = {'length' : length, 'risefall_sigma_ratio': None, 'width': length - 2*50e-9}
                         )
-                with dsl.section(name="main_measure", alignment=SectionAlignment.LEFT):
-                    for q_t in targ:
-                        sec = qop.measure(q_t, dsl.handles.result_handle(q_t.uid))
+
+                    with dsl.section(name="main_measure", alignment=SectionAlignment.LEFT):
+                        sec = qop.measure(targ, dsl.handles.result_handle(targ.uid))
                         # Fix the length of the measure section
-                        #sec.length = max_measure_section_length
-                        qop.passive_reset(q_t)
+                        sec.length = max_measure_section_length
+                        qop.passive_reset(targ)
+       
         if opts.use_cal_traces:
             qop.calibration_traces.omit_section(
                 qubits=targ,
@@ -336,5 +336,5 @@ def create_experiment(
                 active_reset=opts.active_reset,
                 active_reset_states=opts.active_reset_states,
                 active_reset_repetitions=opts.active_reset_repetitions,
-                #measure_section_length=max_measure_section_length,
+                measure_section_length=max_measure_section_length,
             )

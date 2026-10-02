@@ -105,7 +105,7 @@ def twpa_setup(n_twpas: int) -> DeviceSetup:
         )
 
         for line, frequency, mod_type in [
-            ("measure", 4e9, ModulationType.SOFTWARE),
+            ("measure", 6e9, ModulationType.SOFTWARE),
         ]:
             logical_signal = setup.logical_signal_by_uid(f"{twpa}/{line}")
             oscillator = Oscillator(modulation_type=mod_type)

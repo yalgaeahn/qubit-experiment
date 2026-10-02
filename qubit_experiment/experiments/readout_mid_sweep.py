@@ -320,7 +320,7 @@ def _extract_new_parameter_values(analysis_payload: dict | None, analysis_result
 def experiment_workflow(
     session: Session,
     qpu: "QPU",
-    qubit: QuantumElement,
+    qubit: list[str] | str,
     delays: ArrayLike,
     readout_resonator_frequencies: ArrayLike | None = None,
     readout_amplitudes: ArrayLike | None = None,

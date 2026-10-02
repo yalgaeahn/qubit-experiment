@@ -38,6 +38,42 @@ class BusCavityOperations(dsl.QuantumOperations):
     _PI_BY_2 = np.pi / 2
 
     @dsl.quantum_operation
+    def delay(self, b: BusCavity, time: float | SweepParameter) -> None:
+        """Reserve the bus lines while waiting for the requested duration."""
+        dsl.delay(b.signals["drive"], time=time)
+
+    @dsl.quantum_operation
+    def set_frequency(
+        self,
+        b: BusCavity,
+        frequency: float | SweepParameter,
+        *,
+        transition: str | None = None,
+        readout: bool = False,
+        rf: bool = True,
+        calibration: Calibration | None = None,
+    ) -> None:
+        """Set the bus drive frequency in the experiment calibration."""
+        if transition is not None or readout:
+            raise ValueError("Bus frequency supports the drive line only")
+        line = "drive"
+        if rf:
+            lo_frequency = b.parameters.drive_lo_frequency
+            frequency -= lo_frequency
+        if calibration is None:
+            calibration = dsl.experiment_calibration()
+        signal_calibration = calibration[b.signals[line]]
+        oscillator = signal_calibration.oscillator
+        if oscillator is None:
+            oscillator = signal_calibration.oscillator = Oscillator(frequency=frequency)
+        if getattr(oscillator, "_set_frequency", False):
+            raise RuntimeError(
+                f"Frequency of bus {b.uid} {line} line was set multiple times"
+            )
+        oscillator._set_frequency = True
+        oscillator.frequency = frequency
+
+    @dsl.quantum_operation
     def bus_spectroscopy_drive(
         self,
         b: BusCavity,

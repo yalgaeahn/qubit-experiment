@@ -150,10 +150,10 @@ def resolve_convergence_repeats_per_state(repeats_per_state: int) -> int:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    ctrl: QuantumElements,
-    targ: QuantumElements,
-    bus: QuantumElements,
-    spec: QuantumElements | None = None,     # ✅ NEW
+    ctrl: list[str] | str,
+    targ: list[str] | str,
+    bus: list[str] | str,
+    spec: list[str] | str | None = None,     # ✅ NEW
     spec_prep: str = "nop",                   # ✅ NEW
     targ_detuning: float = 0.0,
     readout_calibration_result=None,

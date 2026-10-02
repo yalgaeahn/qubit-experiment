@@ -25,7 +25,6 @@ from laboneq.workflow import (
     task,
     workflow,
 )
-
 from laboneq_applications.analysis.amplitude_rabi import (
     fit_data,
 )
@@ -40,17 +39,17 @@ from laboneq_applications.analysis.options import (
     PlotPopulationOptions,
     TuneUpAnalysisWorkflowOptions,
 )
-from .plotting_helpers import plot_raw_complex_data_1d
 from laboneq_applications.core.validation import validate_and_convert_qubits_sweeps
+
 from .plot_theme import with_plot_theme
+from .plotting_helpers import plot_raw_complex_data_1d
 
 if TYPE_CHECKING:
     import lmfit
     import matplotlib as mpl
     from laboneq.workflow.tasks.run_experiment import RunExperimentResults
-    from numpy.typing import ArrayLike
-
     from laboneq_applications.typing import QuantumElements, QubitSweepPoints
+    from numpy.typing import ArrayLike
 
 
 @workflow
@@ -339,7 +338,7 @@ def plot_population(
                 freq_fit = fit_res_qb.best_values["frequency"] / (2*np.pi)
                 freq_fit_err = fit_res_qb.params["frequency"].stderr / (2*np.pi)
                 textstr = (
-                    "$\Omega/2\pi$: "
+                    r"$\Omega/2\pi$: "
                     f"\nFitted frequency: {freq_fit / 1e6:.6f} "
                     f"$\\pm$ {freq_fit_err / 1e6:.4f} MHz"
                 )

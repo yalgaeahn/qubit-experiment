@@ -24,7 +24,7 @@ from laboneq.workflow.tasks import (
     run_experiment,
 )
 
-from analysis import coherence_spectroscopy as analysis_coherence
+from qubit_experiment.analysis import coherence_spectroscopy as analysis_coherence
 from laboneq_applications.analysis.ramsey import (
     validate_and_convert_detunings,
 )
@@ -53,8 +53,8 @@ if TYPE_CHECKING:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubit: QuantumElement,
-    bus: QuantumElement,
+    qubit: str,
+    bus: str,
     qubit_frequencies: QubitSweepPoints,
     CW_frequencies: QubitSweepPoints,
     CW_amplitude: float,

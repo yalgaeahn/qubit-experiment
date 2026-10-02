@@ -51,7 +51,7 @@ if TYPE_CHECKING:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    parametric_amplifier: TWPA,
+    parametric_amplifier: list[str] | str,
     pump_frequency: ArrayLike,
     pump_power: ArrayLike,
     temporary_parameters: dict[str, dict | TWPAParameters] | None = None,

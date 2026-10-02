@@ -31,7 +31,7 @@ TG_NOTEBOOK = (
     / "projects"
     / "2026_selectiveRIP"
     / "noteforTG"
-    / "ToTG.ipynb"
+    / "state_tomography.ipynb"
 )
 
 

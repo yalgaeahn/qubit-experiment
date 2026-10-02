@@ -20,11 +20,6 @@ from typing import TYPE_CHECKING, Any
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
-from .echo import analysis_workflow as echo_analysis_workflow
-from .lifetime_measurement import analysis_workflow as lifetime_analysis_workflow
-from .plot_theme import with_plot_theme
-from .plotting_helpers import timestamped_title
-from .ramsey import analysis_workflow as ramsey_analysis_workflow
 from laboneq import workflow
 from laboneq_applications.analysis.calibration_traces_rotation import (
     calculate_qubit_population,
@@ -33,11 +28,15 @@ from laboneq_applications.analysis.options import (
     BasePlottingOptions,
     TuneUpAnalysisWorkflowOptions,
 )
-from laboneq_applications.core.validation import validate_and_convert_qubits_sweeps
 
 from . import echo as echo_analysis_module
 from . import lifetime_measurement as lifetime_analysis_module
 from . import ramsey as ramsey_analysis_module
+from .echo import analysis_workflow as echo_analysis_workflow
+from .lifetime_measurement import analysis_workflow as lifetime_analysis_workflow
+from .plot_theme import with_plot_theme
+from .plotting_helpers import timestamped_title
+from .ramsey import analysis_workflow as ramsey_analysis_workflow
 
 if TYPE_CHECKING:
     import matplotlib as mpl
@@ -589,7 +588,10 @@ def plot_tracking_history(
 ) -> dict[str, mpl.figure.Figure]:
     """Create per-qubit trend figures from JSONL tracking history."""
     opts = PlotCoherenceTrackingOptions() if options is None else options
-    qubits = validate_and_convert_qubits_sweeps(qubits)
+    qubit_uids = [
+        q if isinstance(q, str) else q.uid
+        for q in (qubits if isinstance(qubits, (list, tuple)) else [qubits])
+    ]
     selected = _tracked_parameters_tuple(tracked_parameters)
     figures: dict[str, mpl.figure.Figure] = {}
     if not selected:
@@ -598,15 +600,15 @@ def plot_tracking_history(
     locator = mdates.AutoDateLocator()
     formatter = mdates.ConciseDateFormatter(locator)
 
-    for q in qubits:
-        q_rows = [row for row in history_rows if row.get("qubit_uid") == q.uid]
+    for uid in qubit_uids:
+        q_rows = [row for row in history_rows if row.get("qubit_uid") == uid]
         if not q_rows:
             continue
 
         fig_height = max(3.2, 2.35 * len(selected) + 1.1)
         fig, axes = plt.subplots(len(selected), 1, figsize=(9.2, fig_height), sharex=True)
         axes_array = np.atleast_1d(axes)
-        fig.suptitle(timestamped_title(f"Coherence tracking {q.uid}"))
+        fig.suptitle(timestamped_title(f"Coherence tracking {uid}"))
 
         for axis, parameter_key in zip(axes_array, selected):
             metadata = _TRACKED_PARAMETER_METADATA[parameter_key]
@@ -660,12 +662,12 @@ def plot_tracking_history(
         fig.tight_layout()
 
         if opts.save_figures:
-            workflow.save_artifact(f"Coherence_tracking_{q.uid}", fig)
+            workflow.save_artifact(f"Coherence_tracking_{uid}", fig)
 
         if opts.close_figures:
             plt.close(fig)
 
-        figures[q.uid] = fig
+        figures[uid] = fig
 
     return figures
 

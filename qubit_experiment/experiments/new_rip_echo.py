@@ -41,7 +41,6 @@ from laboneq_applications.experiments.options import (
 from laboneq_applications.tasks.parameter_updating import (
     temporary_qpu,
     temporary_quantum_elements_from_qpu,
-    update_qubits,
     update_qpu
 )
 
@@ -59,9 +58,9 @@ if TYPE_CHECKING:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    ctrl: QuantumElements,
-    targ: QuantumElements,
-    bus: QuantumElements,
+    ctrl: list[str] | str,
+    targ: list[str] | str,
+    bus: list[str] | str,
     delays: QubitSweepPoints,
     rip_detunings: QubitSweepPoints,
     ramsey_detunings: float | None,
@@ -201,7 +200,7 @@ def create_experiment(
                 uid=f"x90_phases_{targ.uid}",
                 values=np.array(
                     [
-                        ((wait_time - delays[0]) * ramsey_detunings * 2 * np.pi)
+                        ((wait_time - delays[0]) * (ramsey_detunings or 0.0) * 2 * np.pi)
                         % (2 * np.pi)
                         for wait_time in delays
                     ]

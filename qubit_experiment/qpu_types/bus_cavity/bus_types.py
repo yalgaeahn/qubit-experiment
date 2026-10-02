@@ -228,7 +228,6 @@ class BusCavity(QuantumElement):
                         frequency=lo_frequency,
                     )
                 sig_cal.range = self._line_parameter(line, "range")
-                sig_cal.automute = True
             calibration_items[self.signals[line]] = sig_cal
 
         return Calibration(calibration_items)

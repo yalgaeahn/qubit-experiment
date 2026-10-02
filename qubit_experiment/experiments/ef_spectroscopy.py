@@ -35,7 +35,6 @@ from laboneq_applications.experiments.options import (
 from laboneq_applications.tasks.parameter_updating import (
     temporary_qpu,
     temporary_quantum_elements_from_qpu,
-    update_qubits,
     update_qpu
 )
 
@@ -52,7 +51,7 @@ if TYPE_CHECKING:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
+    qubits: list[str] | str,
     frequencies: QubitSweepPoints,
     #states:Sequence[str], 
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
@@ -67,7 +66,7 @@ def experiment_workflow(
     - [compile_experiment]()
     - [run_experiment]()
     - [analysis_workflow]()
-    - [update_qubits]()
+    - [update_qpu]()
 
     Arguments:
         session:
@@ -219,6 +218,7 @@ def create_experiment(
             name=f"freqs_{q.uid}",
             parameter=SweepParameter(values = np.asarray(frequencies), axis_name="freq")) as frequency:
             qop.prepare_state(q,"e")
+            qop.delay(q, 16e-9)
             qop.set_frequency(q, frequency, transition="ef")#spectroscopy drive is on logical channel "drive" ...
             qop.qubit_spectroscopy_drive(q,transition="ef")
             #qop.x180(q,transition="ef")
@@ -228,5 +228,3 @@ def create_experiment(
             # integration lengths.
             #sec.length = max_measure_section_length
             qop.passive_reset(q, delay=200e-6) #delay=opts.spectroscopy_reset_delay
-
-            

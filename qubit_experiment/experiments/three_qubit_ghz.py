@@ -638,8 +638,8 @@ def create_experiment(
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
-    bus: QuantumElements,
+    qubits: list[str] | str,
+    bus: list[str] | str,
     readout_calibration_result=None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,
@@ -699,8 +699,8 @@ def experiment_workflow(
 def convergence_validation_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
-    bus: QuantumElements,
+    qubits: list[str] | str,
+    bus: list[str] | str,
     readout_calibration_result=None,
     main_run_optimization_convergence=None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
@@ -828,8 +828,8 @@ def _output_to_dict(output) -> dict[str, object]:
 def run_bundle(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
-    bus: QuantumElements,
+    qubits: list[str] | str,
+    bus: list[str] | str,
     readout_calibration_result=None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,

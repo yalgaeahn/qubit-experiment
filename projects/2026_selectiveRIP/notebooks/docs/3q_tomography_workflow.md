@@ -45,8 +45,8 @@ analysis_options.do_plotting(True)
 threeq_result = threeq_qst.run_bundle(
     session=session,
     qpu=qpu,
-    qubits=[q0, q1, q2],
-    bus=bus,
+    qubits=[q0.uid, q1.uid, q2.uid],
+    bus=[b.uid for b in bus],
     readout_calibration_result=readout_cal_result,
     options=opts,
     analysis_options=analysis_options,

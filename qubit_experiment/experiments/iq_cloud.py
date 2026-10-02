@@ -79,7 +79,7 @@ class IQCloudWorkflowOptions:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
+    qubits: list[str] | str,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,
     options: IQCloudWorkflowOptions | None = None,

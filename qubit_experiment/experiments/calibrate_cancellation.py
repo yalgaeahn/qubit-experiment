@@ -53,7 +53,7 @@ if TYPE_CHECKING:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    parametric_amplifier: TWPA,
+    parametric_amplifier: list[str] | str,
     cancel_phase: ArrayLike,
     cancel_attenuation: ArrayLike,
     temporary_parameters: dict[str, dict | TWPAParameters] | None = None,
@@ -254,7 +254,12 @@ def create_experiment(
             repetition_time=opts.repetition_time,
             reset_oscillator_phase=opts.reset_oscillator_phase,
         ):
-            qop.set_pump_cancellation(parametric_amplifier, attenuation, phase, False)
+            qop.set_pump_cancellation(
+                parametric_amplifier,
+                parametric_amplifier.parameters.cancellation_attenuation,
+                parametric_amplifier.parameters.cancellation_phase,
+                False,
+            )
             qop.twpa_acquire(
                 parametric_amplifier,
                 dsl.handles.result_handle(parametric_amplifier.uid),

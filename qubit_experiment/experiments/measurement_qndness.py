@@ -85,7 +85,7 @@ class QNDnessExperimentOptions:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubits: Qubits,
+    qubits: list[str] | str,
     temporary_parameters: dict[str, dict | QuantumParameters] | None = None,
     options: TuneUpWorkflowOptions | None = None,
 ) -> None:
@@ -97,7 +97,7 @@ def experiment_workflow(
     - [compile_experiment]()
     - [run_experiment]()
     - [analysis_workflow]()
-    - [update_qubits]()
+    - [update_qpu]()
 
     Arguments:
         session:
@@ -127,7 +127,7 @@ def experiment_workflow(
             qubits=[TunableTransmonQubit("q0"), TunableTransmonQubit("q1")],
             quantum_operations=TunableTransmonOperations(),
         )
-        qubits = qpu.qubits
+        qubits = qpu.quantum_elements
         temporary_parameters = {}
         for q in qubits_to_measure:
             temp_pars = deepcopy(q.parameters)
