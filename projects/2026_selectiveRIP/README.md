@@ -82,6 +82,20 @@ See
 [`docs/notebook-import-standard.md`](/Users/yalgaeahn/Research/20_Projects/qubit-experiment/projects/2026_selectiveRIP/docs/notebook-import-standard.md)
 for the full notebook convention, required first-cell pattern, and anti-patterns.
 
+## Project-Only RIP Experiments
+
+The `rip`, `rip2`, `rip4`, and `rip5` workflows live in
+`custom_qubit_experiment.custom_experiments`. Import them after the notebook
+bootstrap, for example:
+
+```python
+from custom_qubit_experiment.custom_experiments import rip2
+```
+
+These variants are project-specific and are not part of the installed
+`qubit_experiment.experiments` package. The shared `qubit_experiment.analysis.rip`
+module remains available because other workflows use it.
+
 ## Data Policy
 - `data/` is intentionally ignored for local/large raw data.
 - `qpu_parameters/` is tracked for experiment reproducibility snapshots.

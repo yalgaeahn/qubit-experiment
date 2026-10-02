@@ -82,8 +82,8 @@ class CoherenceSpectroscopyExperimentOptions:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubit: QuantumElement,
-    bus: QuantumElement,
+    qubit: list[str] | str,
+    bus: list[str] | str,
     delays: QubitSweepPoints,
     CW_frequencies: QubitSweepPoints,
     CW_amplitude: float,

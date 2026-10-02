@@ -50,7 +50,7 @@ if TYPE_CHECKING:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
+    qubits: list[str] | str,
     frequencies: QubitSweepPoints,
     #states:Sequence[str], 
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
@@ -65,7 +65,7 @@ def experiment_workflow(
     - [compile_experiment]()
     - [run_experiment]()
     - [analysis_workflow]()
-    - [update_qubits]()
+    - [update_qpu]()
 
     Arguments:
         session:
@@ -224,5 +224,3 @@ def create_experiment(
                 # integration lengths.
                 #sec.length = max_measure_section_length
                 qop.passive_reset(q, delay=200e-6) #delay=opts.spectroscopy_reset_delay
-
-            

@@ -302,7 +302,7 @@ class DirectCRHamiltonianTomographyOptions:
     """Base options for direct cr hamiltonian tomography experiment"""
     #acquisition_type : AcquisitionType = workflow.option_field(AcquisitionType.INTEGRATION,description="The type of acquisition to use for the experiment",)
     risefall : float = option_field(50e-9, description="The risefall time of the CR pulse in nanoseconds")
-    cancel : float = option_field(False, description="Whether to use cancellation tone")
+    cancel: bool = option_field(False, description="Whether to use cancellation tone")
     use_cal_traces: bool = option_field(
         True, description="Whether to include calibration traces in the experiment."
     )

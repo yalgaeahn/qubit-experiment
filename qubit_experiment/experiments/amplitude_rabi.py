@@ -55,7 +55,7 @@ if TYPE_CHECKING:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
+    qubits: list[str] | str,
     amplitudes: QubitSweepPoints,
     # TODO: Update the type hint for the temporary_parameters argument when the new
     # qubit class is available. Same for other experiment workflows.

@@ -668,8 +668,8 @@ def create_experiment(
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
-    bus: QuantumElements,
+    qubits: list[str] | str,
+    bus: list[str] | str,
     readout_calibration_result=None,
     target_state=None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
@@ -686,7 +686,7 @@ def experiment_workflow(
 
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
     qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)
-    _ = bus
+    bus = temporary_quantum_elements_from_qpu(temp_qpu, bus)
 
     run_readout_calibration = should_run_readout_calibration(
         do_readout_calibration=opts.do_readout_calibration,
@@ -736,8 +736,8 @@ def experiment_workflow(
 def convergence_validation_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
-    bus: QuantumElements,
+    qubits: list[str] | str,
+    bus: list[str] | str,
     readout_calibration_result=None,
     main_run_optimization_convergence=None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
@@ -750,7 +750,7 @@ def convergence_validation_workflow(
 
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
     qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)
-    _ = bus
+    bus = temporary_quantum_elements_from_qpu(temp_qpu, bus)
 
     run_readout_calibration = should_run_readout_calibration(
         do_readout_calibration=opts.do_readout_calibration,
@@ -849,8 +849,8 @@ def convergence_validation_workflow(
 def shot_sweep_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
-    bus: QuantumElements,
+    qubits: list[str] | str,
+    bus: list[str] | str,
     readout_calibration_result=None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,
@@ -862,7 +862,7 @@ def shot_sweep_workflow(
 
     temp_qpu = temporary_qpu(qpu, temporary_parameters)
     qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)
-    _ = bus
+    bus = temporary_quantum_elements_from_qpu(temp_qpu, bus)
 
     run_readout_calibration = should_run_readout_calibration(
         do_readout_calibration=opts.do_readout_calibration,
@@ -1020,8 +1020,8 @@ def _output_to_dict(output) -> dict[str, object]:
 def run_bundle(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
-    bus: QuantumElements,
+    qubits: list[str] | str,
+    bus: list[str] | str,
     readout_calibration_result=None,
     target_state=None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]

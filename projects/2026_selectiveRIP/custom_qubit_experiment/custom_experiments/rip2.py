@@ -38,7 +38,6 @@ from laboneq_applications.experiments.options import (
 from laboneq_applications.tasks.parameter_updating import (
     temporary_qpu,
     temporary_quantum_elements_from_qpu,
-    update_qubits,
     update_qpu
 )
 
@@ -56,9 +55,9 @@ if TYPE_CHECKING:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    ctrl: QuantumElements,
-    targ: QuantumElements,
-    bus: QuantumElements,
+    ctrl: list[str] | str,
+    targ: list[str] | str,
+    bus: list[str] | str,
     bus_frequency: float,
     bus_amplitude: float,
     delays: QubitSweepPoints,
@@ -76,7 +75,7 @@ def experiment_workflow(
     - [compile_experiment]()
     - [run_experiment]()
     - [analysis_workflow]()
-    - [update_qubits]()
+    - [update_qpu]()
 
     Arguments:
         session:
@@ -305,7 +304,7 @@ def create_experiment(
                     for q_t, q_c, q_b, wait_time, phase in zip(targ, ctrl, bus, swp_delays, swp_phases):
                         qop.delay(q_b, time=64e-9)
                         qop.set_frequency(q_b, frequency=bus_frequency)
-                        qop.x180(q_b, amplitude=bus_amplitude, length=wait_time)
+                        qop.rip(q_b, amplitude=bus_amplitude, length=wait_time)
                         qop.ramsey(
                             q_t, wait_time, phase, transition=opts.transition
                         )

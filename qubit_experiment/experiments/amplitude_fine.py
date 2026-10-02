@@ -58,7 +58,7 @@ if TYPE_CHECKING:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
+    qubits: list[str] | str,
     amplification_qop: str,
     target_angle: float,
     phase_offset: float,
@@ -317,7 +317,7 @@ def create_experiment(
 def experiment_workflow_x180(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
+    qubits: list[str] | str,
     repetitions: QubitSweepPoints[int],
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,
@@ -417,7 +417,7 @@ def experiment_workflow_x180(
 def experiment_workflow_x90(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
+    qubits: list[str] | str,
     repetitions: QubitSweepPoints[int],
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
     | None = None,

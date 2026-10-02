@@ -19,8 +19,8 @@ dependencies = [
   "matplotlib>=3.7",
   "uncertainties>=3.1",
   "lmfit>=1.2",
-  "laboneq>=25.10,<26",                # core SDK (validated in local .venv)
-  "laboneq-applications>=25.10,<26"    # workflow/analysis contracts
+  "laboneq>=26.7,<26.8",              # validated against the 26.7 stable release
+  "laboneq-applications>=26.7,<26.8"  # matched Applications Library release
 ]
 
 [project.optional-dependencies]
@@ -63,6 +63,8 @@ exclude = [
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+
+[tool.ruff.lint]
 select = [
   "E",   # pycodestyle errors
   "F",   # pyflakes

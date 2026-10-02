@@ -126,7 +126,7 @@ def _maybe_log_ignored_detunings(*, echo: bool, detunings: Sequence[float]) -> N
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
+    qubits: list[str] | str,
     delays: QubitSweepPoints,
     detunings: float | Sequence[float] | None = None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
@@ -141,7 +141,7 @@ def experiment_workflow(
     - [compile_experiment]()
     - [run_experiment]()
     - [analysis_workflow]()
-    - [update_qubits]()
+    - [update_qpu]()
 
     Arguments:
         session:

@@ -52,8 +52,8 @@ from .options import DirectCRHamiltonianTomographyOptions
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    ctrl : QuantumElements, #현재로서는 targ 설정 못하고 고정
-    targ : QuantumElements,
+    ctrl: list[str] | str, #현재로서는 targ 설정 못하고 고정
+    targ: list[str] | str,
     amplitudes : QubitSweepPoints,
     lengths : QubitSweepPoints,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]
@@ -176,11 +176,11 @@ def create_experiment(
                        
                         with dsl.match(name="ctrl_prep", sweep_parameter=state) as ctrl_prep:
                             with dsl.case(0):
-                                qop.delay.omit_section(q=ctrl, time=ctrl_ge_drive_length_pi)
+                                qop.delay.omit_section(ctrl, time=ctrl_ge_drive_length_pi)
                             with dsl.case(1):
                                 qop.x180.omit_section(ctrl)
                         with dsl.section(name="main_cr_drive", on_system_grid=True, play_after=ctrl_prep.uid) as main_cr_drive:
-                            qop.set_frequency.omit_section(q=ctrl, frequency=targ.parameters.resonance_frequency_ge) #안되면 외부에서 넣어주자
+                            qop.set_frequency.omit_section(ctrl, frequency=targ.parameters.resonance_frequency_ge) #안되면 외부에서 넣어주자
                             qop.direct_cr.omit_section(ctrl=ctrl, 
                                                        targ=targ, 
                                                        amplitude = amplitude, 
@@ -201,7 +201,7 @@ def create_experiment(
                             with dsl.case(1): #Y
                                 qop.rx.omit_section(q=targ, angle=np.pi/2)
                             with dsl.case(2): #Z
-                                qop.delay.omit_section(q=targ, time=ctrl_ge_drive_length_pi)
+                                qop.delay.omit_section(targ, time=ctrl_ge_drive_length_pi)
 
                         with dsl.section(name="measure", play_after=targ_basis_prep.uid) as measure:
                             qop.measure.omit_section(q=targ, handle=dsl.handles.result_handle(qubit_name=targ.uid))
@@ -226,4 +226,3 @@ def create_experiment(
     
         
         
-

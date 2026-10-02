@@ -131,7 +131,7 @@ def _materialize_list(items: list) -> list:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubit: QuantumElement,
+    qubit: list[str] | str,
     delays: ArrayLike,
     integration_lengths: ArrayLike | None = None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]

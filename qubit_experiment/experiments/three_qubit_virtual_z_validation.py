@@ -469,7 +469,7 @@ def _create_product_stage_experiment_impl(
                 if prep_play_after is not None:
                     prep_section_kwargs["play_after"] = prep_play_after
 
-                with dsl.section(**prep_section_kwargs):
+                with dsl.section(**prep_section_kwargs) as prep_sec:
                     with dsl.section(
                         name=f"prep_q0_{q0_token_name}_{setting_label}",
                         alignment=SectionAlignment.LEFT,
@@ -490,7 +490,6 @@ def _create_product_stage_experiment_impl(
                     ) as prep_q2:
                         qop.prepare_tomography_state(q2, q2_token)
 
-                    prep_tail_uid = prep_q2.uid
                     if any(phase != 0.0 for phase in phase_tuple):
                         with dsl.section(
                             name=f"product_virtual_z_{setting_label}",
@@ -500,12 +499,11 @@ def _create_product_stage_experiment_impl(
                             for qubit, phase in zip((q0, q1, q2), phase_tuple):
                                 if phase != 0.0:
                                     qop.rz(qubit, angle=phase)
-                        prep_tail_uid = virtual_z_sec.uid
 
                 with dsl.section(
                     name=f"basis_{setting_label}",
                     alignment=SectionAlignment.LEFT,
-                    play_after=prep_tail_uid,
+                    play_after=prep_sec.uid,
                 ) as basis_sec:
                     with dsl.section(
                         name=f"basis_q0_{setting_label}",
@@ -610,8 +608,8 @@ def create_experiment(
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
-    bus: QuantumElements,
+    qubits: list[str] | str,
+    bus: list[str] | str,
     phase_values,
     readout_calibration_result=None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]

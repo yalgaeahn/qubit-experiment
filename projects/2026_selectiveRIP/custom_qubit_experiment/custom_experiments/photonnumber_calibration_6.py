@@ -58,8 +58,8 @@ if TYPE_CHECKING:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubit: QuantumElement,
-    bus: QuantumElement,
+    qubit: str,
+    bus: str,
     frequencies: QubitSweepPoints,
     CW_amplitude: float,
     CW_frequency: float,

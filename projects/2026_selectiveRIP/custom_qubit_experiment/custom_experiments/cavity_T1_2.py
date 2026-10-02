@@ -54,13 +54,12 @@ if TYPE_CHECKING:
 
     from laboneq_applications.typing import QuantumElements, QubitSweepPoints
 
-from laboneq.simple import *
 @workflow.workflow(name="cavity_t1_spectroscopy")
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubit: QuantumElement,
-    bus: QuantumElement,
+    qubit: str,
+    bus: str,
     delay_time: float,
     CW_amplitude: float,
     CW_frequency: float,
@@ -145,4 +144,3 @@ def create_experiment(
         # 4. Measure
         qop.measure(qubit, dsl.handles.result_handle(qubit.uid))
         qop.passive_reset(qubit, delay=200e-6)
-

@@ -132,7 +132,7 @@ def _run_experiment_no_log(session: Session, compiled_experiment):
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubit: QuantumElement,
+    qubit: list[str] | str,
     frequencies: ArrayLike,
     mid_penalty: ArrayLike | None = None,
     temporary_parameters: dict[str | tuple[str, str, str], dict | QuantumParameters]

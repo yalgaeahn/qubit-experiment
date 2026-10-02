@@ -92,12 +92,12 @@ def test_bus_cavity_calibration_builds_independent_drive_and_drive_p() -> None:
     assert primary.oscillator.frequency == pytest.approx(294.5e6)
     assert primary.local_oscillator.frequency == pytest.approx(5.2e9)
     assert primary.range == pytest.approx(10)
-    assert primary.automute is True
+    assert primary.automute is False
 
     assert secondary.oscillator.frequency == pytest.approx(280e6)
     assert secondary.local_oscillator.frequency == pytest.approx(5.8e9)
     assert secondary.range == pytest.approx(5)
-    assert secondary.automute is True
+    assert secondary.automute is False
 
 
 def test_rip_defaults_to_primary_drive(monkeypatch: pytest.MonkeyPatch) -> None:

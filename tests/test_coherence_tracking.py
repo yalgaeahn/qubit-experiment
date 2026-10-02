@@ -232,18 +232,13 @@ def test_plot_tracking_history_saves_one_artifact_per_qubit(
 ) -> None:
     saved: list[str] = []
     monkeypatch.setattr(
-        tracking_analysis,
-        "validate_and_convert_qubits_sweeps",
-        lambda qubits: list(qubits),
-    )
-    monkeypatch.setattr(
         tracking_analysis.workflow,
         "save_artifact",
         lambda name, fig: saved.append(name),
     )
 
     figures = tracking_analysis.plot_tracking_history(
-        qubits=[_QubitStub("q0")],
+        qubits=["q0"],
         history_rows=[
             {
                 "timestamp_utc": "2026-03-06T00:00:00Z",

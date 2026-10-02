@@ -49,7 +49,7 @@ if TYPE_CHECKING:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    parametric_amplifier: TWPA,
+    parametric_amplifier: list[str] | str,
     frequencies: ArrayLike,
     temporary_parameters: dict[str, dict | TWPAParameters] | None = None,
     options: TuneUpWorkflowOptions | None = None,
@@ -62,7 +62,7 @@ def experiment_workflow(
     - [compile_experiment]()
     - [run_experiment]()
     - [analysis_workflow]()
-    - [update_qubits]()
+    - [update_qpu]()
 
     Arguments:
         session:
@@ -93,7 +93,7 @@ def experiment_workflow(
             pas=[twpa],
             quantum_operations=TWPAOperations(),
         )
-        temp_qubits = qpu.copy_qubits()
+        temp_qubits = qpu.copy_quantum_elements()
         result = experiment_workflow(
             session=session,
             qpu=qpu,

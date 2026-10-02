@@ -192,7 +192,7 @@ class FixedTransmonQubitParameters(QuantumParameters):
         factory=lambda: {
             "function": "GaussianSquare",
             "sigma":0.03,
-            "risefall_sigma_ratio":3.0, 
+            "risefall_sigma_ratio":3.0,
             "can_compress": True,
             "zero_boundaries" : True
         },
@@ -231,8 +231,14 @@ class FixedTransmonQubitParameters(QuantumParameters):
     # dc_voltage_parking: float | None = 0.0
     # flux_offset_voltage: float = 0.0
 
-    # free-form dictionary of user-defined parameters (deprecated)
+    # Retained to deserialize QPUs saved by LabOne Q 25.10.
     user_defined: dict = attrs.field(factory=dict)
+
+    def __attrs_post_init__(self) -> None:
+        """Move legacy user-defined values into the supported custom field."""
+        if self.user_defined:
+            self.custom = {**self.user_defined, **self.custom}
+            self.user_defined = {}
 
     @property
     def drive_frequency_ge(self) -> float | None:
@@ -522,5 +528,5 @@ class FixedTransmonQubit(QuantumElement):
                     frequency=0, modulation_type=ModulationType.SOFTWARE
                 )
             calibration_items[self.signals["acquire"]] = sig_cal
-   
+
         return Calibration(calibration_items)

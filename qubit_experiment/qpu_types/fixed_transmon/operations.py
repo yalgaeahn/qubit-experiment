@@ -943,6 +943,7 @@ class FixedTransmonOperations(dsl.QuantumOperations):
         phase: float = 0.0,
         length: float | SweepParameter | None = None,
         pulse: dict | None = None,
+        transition: Literal["ge", "ef"] = "ge",
     ) -> None:
         """Long pulse used for qubit spectroscopy that emulates a coherent field.
 
@@ -969,8 +970,14 @@ class FixedTransmonOperations(dsl.QuantumOperations):
                 completely replaces the existing pulse parameters.
 
                 Otherwise, the values override or extend the existing ones.
+            transition:
+                The transition to drive. The ef transition uses the drive_ef signal.
         """
         spec_line, params = q.spectroscopy_parameters()
+        if transition == "ef":
+            spec_line = "drive_ef"
+        elif transition != "ge":
+            raise ValueError("transition must be 'ge' or 'ef'.")
         if amplitude is None:
             amplitude = params["amplitude"]
         if length is None:

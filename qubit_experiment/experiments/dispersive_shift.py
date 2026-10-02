@@ -77,7 +77,7 @@ class DispersiveShiftExperimentOptions:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubit: QuantumElement,
+    qubit: list[str] | str,
     frequencies: QubitSweepPoints,
     states: Sequence[str],
     phase_delay: dict[str, float] | float | None = None,

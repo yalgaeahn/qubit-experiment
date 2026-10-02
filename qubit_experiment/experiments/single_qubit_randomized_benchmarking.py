@@ -38,6 +38,10 @@ from laboneq_applications.experiments.options import (
     TuneupExperimentOptions,
     TuneUpWorkflowOptions,
 )
+from laboneq_applications.tasks.parameter_updating import (
+    temporary_qpu,
+    temporary_quantum_elements_from_qpu,
+)
 
 if TYPE_CHECKING:
     from laboneq.dsl.quantum.qpu import QPU
@@ -50,7 +54,7 @@ if TYPE_CHECKING:
 def experiment_workflow(
     session: Session,
     qpu: QPU,
-    qubits: QuantumElements,
+    qubits: list[str] | str,
     length_cliffords: list,
     variations: int = 1,
     seed: int | None = None,
@@ -109,9 +113,11 @@ def experiment_workflow(
         ).run()
         ```
     """
+    temp_qpu = temporary_qpu(qpu, None)
+    temp_qubits = temporary_quantum_elements_from_qpu(temp_qpu, qubits)
     gate_map = get_gate_map(gate_map)
 
-    quantum_operations = add_qasm_operations(qpu.quantum_operations, gate_map)
+    quantum_operations = add_qasm_operations(temp_qpu.quantum_operations, gate_map)
 
     qasm_rb_sequences = create_sq_rb_qasm(
         length_cliffords=length_cliffords,
@@ -121,15 +127,15 @@ def experiment_workflow(
     )
 
     exp = create_experiment(
-        qpu,
-        qubits,
+        temp_qpu,
+        temp_qubits,
         qasm_rb_sequences,
         quantum_operations=quantum_operations,
     )
     compiled_exp = compile_experiment(session, exp)
     result = run_experiment(session, compiled_exp)
     with workflow.if_(options.do_analysis):
-        analysis_workflow(result, qubits, length_cliffords, variations)
+        analysis_workflow(result, temp_qubits, length_cliffords, variations)
     workflow.return_(result)
 
 

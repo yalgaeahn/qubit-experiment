@@ -11,23 +11,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 from laboneq import workflow
 from laboneq.simple import dsl
-
 from laboneq_applications.analysis.options import BasePlottingOptions
-from .plotting_helpers import timestamped_title
 from laboneq_applications.core.validation import (
     validate_and_convert_qubits_sweeps,
     validate_result,
 )
+
 from .plot_theme import with_plot_theme
+from .plotting_helpers import timestamped_title
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     import matplotlib as mpl
     from laboneq.workflow.tasks.run_experiment import RunExperimentResults
-    from numpy.typing import ArrayLike
-
     from laboneq_applications.typing import QuantumElements
+    from numpy.typing import ArrayLike
 
 
 _FLAT_WINDOW_DISTANCE_BAND_RATIO = 0.02
@@ -361,6 +360,16 @@ def build_iq_time_trace_analysis_payload(
     }
 
 
+def _single_raw_trace(data, handle: str) -> np.ndarray:
+    """Accept either 26.7 single-acquisition axis order as one time trace."""
+    trace = np.atleast_1d(np.squeeze(np.asarray(data, dtype=complex)))
+    if trace.ndim != 1:
+        raise ValueError(
+            f"Expected one RAW trace for {handle!r}; got shape {trace.shape}."
+        )
+    return trace
+
+
 @workflow.task
 def collect_time_traces(
     qubits: QuantumElements,
@@ -413,7 +422,7 @@ def collect_time_traces(
         for state in states:
             handle = dsl.handles.calibration_trace_handle(q.uid, state)
             try:
-                trace = np.asarray(result[handle].data, dtype=complex)
+                trace = _single_raw_trace(result[handle].data, handle)
             except KeyError as exc:
                 raise KeyError(
                     "Missing calibration trace handle for "
