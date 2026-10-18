@@ -1,0 +1,52 @@
+[
+  {
+    "label": "01_drive_off",
+    "center_hz": 4682948272.543064,
+    "center_stderr_hz": 19387.02418462716,
+    "hwhm_hz": 50000.000000007625,
+    "complex_amplitude": 0.07310161678489241,
+    "point_noise_complex": 0.03599684335270471,
+    "amplitude_over_point_noise": 2.030778534346116,
+    "delta_BIC_vs_linear": -12.171156214190985
+  },
+  {
+    "label": "02_minus49p46",
+    "center_hz": 4680115638.091938,
+    "center_stderr_hz": 7258.693664729104,
+    "hwhm_hz": 100743.59747130754,
+    "complex_amplitude": 0.19918797338684813,
+    "point_noise_complex": 0.026146611603800607,
+    "amplitude_over_point_noise": 7.618118033997746,
+    "delta_BIC_vs_linear": 220.71411018510275
+  },
+  {
+    "label": "03_fine_minus49p46",
+    "center_hz": 4680137647.6730585,
+    "center_stderr_hz": 4578.324519095978,
+    "hwhm_hz": 89945.09908125048,
+    "complex_amplitude": 0.15688427695200188,
+    "point_noise_complex": 0.021268626687183125,
+    "amplitude_over_point_noise": 7.376323787118014,
+    "delta_BIC_vs_linear": 225.41476176993672
+  },
+  {
+    "label": "04_reverse_minus43p46",
+    "center_hz": 4680136278.134989,
+    "center_stderr_hz": 4011.1009448646873,
+    "hwhm_hz": 130109.36072895202,
+    "complex_amplitude": 0.3570953030494934,
+    "point_noise_complex": 0.03530062305116199,
+    "amplitude_over_point_noise": 10.115835704427855,
+    "delta_BIC_vs_linear": 343.9322159028725
+  },
+  {
+    "label": "05_confirm_low_reverse",
+    "center_hz": 4680129685.853015,
+    "center_stderr_hz": 3245.992049783191,
+    "hwhm_hz": 79093.06761688391,
+    "complex_amplitude": 0.1999648066101637,
+    "point_noise_complex": 0.022458876778458852,
+    "amplitude_over_point_noise": 8.903597832726765,
+    "delta_BIC_vs_linear": 287.7041823431922
+  }
+]

@@ -1,0 +1,50 @@
+{
+  "target": "q3",
+  "index": 2,
+  "resonance_frequency_ge_hz": 4813030000.0,
+  "drive_lo_frequency_hz": 4800000000.0,
+  "spectroscopy_length_s": 1e-05,
+  "spectroscopy_amplitude": 0.0010641430182243164,
+  "drive_range_dbm": 10,
+  "nominal_drive_output_dbm": -49.46,
+  "readout_frequency_hz": 7555232000.0,
+  "readout_amplitude": 0.4,
+  "readout_range_dbm": -10,
+  "count": 1024,
+  "frequency_step_hz": 10000.0,
+  "forward_fit": {
+    "width_at_lower_bound": false,
+    "label": "precise_forward",
+    "center_hz": 4813035239.406183,
+    "center_stderr_hz": 732.1076556463636,
+    "hwhm_hz": 46918.05268845623,
+    "complex_amplitude": 0.5584405954535616,
+    "point_noise_complex": 0.025448492873139574,
+    "amplitude_over_point_noise": 21.943955511918965,
+    "delta_BIC_vs_linear": 983.1922256026191
+  },
+  "reverse_fit": {
+    "width_at_lower_bound": false,
+    "label": "precise_reverse",
+    "center_hz": 4813029112.747501,
+    "center_stderr_hz": 707.8200636096881,
+    "hwhm_hz": 44526.03594762435,
+    "complex_amplitude": 0.580281719488395,
+    "point_noise_complex": 0.02587437993252103,
+    "amplitude_over_point_noise": 22.426884083859715,
+    "delta_BIC_vs_linear": 974.6943233221283
+  },
+  "drive_off_fit": {
+    "width_at_lower_bound": false,
+    "label": "drive_off",
+    "center_hz": 4813468542.544403,
+    "center_stderr_hz": 44092.33851315774,
+    "hwhm_hz": 89091.39612661915,
+    "complex_amplitude": 0.012159839943575014,
+    "point_noise_complex": 0.023122522470574735,
+    "amplitude_over_point_noise": 0.5258872581505494,
+    "delta_BIC_vs_linear": -18.976203936620983
+  },
+  "repeat_center_difference_hz": 6126.658681869507,
+  "note": "Rounded operating start value; fit-only errors do not include drift/systematics. Notebook and QPU snapshots were not modified."
+}

@@ -1,0 +1,46 @@
+[
+  {
+    "label": "01_survey",
+    "count": 256,
+    "integration_length_s": 2e-06,
+    "frequency_start_hz": 7245200000.0,
+    "frequency_stop_hz": 7445200000.0,
+    "frequency_points": 2001,
+    "amplitudes": [
+      0.001294196
+    ]
+  },
+  {
+    "label": "02_pilot",
+    "count": 512,
+    "integration_length_s": 2e-06,
+    "frequency_start_hz": 7337200000.0,
+    "frequency_stop_hz": 7353200000.0,
+    "frequency_points": 801,
+    "amplitudes": [
+      0.001294196
+    ]
+  },
+  {
+    "label": "02_pilot_retry_2048",
+    "count": 2048,
+    "integration_length_s": 2e-06,
+    "frequency_start_hz": 7337200000.0,
+    "frequency_stop_hz": 7353200000.0,
+    "frequency_points": 801,
+    "amplitudes": [
+      0.001294196
+    ]
+  },
+  {
+    "label": "02_pilot_retry_8192",
+    "count": 8192,
+    "integration_length_s": 2e-06,
+    "frequency_start_hz": 7337200000.0,
+    "frequency_stop_hz": 7353200000.0,
+    "frequency_points": 801,
+    "amplitudes": [
+      0.001294196
+    ]
+  }
+]

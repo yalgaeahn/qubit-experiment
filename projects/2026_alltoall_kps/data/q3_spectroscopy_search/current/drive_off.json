@@ -1,0 +1,29 @@
+{
+  "snapshot": "/Users/yalgaeahn/Research/20_Projects/qubit-experiment/projects/2026_alltoall_kps/qpu_parameters/20261018-152737_1.json",
+  "target": "q3",
+  "execute": true,
+  "power_dbm": null,
+  "count": 1024,
+  "start_hz": 4812200000.0,
+  "stop_hz": 4813800000.0,
+  "points": 161,
+  "drive_range_dbm": 10,
+  "drive_lo_hz": 4800000000.0,
+  "spectroscopy_amplitude": 0,
+  "spectroscopy_length_s": 1e-05,
+  "readout": [
+    "measure",
+    {
+      "amplitude": 0.4,
+      "length": 1e-06,
+      "pulse": {
+        "can_compress": true,
+        "function": "GaussianSquare",
+        "risefall_sigma_ratio": 3.0,
+        "sigma": 0.03,
+        "zero_boundaries": true
+      }
+    }
+  ],
+  "parameters_repr": "FixedTransmonQubitParameters(custom={}, ge_T1=0, ge_T2=0, ge_T2_star=0, ef_T1=0, ef_T2=0, ef_T2_star=0, drive_lo_frequency=4800000000.0, readout_lo_frequency=7400000000.0, resonance_frequency_ge=4680100000.0, resonance_frequency_ef=None, readout_resonator_frequency=7555232000.0, ge_drive_amplitude_pi=0.2, ge_drive_amplitude_pi2=0.1, ge_drive_length=5e-08, ge_drive_length_pi=None, ge_drive_length_pi2=None, ge_drive_pulse={'beta': 0, 'function': 'drag', 'sigma': 0.3, 'zero_boudaries': True}, ef_drive_amplitude_pi=0.2, ef_drive_amplitude_pi2=0.1, ef_drive_length=5e-08, ef_drive_pulse={'beta': 0, 'function': 'drag', 'sigma': 0.3, 'zero_boundaries': True}, qubit_resonator_coupling_strength_g=0, ge_chi_shift=0, readout_amplitude=0.4, readout_length=1e-06, readout_pulse={'can_compress': True, 'function': 'GaussianSquare', 'risefall_sigma_ratio': 3.0, 'sigma': 0.03, 'zero_boundaries': True}, readout_integration_length=1e-06, readout_integration_delay=1.23e-07, readout_integration_kernels_type='default', readout_integration_kernels=None, readout_integration_discrimination_thresholds=None, readout_phase_delay=None, reset_delay_length=0.0001, drive_range=10, readout_range_out=-10, readout_range_in=10, spectroscopy_length=1e-05, spectroscopy_amplitude=0, spectroscopy_pulse={'can_compress': True, 'function': 'const'}, user_defined={})"
+}

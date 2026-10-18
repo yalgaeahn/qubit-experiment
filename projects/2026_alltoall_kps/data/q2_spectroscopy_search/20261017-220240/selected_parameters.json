@@ -1,0 +1,13 @@
+{
+  "new_parameter_values": {
+    "q2": {
+      "resonance_frequency_ge": 4680130000.0,
+      "drive_lo_frequency": 4600000000.0,
+      "spectroscopy_length": 1e-05,
+      "spectroscopy_amplitude": 0.0010641430182243164,
+      "readout_integration_delay": 2.44e-07
+    }
+  },
+  "measured_weighted_center_hz": 4680132349.219334,
+  "selection_note": "Center rounded to 10 kHz; two fine low-power scans and independent higher-power reverse scan confirm the transition."
+}

@@ -1,0 +1,19 @@
+{
+  "source_run": "/Users/yalgaeahn/Library/CloudStorage/SynologyDrive-KAIST/ALLTOALL_KPS_2026/experiment_store/20261018/20261018T005434-resonator-spectroscopy-amplitude",
+  "qubit": "q2",
+  "shape": [
+    101,
+    301
+  ],
+  "tau_s": 7.993054819631737e-08,
+  "f_ref_hz": 7345500000.0,
+  "delay_source": "qubit_parameter",
+  "correction": "phase + 2*pi*(f-f_ref)*tau; same convention as analysis/dispersive_shift.py",
+  "display": "wrapped phase, [-pi, pi]",
+  "checks": [
+    "finite complex data",
+    "axes and shape",
+    "magnitude preserved",
+    "wrapped and unwrapped correction agree"
+  ]
+}

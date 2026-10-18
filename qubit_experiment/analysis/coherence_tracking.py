@@ -244,6 +244,7 @@ def _history_points_for_parameter(
                 "timestamp": timestamp,
                 "value": value,
                 "std_dev": std_dev,
+                "quality_reasons": row.get("quality_reasons", []),
             }
         )
     return points
@@ -266,9 +267,7 @@ def _filter_merged_output_value(
         for qubit_uid, values in merged_old.items():
             if not isinstance(values, dict):
                 continue
-            selected_values = {
-                key: value for key, value in values.items() if key in selected
-            }
+            selected_values = {key: value for key, value in values.items() if key in selected}
             if selected_values:
                 old_parameter_values[str(qubit_uid)] = selected_values
 
@@ -277,9 +276,7 @@ def _filter_merged_output_value(
         for qubit_uid, values in merged_new.items():
             if not isinstance(values, dict):
                 continue
-            selected_values = {
-                key: value for key, value in values.items() if key in selected
-            }
+            selected_values = {key: value for key, value in values.items() if key in selected}
             if selected_values:
                 new_parameter_values[str(qubit_uid)] = selected_values
 
@@ -362,7 +359,6 @@ def run_iteration_analysis_value(
     merged_output = _merge_metric_outputs(t1_output, t2_star_output, t2_output)
     filtered_output = _filter_merged_output_value(merged_output, tracked_parameters)
     resolved_path = _resolve_history_path_value(history_path)
-    existing_rows = _sort_history_rows(_load_history_rows(resolved_path))
     new_rows = _build_history_rows(
         merged_output["metric_outputs"],
         tracked_parameters,
@@ -371,7 +367,7 @@ def run_iteration_analysis_value(
     _append_history_rows(resolved_path, new_rows)
     filtered_output["history_path"] = str(resolved_path)
     filtered_output["history_entries"] = new_rows
-    filtered_output["history_rows"] = _sort_history_rows([*existing_rows, *new_rows])
+    filtered_output["history_rows"] = list(new_rows)
     return filtered_output
 
 
@@ -614,9 +610,7 @@ def plot_tracking_history(
             metadata = _TRACKED_PARAMETER_METADATA[parameter_key]
             points = _history_points_for_parameter(q_rows, parameter_key)
             axis.grid(alpha=0.22)
-            axis.set_ylabel(
-                f"{metadata['label']} ({metadata['display_unit']})"
-            )
+            axis.set_ylabel(f"{metadata['label']} ({metadata['display_unit']})")
             if not points:
                 axis.text(
                     0.5,
@@ -636,25 +630,28 @@ def plot_tracking_history(
             ) * float(metadata["display_scale"])
             std_values = np.asarray(
                 [
-                    np.nan
-                    if point["std_dev"] is None
-                    else float(point["std_dev"])
+                    np.nan if point["std_dev"] is None else float(point["std_dev"])
                     for point in points
                 ],
                 dtype=float,
             ) * float(metadata["display_scale"])
 
-            if np.isfinite(std_values).any():
+            warning_mask = np.asarray([bool(point.get("quality_reasons")) for point in points])
+            for warning, marker in ((False, "o"), (True, "x")):
+                mask = warning_mask == warning
+                if not mask.any():
+                    continue
+                errors = np.where(np.isfinite(std_values[mask]), std_values[mask], 0.0)
                 axis.errorbar(
-                    x_values,
-                    y_values,
-                    yerr=std_values,
-                    fmt="o-",
+                    np.asarray(x_values)[mask],
+                    y_values[mask],
+                    yerr=errors,
+                    fmt=marker,
+                    linestyle="none",
                     capsize=3,
-                    linewidth=1.4,
+                    label="quality warning" if warning else "accepted",
                 )
-            else:
-                axis.plot(x_values, y_values, "o-", linewidth=1.4)
+            axis.legend()
             axis.xaxis.set_major_locator(locator)
             axis.xaxis.set_major_formatter(formatter)
 
@@ -783,3 +780,153 @@ def analysis_workflow(
         )
 
     workflow.return_(_attach_history_bundle(filtered_output, history_bundle))
+
+
+def analyze_monitoring_metric_value(
+    metric_id, result, qubits, delays, detunings, experiment_options, analysis_options
+):
+    """Analyze qubits independently with explicit experiment/analysis option linkage.
+
+    Preserve fits with missing covariance without inventing zero uncertainty. Return
+    diagnostic arrays and per-qubit failures so another metric can still proceed.
+    """
+    import traceback
+
+    import uncertainties as unc
+    from laboneq_applications.analysis.calibration_traces_rotation import (
+        CalculateQubitPopulationOptions,
+    )
+    from laboneq_applications.core.validation import validate_and_convert_qubits_sweeps
+
+    if isinstance(qubits, (list, tuple)) and len(qubits) == 1 and np.ndim(delays) == 1:
+        delays = [delays]
+    qubits, sweeps = validate_and_convert_qubits_sweeps(qubits, delays)
+    detunings = ramsey_analysis_module.validate_and_convert_detunings(qubits, detunings)
+    module = {
+        "t1": lifetime_analysis_module,
+        "t2_star": ramsey_analysis_module,
+        "t2": echo_analysis_module,
+    }[metric_id]
+    key = {"t1": "ge_T1", "t2_star": "ge_T2_star", "t2": "ge_T2"}[metric_id]
+    output = _empty_analysis_payload_value()
+    diagnostics = {}
+    quality = {}
+    for q, sweep, detuning in zip(qubits, sweeps, detunings):
+        reasons = []
+        detail = {"fit_success": False}
+        output["old_parameter_values"][q.uid] = {key: getattr(q.parameters, key)}
+        output["new_parameter_values"][q.uid] = {}
+        if metric_id == "t2_star":
+            output["old_parameter_values"][q.uid]["resonance_frequency_ge"] = (
+                q.parameters.resonance_frequency_ge
+            )
+        try:
+            rotation_options = CalculateQubitPopulationOptions(
+                do_rotation=analysis_options.do_rotation,
+                do_pca=analysis_options.do_pca,
+                use_cal_traces=experiment_options.use_cal_traces,
+                cal_states=experiment_options.cal_states,
+            )
+            processed = calculate_qubit_population.func(q, result, sweep, options=rotation_options)
+            detail["processed_data"] = processed[q.uid]
+            option_type = {
+                "t1": lifetime_analysis_module.FitDataT1Options,
+                "t2_star": ramsey_analysis_module.FitDataRamseyOptions,
+                "t2": echo_analysis_module.FitDataEchoOptions,
+            }[metric_id]
+            opts = option_type()
+            for name in ("do_rotation", "do_fitting", "fit_parameters_hints", "do_pca"):
+                if hasattr(opts, name):
+                    setattr(opts, name, getattr(analysis_options, name))
+            # PCA is required without calibration traces, including its fit defaults.
+            opts.do_pca = analysis_options.do_pca or not experiment_options.use_cal_traces
+            if hasattr(opts, "use_cal_traces"):
+                opts.use_cal_traces = experiment_options.use_cal_traces
+            if hasattr(opts, "transition"):
+                opts.transition = experiment_options.transition
+            if metric_id == "t2" and not analysis_options.do_rotation:
+                processed[q.uid]["population"] = processed[q.uid]["data_raw"]
+            fits = module.fit_data.func([q], processed, options=opts)
+            fit = fits.get(q.uid)
+            if fit is None:
+                reasons.append("fit_missing")
+            else:
+                covariance_missing = getattr(fit, "covar", True) is None
+                detail.update(
+                    {
+                        "covariance": getattr(fit, "covar", None),
+                        "fit_success": bool(fit.success),
+                        "message": fit.message,
+                        "parameters": {
+                            name: {
+                                "value": p.value,
+                                "std_dev": None if p.vary and covariance_missing else p.stderr,
+                                "vary": p.vary,
+                            }
+                            for name, p in fit.params.items()
+                        },
+                        "residual": fit.residual,
+                        "best_fit": fit.best_fit,
+                        "chisqr": fit.chisqr,
+                        "redchi": fit.redchi,
+                    }
+                )
+                if not fit.success:
+                    reasons.append("fit_unsuccessful")
+                detail["covariance_available"] = not covariance_missing
+                param = fit.params["decay_time" if metric_id == "t2_star" else "decay_rate"]
+                value = float(param.value)
+                error = param.stderr
+                if not np.isfinite(value) or value <= 0:
+                    reasons.append("invalid_coherence_time")
+                else:
+                    missing_error = (
+                        covariance_missing or error is None or not np.isfinite(error) or error < 0
+                    )
+                    uncertain = unc.ufloat(value, np.nan if missing_error else error)
+                    lifetime = uncertain if metric_id == "t2_star" else 1 / uncertain
+                    output["new_parameter_values"][q.uid][key] = lifetime
+                    if missing_error:
+                        reasons.append("uncertainty_missing")
+                    elif lifetime.std_dev / lifetime.nominal_value > 0.5:
+                        reasons.append("large_relative_uncertainty")
+                if metric_id == "t2_star":
+                    freq = fit.params["frequency"]
+                    if np.isfinite(freq.value):
+                        stderr = freq.stderr
+                        stderr = (
+                            np.nan
+                            if covariance_missing
+                            or stderr is None
+                            or not np.isfinite(stderr)
+                            or stderr < 0
+                            else stderr
+                        )
+                        if not np.isfinite(stderr):
+                            reasons.append("frequency_uncertainty_missing")
+                        # Select the Ramsey frequency branch near the current drive.
+                        estimate = (
+                            q.parameters.resonance_frequency_ge
+                            + detuning
+                            - np.sign(detuning or 1.0) * unc.ufloat(freq.value, stderr)
+                        )
+                        output["new_parameter_values"][q.uid]["resonance_frequency_ge"] = estimate
+        except Exception as exc:
+            reasons.append("analysis_exception")
+            detail.update(
+                {
+                    "error_type": type(exc).__name__,
+                    "error_message": str(exc),
+                    "traceback": traceback.format_exc(),
+                }
+            )
+        quality[q.uid] = {
+            "fit_success": detail["fit_success"],
+            "reasons": reasons,
+            "valid": detail["fit_success"] and not reasons,
+            "failed": not detail["fit_success"] or key not in output["new_parameter_values"][q.uid],
+        }
+        diagnostics[q.uid] = detail
+    output["quality"] = quality
+    output["diagnostics"] = diagnostics
+    return output

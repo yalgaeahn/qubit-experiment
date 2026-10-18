@@ -8,8 +8,6 @@ import numpy as np
 from laboneq import workflow
 from laboneq.dsl.enums import AcquisitionType, AveragingMode
 from laboneq.simple import Experiment, dsl
-
-from qubit_experiment.analysis.readout_frequency_sweep import analysis_workflow
 from laboneq_applications.core import validation
 from laboneq_applications.experiments.options import BaseExperimentOptions
 from laboneq_applications.tasks.parameter_updating import (
@@ -17,6 +15,8 @@ from laboneq_applications.tasks.parameter_updating import (
     temporary_quantum_elements_from_qpu,
     update_qpu,
 )
+
+from qubit_experiment.analysis.readout_frequency_sweep import analysis_workflow
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -151,10 +151,10 @@ def experiment_workflow(
     with workflow.for_(frequency_points, lambda x: x) as readout_frequency:
         per_run_temp_parameters = _build_temp_params_for_frequency(
             base=temporary_parameters,
-            qubit_uid=qubit.uid,
+            qubit_uid=base_qubit.uid,
             readout_resonator_frequency=readout_frequency,
         )
-        per_run_qpu = temporary_qpu(qpu, per_run_temp_parameters)
+        per_run_qpu = temporary_qpu(base_temp_qpu, per_run_temp_parameters)
         per_run_qubit = temporary_quantum_elements_from_qpu(per_run_qpu, qubit)
         exp = create_experiment(
             qpu=per_run_qpu,

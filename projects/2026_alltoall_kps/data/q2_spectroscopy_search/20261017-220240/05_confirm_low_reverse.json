@@ -1,0 +1,22 @@
+{
+  "label": "05_confirm_low_reverse",
+  "power_dbm": -49.46,
+  "saturation_s": 1e-05,
+  "drive_range_dbm": 10,
+  "drive_lo_hz": 4600000000.0,
+  "drive_amplitude": 0.0010641430182243164,
+  "averages": 2048,
+  "frequency_start_hz": 4679300000.0,
+  "frequency_stop_hz": 4680900000.0,
+  "frequency_points": 81,
+  "readout_frequency_hz": 7345129641.0,
+  "readout_amplitude": 0.001294196,
+  "readout_range_dbm": 5,
+  "integration_delay_s": 2.44e-07,
+  "started_at": "2026-10-17T22:05:57.125222+09:00",
+  "finished_at": "2026-10-17T22:06:32.913090+09:00",
+  "signal_mean_I": -0.043442782167576306,
+  "signal_mean_Q": -0.11548542381896157,
+  "point_noise_I": 0.01699157225368101,
+  "point_noise_Q": 0.014686307177024991
+}

@@ -9,7 +9,8 @@ In this analysis, we first interpret the raw data into the signal magnitude and 
 Then we either extract the frequency corresponding to the min or max of the magnitude
 data, or we fit a Lorentzian model to the signal magnitude and extract frequency
 corresponding to the peak of the Lorentzian from the fit. Finally, we plot the data and
-the fit.
+the fit. Magnitude, raw phase, and phase corrected using the temporary qubit's
+readout_phase_delay are shown together. Missing delay calibration is labelled.
 """
 
 from __future__ import annotations
@@ -35,6 +36,7 @@ from .plotting_helpers import (
 )
 from laboneq_applications.core import validation
 from .plot_theme import with_plot_theme
+from .dispersive_shift import correct_readout_phase_delay
 
 if TYPE_CHECKING:
     import lmfit
@@ -268,7 +270,7 @@ def calculate_signal_magnitude_and_phase(
     qubit: QuantumElement,
     result: RunExperimentResults,
     frequencies: ArrayLike,
-) -> dict[str, ArrayLike]:
+) -> dict:
     """Calculates the magnitude and phase of the spectroscopy signal in result.
 
     Arguments:
@@ -286,6 +288,9 @@ def calculate_signal_magnitude_and_phase(
             data_raw
             magnitude
             phase
+            phase_corrected (wrapped, or None when delay calibration is missing)
+            phase_corrected_unwrapped
+            phase_delay (calibration provenance)
     """
     validation.validate_result(result)
     qubit, frequencies = validation.validate_and_convert_single_qubit_sweeps(
@@ -298,6 +303,7 @@ def calculate_signal_magnitude_and_phase(
         "data_raw": raw_data,
         "magnitude": np.abs(raw_data),
         "phase": np.angle(raw_data),
+        **correct_readout_phase_delay(qubit, frequencies, raw_data),
     }
 
 
@@ -575,7 +581,7 @@ def plot_magnitude_phase(
     magnitude = processed_data_dict["magnitude"]
     phase = processed_data_dict["phase"]
 
-    fig, axs = plt.subplots(nrows=2, sharex=True)
+    fig, axs = plt.subplots(nrows=3, sharex=True, figsize=(7, 9))
     axs[0].set_title(timestamped_title(f"Magnitude-Phase {qubit.uid}"))
     axs[0].plot(
         sweep_points / 1e9,
@@ -587,7 +593,23 @@ def plot_magnitude_phase(
     axs[0].set_ylabel("Transmission Signal\nMagnitude, $|S_{21}|$ (a.u.)")
     axs[1].plot(sweep_points / 1e9, phase, "-", zorder=2, label="data")
     axs[1].set_ylabel("Transmission Signal\nPhase, arg($S_{21}$) (rad)")
-    axs[1].set_xlabel("Readout Frequency, $f_{\\mathrm{RO}}$ (GHz)")
+    corrected_phase = processed_data_dict["phase_corrected"]
+    delay = processed_data_dict["phase_delay"]
+    if delay["applied"]:
+        axs[2].plot(sweep_points / 1e9, corrected_phase, "-", zorder=2)
+        axs[2].text(
+            0.02, 0.95, f"Delay correction: {delay['tau_s'] * 1e9:.4f} ns",
+            transform=axs[2].transAxes, va="top",
+        )
+    else:
+        axs[2].text(
+            0.5, 0.5, "Delay correction unavailable: readout_phase_delay is not set",
+            transform=axs[2].transAxes, ha="center", va="center", wrap=True,
+        )
+    axs[2].set_ylabel("Delay-corrected\nPhase (rad)")
+    axs[2].set_xlabel("Readout Frequency, $f_{\\mathrm{RO}}$ (GHz)")
+    for ax in axs[1:]:
+        ax.set_ylim(-np.pi, np.pi)
     fig.align_ylabels()
     fig.subplots_adjust(hspace=0.1)
 
@@ -681,7 +703,9 @@ def plot_magnitude_phase(
             f"{rr_freq.std_dev / 1e6:.4f} MHz"
         )
         textstr += f"\nPrevious value: {old_rr_freq / 1e9:.4f} GHz"
-        axs[1].text(0, -0.35, textstr, ha="left", va="top", transform=axs[1].transAxes)
+        axs[2].axvline(rr_freq.nominal_value / 1e9, linestyle="--", color="r")
+        axs[2].text(0, -0.35, textstr, ha="left", va="top", transform=axs[2].transAxes)
+        fig.subplots_adjust(bottom=0.19)
 
     if opts.save_figures:
         workflow.save_artifact(f"Magnitude_Phase_{qubit.uid}", fig)

@@ -19,6 +19,8 @@ dependencies = [
   "matplotlib>=3.7",
   "uncertainties>=3.1",
   "lmfit>=1.2",
+  "scikit-rf>=1.6,<2",              # NPL complex reflection Q fitting
+  "xarray",                         # required by LabOne Q 26.7 compiled-experiment serialization
   "laboneq>=26.7,<26.8",              # validated against the 26.7 stable release
   "laboneq-applications>=26.7,<26.8"  # matched Applications Library release
 ]

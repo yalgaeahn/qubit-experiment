@@ -1,0 +1,8 @@
+{
+  "drive_output_limit_dbm": -30.0,
+  "saturation_duration_s": 1e-05,
+  "target": "q2",
+  "drive_channel": "SG1",
+  "instrument": "DEV12256",
+  "note": "Existing connected notebook session; temporary parameters; no QPU update"
+}

@@ -1,0 +1,1 @@
+{"__creator__":["laboneq","26.7.0"],"__data__":{"class__":"laboneq.workflow.tasks.run_experiment.RunExperimentOptions","include_results_metadata":false,"inject_results":{"check_shapes":true,"paths":[],"use":"emulation"},"return_legacy_results":false},"__serializer__":"laboneq.serializers.implementations.TaskOptionsSerializer","__version__":1}

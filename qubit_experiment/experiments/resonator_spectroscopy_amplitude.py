@@ -26,7 +26,7 @@ from laboneq.workflow.tasks import (
     run_experiment,
 )
 
-from laboneq_applications.analysis.spectroscopy_two_dimensional_plotting import (
+from qubit_experiment.analysis.resonator_spectroscopy_amplitude import (
     analysis_workflow,
 )
 from laboneq_applications.core import validation

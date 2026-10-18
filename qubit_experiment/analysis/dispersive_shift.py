@@ -78,6 +78,36 @@ def _phase_delay_params(
     return tau_s, f_ref_hz, True, "external"
 
 
+def correct_readout_phase_delay(qubit, frequencies, raw_data, phase_delay=None):
+    """Correct cable phase along the last (frequency) axis using the stored delay.
+
+    Return wrapped and unwrapped phase plus calibration provenance. Missing delay
+    calibration is reported explicitly; it is never estimated from resonator data.
+    """
+    frequencies = np.asarray(frequencies, dtype=float)
+    raw_data = np.asarray(raw_data)
+    if frequencies.ndim != 1 or frequencies.size == 0:
+        raise ValueError("frequencies must be a nonempty 1D array.")
+    if raw_data.ndim == 0 or raw_data.shape[-1] != frequencies.size:
+        raise ValueError("The last data axis must match frequencies.")
+    tau, f_ref, applied, source = _phase_delay_params(qubit, frequencies, phase_delay)
+    if not np.all(np.isfinite(frequencies)) or not np.isfinite(tau) or not np.isfinite(f_ref):
+        raise ValueError("Frequencies and phase-delay parameters must be finite.")
+    phase_unwrapped = np.unwrap(np.angle(raw_data), axis=-1)
+    correction = 2.0 * np.pi * (frequencies - f_ref) * tau
+    corrected_unwrapped = phase_unwrapped + correction
+    return {
+        "phase_corrected": np.angle(raw_data * np.exp(1j * correction)) if applied else None,
+        "phase_corrected_unwrapped": corrected_unwrapped,
+        "phase_delay": {
+            "tau_s": tau,
+            "f_ref_hz": f_ref,
+            "applied": applied,
+            "source": source,
+        },
+    }
+
+
 def _estimate_resonance_frequency(
     frequencies: np.ndarray,
     phase_corrected: np.ndarray,
@@ -302,14 +332,13 @@ def calculate_dispersive_shift_metrics(
     phase_g = np.unwrap(np.angle(s21_g))
     phase_e = np.unwrap(np.angle(s21_e))
 
-    tau_s, f_ref_hz, delay_applied, delay_source = _phase_delay_params(
-        qubit, freqs, phase_delay
+    corrected = correct_readout_phase_delay(
+        qubit, freqs, np.stack([s21_g, s21_e]), phase_delay
     )
-    # Raw cable delay contributes approximately -2*pi*f*tau in phase.
-    # To compensate, add +2*pi*(f-f_ref)*tau to the unwrapped phase.
-    phase_correction = 2.0 * np.pi * (freqs - f_ref_hz) * tau_s
-    phase_g_corr = phase_g + phase_correction
-    phase_e_corr = phase_e + phase_correction
+    delay = corrected["phase_delay"]
+    tau_s, f_ref_hz = delay["tau_s"], delay["f_ref_hz"]
+    delay_applied, delay_source = delay["applied"], delay["source"]
+    phase_g_corr, phase_e_corr = corrected["phase_corrected_unwrapped"]
 
     # Robustify resonance picking: anchor phase-slope search near each magnitude dip.
     idx_mag_g = int(np.argmin(mag_g))

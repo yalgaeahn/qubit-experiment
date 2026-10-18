@@ -1,0 +1,22 @@
+{
+  "qubit_uid": "q2",
+  "snapshot": "/Users/yalgaeahn/Research/20_Projects/qubit-experiment/projects/2026_alltoall_kps/qpu_parameters/20261018-021135_1.json",
+  "reference_frequency_hz": 7345200000.0,
+  "readout_operating_frequency_hz": 7344893333.333333,
+  "output_range_dbm": -10,
+  "amplitudes": [
+    0.000647098,
+    0.001294196,
+    0.002588392
+  ],
+  "instrument_port_power_dbm": [
+    -73.78059884918423,
+    -67.7599989359046,
+    -61.73939902262497
+  ],
+  "execute": false,
+  "server_host": "192.168.0.83",
+  "model_reference": "https://eprintspublications.npl.co.uk/9304/ (MAT58 eq.26)",
+  "power_note": "instrument output, not attenuation-calibrated chip input",
+  "interpretation": "loaded readout hybrid mode; qubit not actively prepared"
+}

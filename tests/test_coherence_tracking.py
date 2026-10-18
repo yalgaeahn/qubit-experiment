@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from types import SimpleNamespace
 
 import matplotlib
 import pytest
@@ -147,9 +146,7 @@ def test_filter_merged_output_keeps_only_selected_parameters() -> None:
     )
 
     assert filtered["tracked_parameters"] == ["ge_T2_star"]
-    assert filtered["new_parameter_values"]["q0"] == {
-        "ge_T2_star": pytest.approx(9.0e-6)
-    }
+    assert filtered["new_parameter_values"]["q0"] == {"ge_T2_star": pytest.approx(9.0e-6)}
     assert "resonance_frequency_ge" not in filtered["new_parameter_values"]["q0"]
 
 
@@ -188,9 +185,7 @@ def test_load_history_rows_skips_malformed_lines(tmp_path: Path) -> None:
 
     rows = tracking_analysis._load_history_rows(path)
 
-    assert rows == [
-        {"timestamp_utc": "2026-03-06T00:00:00Z", "parameter_key": "ge_T1"}
-    ]
+    assert rows == [{"timestamp_utc": "2026-03-06T00:00:00Z", "parameter_key": "ge_T1"}]
 
 
 def test_resolve_history_path_uses_active_folder_store_root(
@@ -457,110 +452,8 @@ def test_analysis_workflow_materializes_parent_result_before_child_analysis(
     assert executed["new_parameter_values"]["q0"]["ge_T1"] == pytest.approx(11.0e-6)
 
 
-def test_experiment_workflow_runs_long_running_with_stubbed_dependencies(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    executed_metrics: list[tuple[str, int]] = []
-    analyzed_iterations: list[int] = []
-
-    def _analysis_stub(
-        *,
-        qubits,
-        tracked_parameters,
-        history_path,
-        timestamp_utc,
-        **kwargs,  # noqa: ARG001
-    ) -> dict[str, object]:
-        iteration_index = int(str(timestamp_utc).rsplit("-", maxsplit=1)[-1])
-        analyzed_iterations.append(iteration_index)
-        return {
-            "metric_outputs": {},
-            "old_parameter_values": {qubits.uid: {"ge_T1": 10.0e-6}},
-            "new_parameter_values": {
-                qubits.uid: {"ge_T1": (11.0 + iteration_index) * 1.0e-6}
-            },
-            "history_path": str(history_path),
-            "history_entries": [{"parameter_key": "ge_T1", "iteration_index": iteration_index}],
-            "history_rows": [],
-            "tracked_parameters": list(tracked_parameters),
-        }
-
-    class _SessionStub:
-        def compile(self, experiment):
-            return experiment
-
-        def run(self, compiled):
-            return {"compiled": compiled}
-
-    def _t1_create(qpu, qubits, delays, options):  # noqa: ARG001
-        iteration_index = len(executed_metrics)
-        executed_metrics.append(("t1", iteration_index))
-        return {"metric": "t1", "qubits": qubits, "delays": delays}
-
-    qubit = _QubitStub("q0")
-    monkeypatch.setattr(
-        tracking.lifetime_measurement,
-        "create_experiment",
-        SimpleNamespace(func=_t1_create),
-    )
-    monkeypatch.setattr(
-        tracking.ramsey,
-        "create_experiment",
-        SimpleNamespace(func=lambda qpu, qubits, delays, detunings, options, echo, refocus_qop: {  # noqa: ARG005
-            "metric": "t2" if echo else "t2_star",
-            "qubits": qubits,
-            "delays": delays,
-            "detunings": detunings,
-            "refocus_qop": refocus_qop,
-        }),
-    )
-    monkeypatch.setattr(
-        tracking,
-        "temporary_qpu",
-        SimpleNamespace(func=lambda qpu, temporary_parameters: qpu),
-    )
-    monkeypatch.setattr(
-        tracking,
-        "temporary_quantum_elements_from_qpu",
-        SimpleNamespace(func=lambda qpu, qubits: qubits),
-    )
-    monkeypatch.setattr(tracking, "run_iteration_analysis_value", _analysis_stub)
-    monkeypatch.setattr(
-        tracking,
-        "_wait_for_iteration_slot_value",
-        lambda runtime, iteration_plan: {  # noqa: ARG005
-            "run_iteration": True,
-            "skip_reason": None,
-            "waited_s": 0.0,
-            "scheduled_start_utc": f"2026-03-06T00:00:00-{iteration_plan['iteration_index']}",
-            "started_utc": f"2026-03-06T00:00:00-{iteration_plan['iteration_index']}",
-        },
-    )
-
-    options = tracking.experiment_workflow.options()
-    options.tracked_parameters(("ge_T1",))
-    options.total_duration_s(65.0)
-    options.interval_s(30.0)
-    options.do_plotting(False)
-    options.history_path(str(tmp_path / "tracking.jsonl"))
-
-    result = tracking.experiment_workflow(
-        session=_SessionStub(),
-        qpu=object(),
-        qubits=qubit,
-        t1_delays=[0.0, 1.0e-6],
-        options=options,
-    ).run()
-
-    assert result.output["analysis"]["successful_iterations"] == 3
-    assert result.output["analysis"]["failed_iterations"] == 0
-    assert len(result.output["analysis"]["iteration_summaries"]) == 3
-    assert executed_metrics == [("t1", 0), ("t1", 1), ("t1", 2)]
-    assert analyzed_iterations == [0, 1, 2]
-    assert result.output["analysis"]["new_parameter_values"]["q0"]["ge_T1"] == pytest.approx(
-        13.0e-6
-    )
+# Full monitoring execution, including concrete QPUs and Results, is covered in
+# test_coherence_monitoring.py rather than mocking the entire analysis path.
 
 
 def test_build_final_analysis_output_counts_successes_and_failures() -> None:
@@ -589,3 +482,33 @@ def test_build_final_analysis_output_counts_successes_and_failures() -> None:
     assert out["last_successful_iteration_index"] == 0
     assert out["tracked_parameters"] == ["ge_T1"]
     assert "history_rows" not in out
+
+
+def test_automatic_folder_logs_are_disabled_by_default(tmp_path: Path) -> None:
+    store = workflow.logbook.FolderStore(tmp_path / "experiment_store")
+    store.activate()
+    try:
+        for options in (None, tracking.experiment_workflow.options()):
+            execution = tracking.experiment_workflow(
+                session=None,
+                qpu=None,
+                qubits="q0",
+                options=options,
+            )
+            assert execution._logstores() == []
+            # Invalid inputs terminate before any instrument/QPU access.
+            with pytest.raises(ValueError, match="t1_delays"):
+                execution.run()
+        assert not list((tmp_path / "experiment_store").rglob("log.jsonl"))
+        assert not list((tmp_path / "experiment_store").glob("*/*coherence-tracking"))
+    finally:
+        store.deactivate()
+
+
+def test_explicit_folder_log_selection_still_works(tmp_path: Path) -> None:
+    store = workflow.logbook.FolderStore(tmp_path / "explicit_store")
+    options = tracking.experiment_workflow.options()
+    options.logstore(store)
+    execution = tracking.experiment_workflow(session=None, qpu=None, qubits="q0", options=options)
+    assert execution._logstores() == [store]
+    assert tracking.CoherenceTrackingWorkflowOptions().logstore == []

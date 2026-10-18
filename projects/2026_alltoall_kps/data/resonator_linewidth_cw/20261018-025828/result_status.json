@@ -1,0 +1,278 @@
+{
+  "execution_status": "interrupted_before_retry_completed",
+  "acquisition_active": false,
+  "validation_status": "incomplete_no_verified_low_power_plateau",
+  "representative": null,
+  "completed_fit_file": "03_low_power.fit.json",
+  "completed_raw_files": [
+    "03_low_power_0.npz",
+    "03_low_power_1.npz",
+    "03_low_power_2.npz"
+  ],
+  "power_points": [
+    {
+      "amplitude": 0.000647098,
+      "output_power_dbm": -73.78059884918423,
+      "parameters": [
+        -0.05852568662886495,
+        -0.3625475298534879,
+        0.2269874079014067,
+        -0.28401003290181404,
+        -0.31869998189314414,
+        0.300518116022612,
+        0.6131676355345973
+      ],
+      "rank_ok": true,
+      "fr_hz": 7345141474.313371,
+      "fr_stderr_hz": 17445.402038755,
+      "linewidth_hz": 695901.2368087512,
+      "linewidth_stderr_hz": 40215.09541554292,
+      "q_loaded": 10554.86193413962,
+      "q_loaded_stderr": 609.9485009629593,
+      "kappa_rad_s": 4372476.426364847,
+      "kappa_over_2pi_hz": 695901.2368087512,
+      "energy_decay_time_s": 2.2870334851213174e-07,
+      "bic": -10941.106114289842,
+      "residual_rms_normalized": 0.2539217417529605,
+      "residual_lag1": 0.03907977716518529,
+      "status": "unreliable",
+      "reasons": [
+        "large_statistical_error",
+        "window_dependent_q"
+      ],
+      "model": "NPL_single_pole_reflection_with_delay",
+      "model_reference": "https://eprintspublications.npl.co.uk/9304/ (MAT58 eq.26)",
+      "seed_method": "NPL_equation26_bounded_complex_fit_NLQFIT7_seed_failed",
+      "delay_s": 8.054371583185197e-08,
+      "delay_initial_s": 7.993054819631737e-08,
+      "fit_window_hz": [
+        7342890515.795262,
+        7347325258.488391
+      ],
+      "window_checks": [
+        {
+          "half_width_linewidths": 1.5,
+          "status": "ok",
+          "q_loaded": 9704.270243765104,
+          "fr_hz": 7345131449.493512
+        },
+        {
+          "half_width_linewidths": 2.0,
+          "status": "ok",
+          "q_loaded": 9795.490269624479,
+          "fr_hz": 7345140790.081102
+        },
+        {
+          "half_width_linewidths": 3.0,
+          "status": "ok",
+          "q_loaded": 10262.36063174148,
+          "fr_hz": 7345146697.580933
+        }
+      ],
+      "model_comparisons": [
+        {
+          "model": "two_pole",
+          "bic": -10916.539525537892,
+          "identifiable": false,
+          "reasons": [
+            "large_statistical_error",
+            "window_dependent_q"
+          ]
+        },
+        {
+          "model": "two_pole",
+          "bic": -10916.539525868664,
+          "identifiable": false,
+          "reasons": [
+            "large_statistical_error",
+            "window_dependent_q"
+          ]
+        },
+        {
+          "model": "two_pole",
+          "bic": -10916.539525100434,
+          "identifiable": false,
+          "reasons": [
+            "large_statistical_error",
+            "window_dependent_q"
+          ]
+        },
+        {
+          "model": "two_pole",
+          "bic": -10916.539524349091,
+          "identifiable": false,
+          "reasons": [
+            "large_statistical_error",
+            "window_dependent_q"
+          ]
+        }
+      ]
+    },
+    {
+      "amplitude": 0.001294196,
+      "output_power_dbm": -67.7599989359046,
+      "parameters": [
+        -0.0791699785265087,
+        -0.5112778699448898,
+        0.3271978082635989,
+        -0.20906783474303067,
+        -0.45680167410324585,
+        0.17050116302189663,
+        -0.9107161255265033
+      ],
+      "rank_ok": true,
+      "fr_hz": 7345120830.021474,
+      "fr_stderr_hz": 14151.518280685139,
+      "linewidth_hz": 599728.7136413939,
+      "linewidth_stderr_hz": 31816.68630791911,
+      "q_loaded": 12247.40564016661,
+      "q_loaded_stderr": 649.7455719260895,
+      "kappa_rad_s": 3768206.64184532,
+      "kappa_over_2pi_hz": 599728.7136413939,
+      "energy_decay_time_s": 2.653782276415426e-07,
+      "bic": -10955.163257867809,
+      "residual_rms_normalized": 0.25336498039871136,
+      "residual_lag1": 0.01990515399474223,
+      "status": "unreliable",
+      "reasons": [
+        "large_statistical_error",
+        "window_dependent_q"
+      ],
+      "model": "NPL_single_pole_reflection_with_delay",
+      "model_reference": "https://eprintspublications.npl.co.uk/9304/ (MAT58 eq.26)",
+      "seed_method": "NPL_equation26_bounded_complex_fit_NLQFIT7_seed_failed",
+      "delay_s": 7.901983207079087e-08,
+      "delay_initial_s": 7.993054819631737e-08,
+      "fit_window_hz": [
+        7342890515.795262,
+        7347325258.488391
+      ],
+      "window_checks": [
+        {
+          "half_width_linewidths": 1.5,
+          "status": "ok",
+          "q_loaded": 13548.992051583533,
+          "fr_hz": 7345106082.162552
+        },
+        {
+          "half_width_linewidths": 2.0,
+          "status": "ok",
+          "q_loaded": 13015.381139863286,
+          "fr_hz": 7345106000.772027
+        },
+        {
+          "half_width_linewidths": 3.0,
+          "status": "ok",
+          "q_loaded": 12103.985719439544,
+          "fr_hz": 7345120428.309465
+        }
+      ],
+      "model_comparisons": [
+        {
+          "model": "two_pole",
+          "bic": -10936.363512235122,
+          "identifiable": false,
+          "reasons": [
+            "large_statistical_error",
+            "window_dependent_q"
+          ]
+        },
+        {
+          "model": "two_pole",
+          "bic": -10923.165386607723,
+          "identifiable": false,
+          "reasons": [
+            "large_statistical_error",
+            "window_dependent_q"
+          ]
+        },
+        {
+          "model": "two_pole",
+          "bic": -10930.044825310066,
+          "identifiable": false,
+          "reasons": [
+            "large_statistical_error",
+            "window_dependent_q"
+          ]
+        },
+        {
+          "model": "two_pole",
+          "bic": -10928.161807977916,
+          "identifiable": false,
+          "reasons": [
+            "large_statistical_error",
+            "window_dependent_q"
+          ]
+        }
+      ]
+    },
+    {
+      "amplitude": 0.002588392,
+      "output_power_dbm": -61.73939902262497,
+      "parameters": [
+        -0.04392354183152467,
+        -0.47287889227520474,
+        0.32888980405382956,
+        -0.16428305034467108,
+        -0.4425517758388417,
+        0.14735561706731262,
+        0.7867351891573319
+      ],
+      "rank_ok": true,
+      "fr_hz": 7345156076.458168,
+      "fr_stderr_hz": 13008.974115911864,
+      "linewidth_hz": 623205.5416127638,
+      "linewidth_stderr_hz": 29513.17622068411,
+      "q_loaded": 11786.089156797276,
+      "q_loaded_stderr": 558.1534262033402,
+      "kappa_rad_s": 3915715.9024142134,
+      "kappa_over_2pi_hz": 623205.5416127638,
+      "energy_decay_time_s": 2.5538114227936085e-07,
+      "bic": -11930.663499504666,
+      "residual_rms_normalized": 0.21756645647574394,
+      "residual_lag1": 0.027713441757465103,
+      "status": "ok",
+      "reasons": [],
+      "model": "NPL_single_pole_reflection_with_delay",
+      "model_reference": "https://eprintspublications.npl.co.uk/9304/ (MAT58 eq.26)",
+      "seed_method": "NPL_NLQFIT7_plus_bounded_complex_refinement",
+      "delay_s": 8.07172833854747e-08,
+      "delay_initial_s": 7.993054819631737e-08,
+      "fit_window_hz": [
+        7342890515.795262,
+        7347325258.488391
+      ],
+      "window_checks": [
+        {
+          "half_width_linewidths": 1.5,
+          "status": "ok",
+          "q_loaded": 11336.909593280932,
+          "fr_hz": 7345147725.420048
+        },
+        {
+          "half_width_linewidths": 2.0,
+          "status": "ok",
+          "q_loaded": 11802.689498466048,
+          "fr_hz": 7345151268.904085
+        },
+        {
+          "half_width_linewidths": 3.0,
+          "status": "ok",
+          "q_loaded": 11650.077985898146,
+          "fr_hz": 7345151724.710132
+        }
+      ],
+      "model_comparisons": []
+    }
+  ],
+  "uncompleted_stages": [
+    "04_retry_0_4096",
+    "integration_and_reverse_validation"
+  ],
+  "device_readback_20261018_utc": {
+    "qachannels/0/generator/enable": 0,
+    "qachannels/0/output/on": 1,
+    "qachannels/0/spectroscopy/envelope/enable": 1
+  },
+  "note": "No final low-power kappa is established. The existing QA output setting was read without changing it. Sequencer is stopped and pulse envelope is enabled."
+}

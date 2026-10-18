@@ -3,8 +3,9 @@ scipy>=1.11
 matplotlib>=3.7
 uncertainties>=3.1
 lmfit>=1.2
-laboneq<26,>=25.10
-laboneq-applications<26,>=25.10
+xarray
+laboneq<26.8,>=26.7
+laboneq-applications<26.8,>=26.7
 
 [dev]
 ruff>=0.5

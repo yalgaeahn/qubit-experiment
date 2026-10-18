@@ -1,0 +1,68 @@
+[
+  {
+    "width_at_lower_bound": false,
+    "label": "drive_off",
+    "center_hz": 4813468542.544403,
+    "center_stderr_hz": 44092.33851315774,
+    "hwhm_hz": 89091.39612661915,
+    "complex_amplitude": 0.012159839943575014,
+    "point_noise_complex": 0.023122522470574735,
+    "amplitude_over_point_noise": 0.5258872581505494,
+    "delta_BIC_vs_linear": -18.976203936620983
+  },
+  {
+    "width_at_lower_bound": true,
+    "label": "fine_low_power",
+    "center_hz": 4813029693.637903,
+    "center_stderr_hz": 1368.267209605836,
+    "hwhm_hz": 50000.000000000015,
+    "complex_amplitude": 0.5752883796953043,
+    "point_noise_complex": 0.034642497802090874,
+    "amplitude_over_point_noise": 16.60643476061886,
+    "delta_BIC_vs_linear": 636.9765383801167
+  },
+  {
+    "width_at_lower_bound": false,
+    "label": "precise_forward",
+    "center_hz": 4813035239.406183,
+    "center_stderr_hz": 732.1076556463636,
+    "hwhm_hz": 46918.05268845623,
+    "complex_amplitude": 0.5584405954535616,
+    "point_noise_complex": 0.025448492873139574,
+    "amplitude_over_point_noise": 21.943955511918965,
+    "delta_BIC_vs_linear": 983.1922256026191
+  },
+  {
+    "width_at_lower_bound": false,
+    "label": "precise_reverse",
+    "center_hz": 4813029112.747501,
+    "center_stderr_hz": 707.8200636096881,
+    "hwhm_hz": 44526.03594762435,
+    "complex_amplitude": 0.580281719488395,
+    "point_noise_complex": 0.02587437993252103,
+    "amplitude_over_point_noise": 22.426884083859715,
+    "delta_BIC_vs_linear": 974.6943233221283
+  },
+  {
+    "width_at_lower_bound": true,
+    "label": "survey_high",
+    "center_hz": 4813035643.103341,
+    "center_stderr_hz": 42889.32443534978,
+    "hwhm_hz": 500000.00009995414,
+    "complex_amplitude": 0.4862099933008661,
+    "point_noise_complex": 0.047134885496798964,
+    "amplitude_over_point_noise": 10.31528958172362,
+    "delta_BIC_vs_linear": 319.170074301902
+  },
+  {
+    "width_at_lower_bound": true,
+    "label": "survey_low",
+    "center_hz": 4113788677.3072934,
+    "center_stderr_hz": 162017.38778486304,
+    "hwhm_hz": 500000.00000000553,
+    "complex_amplitude": 0.09724939940236559,
+    "point_noise_complex": 0.043082863775226625,
+    "amplitude_over_point_noise": 2.2572640460889146,
+    "delta_BIC_vs_linear": -15.219909512179939
+  }
+]
